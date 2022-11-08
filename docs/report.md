@@ -11,7 +11,8 @@
 ## Decision
 
 * no additional dependencies
-* clean
-* searchbar to
-* summary on top in the first package
-*
+* clean and pretty data grids
+* searchbar for packages
+* summary on top in the first page
+
+### Sketchs are under `report` folder
