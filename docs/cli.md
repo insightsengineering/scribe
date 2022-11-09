@@ -73,6 +73,18 @@ Not all packages in renv.lock file has Version parameter (Package: ggplot2).
 
 ### Changing log level for cli
 
+
+Error (Only errors)
+```bash
+$ scribe  --log=error renv.lock
+```
+
+Warning (default log level, will should R warnings )
+
+```bash
+$ scribe  --log=warning renv.lock
+```
+
 Info (info. about done steps)
 
 ```bash
@@ -85,10 +97,10 @@ Debug (Info level + messages from R command)
 $ scribe  --log=debug renv.lock
 ```
 
-Track (Debug level + http requests)
+Trace (Debug level + http requests)
 
 ```bash
-$ scribe  --log=track renv.lock
+$ scribe  --log=trace renv.lock
 ```
 
 Quiet (will return 1 if there will be an error)
@@ -106,6 +118,17 @@ $ scribe  -q renv.lock
 ### Generating installation report
 
 Installing packages from renv.lock file and generate report
+
+```bash
+$ scribe --report=html renv.lock
+
+Progress:
+download  [###########----] 90/120
+build     [########-------]  8/20
+install   [###########----] 40/100
+```
+
+`html` report is the default report type. We can shorten it to:
 
 ```bash
 $ scribe --report renv.lock
@@ -149,7 +172,7 @@ check:
 ### Checking packages from repositories
 
 ```bash
-$ scribe -report -check-remoteusername insightsengineering renv.lock
+$ scribe --report --check-remoteusername insightsengineering renv.lock
 
 Progress:
 download  [###########----] 90/120
@@ -169,7 +192,7 @@ check:
 ### Checking packags from RSPM Repository
 
 ```bash
-$ scribe -report -check-repository NEST_RSPM  renv.lock
+$ scribe --report -check-repository NEST_RSPM  renv.lock
 ```
 
 `.scribe` file:
@@ -179,3 +202,10 @@ check:
   repository:
   - NEST_RSPM
 ```
+
+### Checking packags base on multiple filters
+
+```bash
+$ scribe --report -check-filter repository=NEST_RSPM,remoteusername=insightsengineering  renv.lock
+```
+
