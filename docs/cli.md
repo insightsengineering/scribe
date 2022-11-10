@@ -85,7 +85,7 @@ Warning (default log level, will should R warnings )
 $ scribe  --log=warning renv.lock
 ```
 
-Info (info. about done steps)
+Info (it shows information about completed steps)
 
 ```bash
 $ scribe  --log=info renv.lock
