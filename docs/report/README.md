@@ -1,5 +1,5 @@
 
-Scribe_UI.bmpr file is a binary file. To use it you will need [Balsamiq application](https://balsamiq.com/wireframes/)
+Scribe_UI.bmpr is a binary file. You will need [Balsamiq application](https://balsamiq.com/wireframes/) to use it.
 
 UI components:
 
