@@ -18,7 +18,7 @@
 
 ### Std commands
 
-#### Installing packages from renv.lock file
+#### List of all command line options
 
 ```bash
 $ scribe  --help
