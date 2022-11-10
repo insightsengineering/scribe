@@ -117,7 +117,7 @@ $ scribe  -q renv.lock
 
 ### Generating installation report
 
-Installing packages from renv.lock file and generate report
+Installing packages from renv.lock file and generating report
 
 ```bash
 $ scribe --report=html renv.lock
