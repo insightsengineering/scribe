@@ -14,7 +14,7 @@
 ### Inspiration
 
 * [Terraform](https://github.com/hashicorp/terraform)
-* https://github.com/charmbracelet
+* [Charm](https://github.com/charmbracelet)
 
 ### Std commands
 
