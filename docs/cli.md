@@ -60,7 +60,7 @@ build     [########-------]  8/20
 install   [###########----] 40/100
 ```
 
-If command will be run in `interactive mode` then progress bars will be displayed.
+Note: If command is run in the `interactive mode`, the progress bars will be displayed.
 
 ### Validating renv lock file
 
