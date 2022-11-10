@@ -159,7 +159,7 @@ check     [###------------]  2/8
 $ scribe renv.lock
 ```
 
-Also, package could be mentioned in `.scribe` file:
+Additionally, package could be mentioned in `.scribe` file:
 
 ```yaml
 check:
