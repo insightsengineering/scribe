@@ -109,7 +109,7 @@ Quiet (will return 1 if there will be an error)
 $ scribe  --quiet renv.lock
 ```
 
-Short form.
+Short form
 
 ```bash
 $ scribe  -q renv.lock
