@@ -14,6 +14,6 @@
 * no additional dependencies
 * clean and pretty data grids
 * search bar for packages
-* summary on top in the first page
+* summary on the top of the first page
 
 ### Sketchs are under `report` folder
