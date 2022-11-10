@@ -68,7 +68,7 @@ If command will be run in `interactive mode` then progress bars will be displaye
 $scribe  --validate renv.lock
 
 Error:
-Not all packages in renv.lock file has Version parameter (Package: ggplot2).
+Not all packages in renv.lock file have Version parameter (Package: ggplot2).
 ```
 
 ### Changing log level for cli
