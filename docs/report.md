@@ -16,4 +16,4 @@
 * search bar for packages
 * summary on the top of the first page
 
-### Sketchs are under `report` folder
+### Sketches are available in the `report` folder
