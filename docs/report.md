@@ -5,7 +5,7 @@
 ### Inspiration
 
 * [tabler](https://preview.tabler.io/) and [tabler GitHub repository](https://github.com/tabler/tabler)
-* https://www.creative-tim.com/product/paper-dashboard
+* [Paper Dashboard](https://www.creative-tim.com/product/paper-dashboard)
 * GRAN website
 * JavaScript data sources https://datatables.net/examples/data_sources/js_array
 
