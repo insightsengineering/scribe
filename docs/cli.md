@@ -71,7 +71,7 @@ Error:
 Not all packages in renv.lock file have Version parameter (Package: ggplot2).
 ```
 
-### Changing log level for cli
+### Changing the log level for CLI
 
 
 Error (Only errors)
