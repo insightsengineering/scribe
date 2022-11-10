@@ -181,7 +181,7 @@ install   [###########----] 40/100
 check     [###------------]  2/8
 ```
 
-Also, package could be mentioned in `.scribe` file:
+Additionally, package could be mentioned in `.scribe` file:
 
 ```yaml
 check:
