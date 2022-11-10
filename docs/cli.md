@@ -189,7 +189,7 @@ check:
   - insightsengineering
 ```
 
-### Checking packags from RSPM Repository
+### Checking packages from RSPM Repository
 
 ```bash
 $ scribe --report -check-repository NEST_RSPM  renv.lock
