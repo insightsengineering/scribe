@@ -79,7 +79,7 @@ Error (Only errors are displayed)
 $ scribe  --log=error renv.lock
 ```
 
-Warning (default log level, will should R warnings )
+Warning (default log level, it shows R warnings )
 
 ```bash
 $ scribe  --log=warning renv.lock
