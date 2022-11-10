@@ -7,7 +7,7 @@
 * single executable file
 * cross-platform
 * parallel installation of R packages
-* base on standard renv.lock file
+* based on standard renv.lock file
 * if no parameters add with command line then it will use `.scribe` configuration file or system variables
 * logging capabilities
 
