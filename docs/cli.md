@@ -203,7 +203,7 @@ check:
   - NEST_RSPM
 ```
 
-### Checking packags base on multiple filters
+### Checking packages based on multiple filters
 
 ```bash
 $ scribe --report -check-filter repository=NEST_RSPM,remoteusername=insightsengineering  renv.lock
