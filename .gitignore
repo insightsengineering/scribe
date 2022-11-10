@@ -16,3 +16,6 @@
 
 coverage.html
 dist/
+
+# scribe app
+scribe
