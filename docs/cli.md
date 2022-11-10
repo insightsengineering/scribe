@@ -74,7 +74,7 @@ Not all packages in renv.lock file have Version parameter (Package: ggplot2).
 ### Changing the log level for CLI
 
 
-Error (Only errors)
+Error (Only errors are displayed)
 ```bash
 $ scribe  --log=error renv.lock
 ```
