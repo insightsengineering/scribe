@@ -56,6 +56,17 @@ func GetRenvLock(filename string, renv_lock *Renvlock) {
     }
 }
 
+func WriteRenvLock(filename string, renv_lock Renvlock) {
+    s, err := json.MarshalIndent(renv_lock, "", "  ")
+    if err != nil {
+        fmt.Println(err)
+    }
+    err = ioutil.WriteFile(filename, []byte(s), 0644)
+    if err != nil {
+        fmt.Println(err)
+    }
+}
+
 func ValidateRenvLock(renv_lock Renvlock) {
     var repositories []string
     for _, v := range renv_lock.R.Repositories {
