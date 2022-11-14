@@ -29,12 +29,14 @@ type Rpackage struct {
     Repository     string
     Hash           string
     RemoteType     string
-    RemoteHost     string
-    RemoteRepo     string
-    RemoteUsername string
-    RemoteRef      string
-    RemoteSha      string
     Requirements   []string
+    // Below 'Remote' properties only exist in renv.lock
+    // if package comes from git repository.
+    RemoteHost     string `json:",omitempty"`
+    RemoteRepo     string `json:",omitempty"`
+    RemoteUsername string `json:",omitempty"`
+    RemoteRef      string `json:",omitempty"`
+    RemoteSha      string `json:",omitempty"`
 }
 
 func GetRenvLock(filename string, renv_lock *Renvlock) {
