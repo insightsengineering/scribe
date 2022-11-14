@@ -1,7 +1,5 @@
 
-Scribe_UI.bmpr is a binary file. You will need [Balsamiq application](https://balsamiq.com/wireframes/) to use it.
-
-UI components:
+# UI components
 
 * The most important part of the report is data table with installed R packages and summary of every step. We should have a possibility to see the output of every step for every installed package.
 * Search bar can be helpful in finding the package name.
