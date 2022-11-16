@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 )
 
@@ -27,8 +26,8 @@ type Rpackage struct {
 	Source         string
 	Repository     string
 	Hash           string
-	RemoteType     string
-	Requirements   []string
+	RemoteType     string `json:",omitempty"`
+	Requirements   []string `json:",omitempty"`
 	// Below 'Remote' properties only exist in renv.lock
 	// if package comes from git repository.
 	RemoteHost     string `json:",omitempty"`
@@ -39,33 +38,19 @@ type Rpackage struct {
 }
 
 func GetRenvLock(filename string, renv_lock *Renvlock) {
-	jsonFile, err := os.Open(filename)
-	if err != nil {
-		log.Error(err)
-	}
-	defer jsonFile.Close()
-
-	byteValue, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		log.Error(err)
-	}
+	byteValue, err := os.ReadFile(filename)
+	checkError(err)
 
 	err = json.Unmarshal(byteValue, &renv_lock)
-
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 }
 
 func WriteRenvLock(filename string, renv_lock Renvlock) {
 	s, err := json.MarshalIndent(renv_lock, "", "  ")
-	if err != nil {
-		log.Error(err)
-	}
-	err = ioutil.WriteFile(filename, []byte(s), 0644)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
+
+	err = os.WriteFile(filename, []byte(s), 0644)
+	checkError(err)
 }
 
 func ValidateRenvLock(renv_lock Renvlock) {
@@ -75,26 +60,26 @@ func ValidateRenvLock(renv_lock Renvlock) {
 	}
 	for k, v := range renv_lock.Packages {
 		if v.Package == "" {
-			log.Warn("Package", k, "doesn't have the Package field set.")
+			log.Warn("Package ", k, " doesn't have the Package field set.")
 		}
 		if v.Version == "" {
-			log.Warn("Package", k, "doesn't have the Version field set.")
+			log.Warn("Package ", k, " doesn't have the Version field set.")
 		}
 		if v.Source == "" {
-			log.Warn("Package", k, "doesn't have the Source field set.")
+			log.Warn("Package ", k, " doesn't have the Source field set.")
 		}
 		if v.Hash == "" {
-			log.Warn("Package", k, "doesn't have the Hash field set.")
+			log.Warn("Package ", k, " doesn't have the Hash field set.")
 		}
 		if v.Repository == "" && v.Source == "Respository" {
-			log.Warn("Package", k, "doesn't have the Repository field set.")
+			log.Warn("Package ", k, " doesn't have the Repository field set.")
 		} else if v.Source == "GitHub" &&
 			(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
 			v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == "") {
-			log.Warn("Package", k, "with source", v.Source, "doesn't have the" +
+			log.Warn("Package ", k, " with source ", v.Source, " doesn't have the" +
 			" required Remote details provided.")
 		} else if !stringInSlice(v.Repository, repositories) {
-			log.Warn("Repository ", v.Repository, " has not been defined in lock" +
+			log.Warn("Repository \"", v.Repository, "\" has not been defined in lock" +
 			" file for package ", k, ".\n")
 		}
 	}
