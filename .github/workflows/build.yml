@@ -2,18 +2,21 @@ name: build
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   ci:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -26,24 +29,15 @@ jobs:
 
       - name: Build
         run: make ci
+
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-${{ matrix.os }}
+          name: coverage
           path: coverage.*
 
-      - run: goreleaser release --rm-dist --snapshot
-        if: ${{ runner.os == 'Linux' }}
+      - name: Releasing the package (dry-run)
+        run: goreleaser release --rm-dist --snapshot
 
-      - name: Upload dist
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist-${{ matrix.os }}
-          path: dist
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.out
-          flags: ${{ runner.os }}
 
