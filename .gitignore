@@ -96,6 +96,8 @@ $RECYCLE.BIN/
 *.lnk
 
 coverage.html
+coverage.xml
+coverage.out
 dist/
 
 # scribe app

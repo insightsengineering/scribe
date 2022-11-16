@@ -58,6 +58,7 @@ test: ## go test
 	$(call print-target)
 	go test -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./...
 	go tool cover -html=coverage.out -o coverage.html
+	gocover-cobertura < coverage.out > coverage.xml
 
 .PHONY: diff
 diff: ## git diff

@@ -36,6 +36,14 @@ jobs:
           name: coverage
           path: coverage.*
 
+      - name: Post coverage report 🗞
+        uses: insightsengineering/coverage-action@v1
+        with:
+          path: coverage.xml
+          threshold: 80
+          fail: true
+          publish: true
+
       - name: Releasing the package (dry-run)
         run: goreleaser release --rm-dist --snapshot
 

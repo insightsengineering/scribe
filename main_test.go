@@ -3,8 +3,8 @@ package main
 import "testing"
 
 func Test_greet(t *testing.T) {
-	want := "Hi!"
-	if got := greet(); got != want {
+	want := 2
+	if got := 1 + 1; got != want {
 		t.Errorf("greet() = %v, want %v", got, want)
 	}
 }

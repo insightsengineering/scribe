@@ -6,5 +6,5 @@ System Compatibility Reports for Install &amp; Build Evaluation
 ## Installation
 
 ```bash
-make build
+make ci
 ```
