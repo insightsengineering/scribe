@@ -6,12 +6,16 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 const defaultCranMirrorUrl = "https://cloud.r-project.org"
+const bioConductorUrl = "https://www.bioconductor.org/packages"
 const localOutputDirectory = "/tmp/scribe/downloadedPackages"
+var bioconductorCategories [4]string = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
+const maxDownloadRoutines = 40
 
 type DownloadInfo struct {
 	statusCode int
@@ -58,7 +62,8 @@ func downloadFile(url string, outputFile string) (int, int64) {
 
 // Function executed in parallel goroutines.
 func downloadSinglePackage(packageName string, packageVersion string, repoUrl string,
-	currentCranPackageVersions map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
+	currentCranPackageVersions map[string]string, biocPackageVersions map[string]map[string]string,
+	biocUrls map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
 
 	var packageUrl string
 
@@ -77,10 +82,31 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 			// If not, look for the package in Archive.
 			log.Debug(
 				"Attempting to retrieve ", packageName, " in version ", packageVersion,
-				" from CRAN Archive."
+				" from CRAN Archive.",
 			)
 			packageUrl = (repoUrl + "/src/contrib/Archive/" + packageName +
 				"/" + packageName + "_" + packageVersion + ".tar.gz")
+		}
+	} else if repoUrl == bioConductorUrl {
+		for _, biocCategory := range(bioconductorCategories) {
+			biocPackageVersion, ok := biocPackageVersions[biocCategory][packageName]
+			if ok {
+				log.Debug(
+					"BioConductor category ", biocCategory, " has package ", packageName,
+					" in version ", biocPackageVersion, ".",
+				)
+				if biocPackageVersion == packageVersion {
+					log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
+					packageUrl = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
+					break
+				}
+			}
+		}
+		// Package not found in any of Bioconductor categories.
+		if packageUrl == "" {
+			messages <- DownloadInfo{-1, "BioConductor " + packageName + "_" + packageVersion, 0}
+			<- guard
+			return nil
 		}
 	} else {
 		packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
@@ -136,10 +162,15 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 					*failedDownloads++
 				}
 				idleSeconds = 0
-				log.Info(
-					"[", int(100 * float64(*successfulDownloads + *failedDownloads)/float64(totalPackages)),
-					"%] ", msg.statusCode, " ", msg.packageUrl,
-				)
+				messageString := "[" +
+					strconv.Itoa(int(100 * float64(*successfulDownloads + *failedDownloads)/float64(totalPackages))) +
+					 "%] " + strconv.Itoa(msg.statusCode) + " " + msg.packageUrl
+				if msg.statusCode == http.StatusOK {
+					log.Info(messageString)
+				} else {
+					log.Error(messageString)
+				}
+
 				if *successfulDownloads + *failedDownloads == totalPackages {
 					// As soon as we got statuses for all packages we want to return to main routine.
 					idleSeconds = maxIdleSeconds
@@ -165,6 +196,30 @@ func DownloadPackages(renvLock Renvlock) {
 	os.RemoveAll(localOutputDirectory)
 	os.MkdirAll(localOutputDirectory, os.ModePerm)
 
+	biocPackageVersions := make(map[string]map[string]string)
+	biocUrls := make(map[string]string)
+
+	// Retrieve lists of package versions from predefined BioConductor categories.
+	if renvLock.Bioconductor.Version != "" {
+		log.Info("Retrieving PACKAGES from BioConductor version ", renvLock.Bioconductor.Version, ".")
+		for _, biocCategory := range(bioconductorCategories) {
+			biocPackageVersions[biocCategory] = make(map[string]string)
+			biocUrls[biocCategory] = bioConductorUrl + "/" + renvLock.Bioconductor.Version + "/" +
+				biocCategory + "/src/contrib"
+			status, _ := downloadFile(
+				biocUrls[biocCategory] + "/PACKAGES", localOutputDirectory +
+				"/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+			)
+			if status == http.StatusOK {
+				getPackageVersions(
+					localOutputDirectory + "/BIOC_PACKAGES_" +
+					strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+					biocPackageVersions[biocCategory],
+				)
+			}
+		}
+	}
+
 	const localCranPackagesPath = localOutputDirectory + "/CRAN_PACKAGES"
 
 	// var repositories []string
@@ -186,7 +241,7 @@ func DownloadPackages(renvLock Renvlock) {
 	messages := make(chan DownloadInfo)
 
 	// Guard channel ensures that only a fixed number of concurrent goroutines are running.
-	guard := make(chan struct{}, 20)
+	guard := make(chan struct{}, maxDownloadRoutines)
 	// Channel to wait until all downloads have completed.
 	downloadWaiter := make(chan struct{})
 	numberOfDownloads := 0
@@ -199,14 +254,19 @@ func DownloadPackages(renvLock Renvlock) {
 		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter)
 
 	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
+	var repoUrl string
 	for _, v := range renvLock.Packages {
 		if v.Package != "" && v.Version != "" {
-			repoUrl := getRepositoryUrl(renvLock.R.Repositories, v.Repository)
+			if v.Source == "Bioconductor" {
+				repoUrl = bioConductorUrl
+			} else {
+				repoUrl = getRepositoryUrl(renvLock.R.Repositories, v.Repository)
+			}
 
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
 			go downloadSinglePackage(v.Package, v.Version, repoUrl,
-				currentCranPackageVersions, messages, guard)
+				currentCranPackageVersions, biocPackageVersions, biocUrls, messages, guard)
 			numberOfDownloads++
 		}
 	}
@@ -219,7 +279,7 @@ func DownloadPackages(renvLock Renvlock) {
 	log.Info("Downloaded ", totalDownloadedBytes, " bytes")
 	log.Info(
 		"Average throughput = ",
-		float64(int(8000 * (float64(totalDownloadedBytes) / 1000000) / float64(elapsedTime.Seconds()))) / 1000,
+		float64(int(8000 * (float64(totalDownloadedBytes) / 1000000) / (float64(elapsedTime.Milliseconds()) / 1000))) / 1000,
 		" Mbps")
 	log.Info(
 		"Download succeeded for ", successfulDownloads, " packages out of ",
