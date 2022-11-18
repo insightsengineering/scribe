@@ -3,12 +3,16 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/schollz/progressbar/v3"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 const defaultCranMirrorUrl = "https://cloud.r-project.org"
@@ -18,8 +22,16 @@ var bioconductorCategories [4]string = [4]string{"bioc", "data/experiment", "dat
 const maxDownloadRoutines = 40
 
 type DownloadInfo struct {
+	// if statusCode > 0 it is identical to HTTP status code from download
+	// message contains URL of the package
+	// statusCode == -1 means that package version could not be found in any BioConductor repository
+	// message contains error message
+	// statusCode == -2 means that there was an error during cloning of GitHub repository
+	// message contains error message
+	// statusCode == -3 means that a network error occured during HTTP download
+	// message contains URL of the package
 	statusCode int
-	packageUrl string
+	message string
 	contentLength int64
 }
 
@@ -57,11 +69,11 @@ func downloadFile(url string, outputFile string) (int, int64) {
 
 		return resp.StatusCode, resp.ContentLength
 	}
-	return -1, 0
+	return -3, 0
 }
 
 // Function executed in parallel goroutines.
-func downloadSinglePackage(packageName string, packageVersion string, repoUrl string,
+func downloadSinglePackage(packageName string, packageVersion string, repoUrl string, hash string,
 	currentCranPackageVersions map[string]string, biocPackageVersions map[string]map[string]string,
 	biocUrls map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
 
@@ -104,11 +116,28 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		}
 		// Package not found in any of Bioconductor categories.
 		if packageUrl == "" {
-			messages <- DownloadInfo{-1, "BioConductor " + packageName + "_" + packageVersion, 0}
+			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0}
 			<- guard
 			return nil
 		}
+	} else if strings.HasPrefix(repoUrl, "https://github.com") {
+		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoUrl, "https://github.com")
+		os.MkdirAll(gitDirectory, os.ModePerm)
+		log.Debug("Cloning repo to ", gitDirectory)
+		_, err := git.PlainClone(
+			gitDirectory, false, &git.CloneOptions{
+			URL: repoUrl,
+		})
+		if err == nil {
+			// TODO how can we know the size of repository in bytes
+			messages <- DownloadInfo{200, repoUrl, 0}
+		} else {
+			messages <- DownloadInfo{-2, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0}
+		}
+		<- guard
+		return nil
 	} else {
+		// Repositories other than CRAN or BioConductor
 		packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
@@ -147,10 +176,18 @@ func getPackageVersions(filePath string, packageVersions map[string]string) {
 
 // Receive messages from goroutines responsible for package downloads.
 func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int,
-	failedDownloads *int, totalPackages int, totalDownloadedBytes *int64, downloadWaiter chan struct{}) {
+	failedDownloads *int, totalPackages int, totalDownloadedBytes *int64, downloadWaiter chan struct{},
+	downloadErrors *string) {
 	*successfulDownloads = 0
 	*failedDownloads = 0
 	idleSeconds := 0
+	var bar progressbar.ProgressBar
+	if Interactive {
+		bar = *progressbar.Default(
+			int64(totalPackages),
+			"Downloading...",
+		)
+	}
 	const maxIdleSeconds = 10
 	for {
 		select {
@@ -162,13 +199,17 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 					*failedDownloads++
 				}
 				idleSeconds = 0
+				if Interactive {
+					bar.Add(1)
+				}
 				messageString := "[" +
 					strconv.Itoa(int(100 * float64(*successfulDownloads + *failedDownloads)/float64(totalPackages))) +
-					 "%] " + strconv.Itoa(msg.statusCode) + " " + msg.packageUrl
+					 "%] " + strconv.Itoa(msg.statusCode) + " " + msg.message
 				if msg.statusCode == http.StatusOK {
 					log.Info(messageString)
 				} else {
 					log.Error(messageString)
+					*downloadErrors += msg.message + ", status = " + strconv.Itoa(msg.statusCode) + "\n"
 				}
 
 				if *successfulDownloads + *failedDownloads == totalPackages {
@@ -247,11 +288,12 @@ func DownloadPackages(renvLock Renvlock) {
 	numberOfDownloads := 0
 	var successfulDownloads, failedDownloads int
 	var totalDownloadedBytes int64
+	var downloadErrors string
 
 	startTime := time.Now()
 
 	go downloadResultReceiver(messages, &successfulDownloads, &failedDownloads,
-		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter)
+		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter, &downloadErrors)
 
 	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
 	var repoUrl string
@@ -259,13 +301,16 @@ func DownloadPackages(renvLock Renvlock) {
 		if v.Package != "" && v.Version != "" {
 			if v.Source == "Bioconductor" {
 				repoUrl = bioConductorUrl
+			} else if v.Source == "GitHub" &&
+				(v.RemoteHost == "api.github.com" || v.RemoteHost == "https://api.github.com") {
+				repoUrl = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
 			} else {
 				repoUrl = getRepositoryUrl(renvLock.R.Repositories, v.Repository)
 			}
 
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoUrl,
+			go downloadSinglePackage(v.Package, v.Version, repoUrl, v.Hash,
 				currentCranPackageVersions, biocPackageVersions, biocUrls, messages, guard)
 			numberOfDownloads++
 		}
@@ -273,6 +318,11 @@ func DownloadPackages(renvLock Renvlock) {
 
 	// Wait for downloadResultReceiver until all download statuses have been retrieved.
 	<- downloadWaiter
+
+	if downloadErrors != "" {
+		fmt.Println("\n\nThe following errors were encountered during download:")
+		fmt.Print(downloadErrors)
+	}
 
 	elapsedTime := time.Since(startTime)
 	log.Info("Total download time = ", elapsedTime)
