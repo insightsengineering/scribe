@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,9 +41,12 @@ type DownloadInfo struct {
 	// message field contains error message
 	// statusCode == -4 means that a network error occured during HTTP download
 	// message field contains URL of the package
-	statusCode int
-	message string
-	contentLength int64
+	StatusCode int `json:"statusCode"`
+	Message string `json:"message"`
+	ContentLength int64 `json:"contentLength"`
+	// file where the package is stored, or directory where git repository has been cloned
+	// empty in case of errors
+	OutputLocation string `json:"outputLocation"`
 }
 
 func getRepositoryUrl(renvLockRepositories []Rrepository, repository_name string) (string) {
@@ -88,6 +92,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 	biocUrls map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
 
 	var packageUrl string
+	var outputLocation string
 
 	if repoUrl == defaultCranMirrorUrl {
 		// Check if package is in current CRAN repository
@@ -126,7 +131,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		}
 		// Package not found in any of Bioconductor categories.
 		if packageUrl == "" {
-			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0}
+			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, ""}
 			<- guard
 			return nil
 		}
@@ -142,9 +147,9 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		if err == nil {
 			// TODO checkout Hash
 			// TODO how can we know the size of repository in bytes
-			messages <- DownloadInfo{200, repoUrl, 0}
+			messages <- DownloadInfo{200, repoUrl, 0, gitDirectory}
 		} else {
-			messages <- DownloadInfo{-2, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0}
+			messages <- DownloadInfo{-2, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0, ""}
 		}
 		<- guard
 		return nil
@@ -166,9 +171,9 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		if err == nil {
 			// TODO how can we know the size of repository in bytes
 			// TODO checkout Hash
-			messages <- DownloadInfo{200, repoUrl, 0}
+			messages <- DownloadInfo{200, repoUrl, 0, ""}
 		} else {
-			messages <- DownloadInfo{-3, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0}
+			messages <- DownloadInfo{-3, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0, gitDirectory}
 		}
 		<- guard
 		return nil
@@ -177,10 +182,12 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
+	outputLocation = localOutputDirectory + "/packages/" + packageName + "_" + packageVersion + ".tar.gz"
+
 	statusCode, contentLength := downloadFile(
-		packageUrl, localOutputDirectory + "/packages/" + packageName + "_" + packageVersion + ".tar.gz",
+		packageUrl, outputLocation,
 	)
-	messages <- DownloadInfo{statusCode, packageUrl, contentLength}
+	messages <- DownloadInfo{statusCode, packageUrl, contentLength, outputLocation}
 	<- guard
 
 	return nil
@@ -213,7 +220,7 @@ func getPackageVersions(filePath string, packageVersions map[string]string) {
 // Receive messages from goroutines responsible for package downloads.
 func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int,
 	failedDownloads *int, totalPackages int, totalDownloadedBytes *int64, downloadWaiter chan struct{},
-	downloadErrors *string) {
+	downloadErrors *string, allDownloadInfo *[]DownloadInfo) {
 	*successfulDownloads = 0
 	*failedDownloads = 0
 	idleSeconds := 0
@@ -228,9 +235,9 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	for {
 		select {
 			case msg := <-messages:
-				if msg.statusCode == http.StatusOK {
+				if msg.StatusCode == http.StatusOK {
 					*successfulDownloads++
-					*totalDownloadedBytes += msg.contentLength
+					*totalDownloadedBytes += msg.ContentLength
 				} else {
 					*failedDownloads++
 				}
@@ -240,13 +247,15 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 				}
 				messageString := "[" +
 					strconv.Itoa(int(100 * float64(*successfulDownloads + *failedDownloads)/float64(totalPackages))) +
-					 "%] " + strconv.Itoa(msg.statusCode) + " " + msg.message
-				if msg.statusCode == http.StatusOK {
+					 "%] " + strconv.Itoa(msg.StatusCode) + " " + msg.Message
+				if msg.StatusCode == http.StatusOK {
 					log.Info(messageString)
 				} else {
 					log.Error(messageString)
-					*downloadErrors += msg.message + ", status = " + strconv.Itoa(msg.statusCode) + "\n"
+					*downloadErrors += msg.Message + ", status = " + strconv.Itoa(msg.StatusCode) + "\n"
 				}
+
+				*allDownloadInfo = append(*allDownloadInfo, DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength, msg.OutputLocation})
 
 				if *successfulDownloads + *failedDownloads == totalPackages {
 					// As soon as we got statuses for all packages we want to return to main routine.
@@ -268,6 +277,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 
 // Download packages from renv.lock file.
 func DownloadPackages(renvLock Renvlock) {
+
+	var allDownloadInfo []DownloadInfo
 
 	// Clean up any previous downloaded data.
 	os.RemoveAll(localOutputDirectory)
@@ -329,7 +340,9 @@ func DownloadPackages(renvLock Renvlock) {
 	startTime := time.Now()
 
 	go downloadResultReceiver(messages, &successfulDownloads, &failedDownloads,
-		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter, &downloadErrors)
+		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter, &downloadErrors,
+		&allDownloadInfo,
+	)
 
 	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
 	var repoUrl string
@@ -361,6 +374,13 @@ func DownloadPackages(renvLock Renvlock) {
 		fmt.Println("\n\nThe following errors were encountered during download:")
 		fmt.Print(downloadErrors)
 	}
+
+	// Temporary, just to show it's possible to save information about downloaded packages to JSON.
+	s, err := json.MarshalIndent(allDownloadInfo, "", "  ")
+	checkError(err)
+
+	err = os.WriteFile("downloadInfo.json", []byte(s), 0644)
+	checkError(err)
 
 	elapsedTime := time.Since(startTime)
 	log.Info("Total download time = ", elapsedTime)

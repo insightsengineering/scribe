@@ -21,6 +21,7 @@ func main() {
 	var renv_lock Renvlock
 	GetRenvLock("renv.lock", &renv_lock)
 	if Interactive {
+		// Save the log to a file instead of outputting it to stdout.
 		file, err := os.OpenFile("scribe.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err == nil {
 			log.Out = file
