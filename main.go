@@ -9,7 +9,7 @@ import (
 var log = logrus.New()
 
 // TODO this has to be replaced with actual checking whether we're running in a pipeline
-const Interactive = true
+const Interactive = false
 
 func main() {
 	customFormatter := new(logrus.TextFormatter)

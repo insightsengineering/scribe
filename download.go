@@ -11,25 +11,35 @@ import (
 	"strings"
 	"time"
 
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/schollz/progressbar/v3"
 	"gopkg.in/src-d/go-git.v4"
 )
 
+// downloading from private GitLab repositories requires providing username and password in environment variables
+
 const defaultCranMirrorUrl = "https://cloud.r-project.org"
 const bioConductorUrl = "https://www.bioconductor.org/packages"
+
+// within below directory:
+// tar.gz packages are downloaded to packages subdirectory
+// GitHub repositories are cloned into github directory
+// GitLab repositories are cloned into repository with name corresponding to GitLab hostname
 const localOutputDirectory = "/tmp/scribe/downloadedPackages"
 var bioconductorCategories [4]string = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 const maxDownloadRoutines = 40
 
 type DownloadInfo struct {
 	// if statusCode > 0 it is identical to HTTP status code from download
-	// message contains URL of the package
+	// message field contains URL of the package
 	// statusCode == -1 means that package version could not be found in any BioConductor repository
-	// message contains error message
+	// message field contains error message
 	// statusCode == -2 means that there was an error during cloning of GitHub repository
-	// message contains error message
-	// statusCode == -3 means that a network error occured during HTTP download
-	// message contains URL of the package
+	// message field contains error message
+	// statusCode == -3 means that there was an error during cloning of GitLab repository
+	// message field contains error message
+	// statusCode == -4 means that a network error occured during HTTP download
+	// message field contains URL of the package
 	statusCode int
 	message string
 	contentLength int64
@@ -69,11 +79,11 @@ func downloadFile(url string, outputFile string) (int, int64) {
 
 		return resp.StatusCode, resp.ContentLength
 	}
-	return -3, 0
+	return -4, 0
 }
 
 // Function executed in parallel goroutines.
-func downloadSinglePackage(packageName string, packageVersion string, repoUrl string, hash string,
+func downloadSinglePackage(packageName string, packageVersion string, repoUrl string, hash string, packageSource string,
 	currentCranPackageVersions map[string]string, biocPackageVersions map[string]map[string]string,
 	biocUrls map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
 
@@ -83,7 +93,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		// Check if package is in current CRAN repository
 		versionInCran, ok := currentCranPackageVersions[packageName]
 		if ok {
-			log.Debug("CRAN current has package ", packageName, " in version ", versionInCran, ".")
+			log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
 		} else {
 			log.Debug("CRAN current doesn't have ", packageName, " in any version.")
 		}
@@ -93,7 +103,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		} else {
 			// If not, look for the package in Archive.
 			log.Debug(
-				"Attempting to retrieve ", packageName, " in version ", packageVersion,
+				"Attempting to retrieve ", packageName, " version ", packageVersion,
 				" from CRAN Archive.",
 			)
 			packageUrl = (repoUrl + "/src/contrib/Archive/" + packageName +
@@ -105,7 +115,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 			if ok {
 				log.Debug(
 					"BioConductor category ", biocCategory, " has package ", packageName,
-					" in version ", biocPackageVersion, ".",
+					" version ", biocPackageVersion, ".",
 				)
 				if biocPackageVersion == packageVersion {
 					log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
@@ -120,7 +130,8 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 			<- guard
 			return nil
 		}
-	} else if strings.HasPrefix(repoUrl, "https://github.com") {
+	} else if packageSource == "GitHub" {
+		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoUrl, "https://github.com")
 		os.MkdirAll(gitDirectory, os.ModePerm)
 		log.Debug("Cloning repo to ", gitDirectory)
@@ -129,10 +140,35 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 			URL: repoUrl,
 		})
 		if err == nil {
+			// TODO checkout Hash
 			// TODO how can we know the size of repository in bytes
 			messages <- DownloadInfo{200, repoUrl, 0}
 		} else {
 			messages <- DownloadInfo{-2, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0}
+		}
+		<- guard
+		return nil
+	} else if packageSource == "GitLab" {
+		remoteHost := strings.Join(strings.Split(repoUrl, "/")[:3], "/")
+		remoteUser := strings.Split(repoUrl, "/")[3]
+		remoteRepo := strings.Join(strings.Split(repoUrl, "/")[4:], "/")
+
+		gitDirectory := localOutputDirectory + "/" + strings.Split(repoUrl, "/")[2] +
+			"/" + remoteUser + "/" + remoteRepo
+		os.MkdirAll(gitDirectory, os.ModePerm)
+		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ", remoteHost, " to directory ", gitDirectory)
+		_, err := git.PlainClone(
+			gitDirectory, false, &git.CloneOptions{
+			URL: repoUrl,
+			// TODO document this, or change the way credentials are passed
+			Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
+		})
+		if err == nil {
+			// TODO how can we know the size of repository in bytes
+			// TODO checkout Hash
+			messages <- DownloadInfo{200, repoUrl, 0}
+		} else {
+			messages <- DownloadInfo{-3, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0}
 		}
 		<- guard
 		return nil
@@ -142,7 +178,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 	}
 
 	statusCode, contentLength := downloadFile(
-		packageUrl, localOutputDirectory + "/" + packageName + "_" + packageVersion + ".tar.gz",
+		packageUrl, localOutputDirectory + "/packages/" + packageName + "_" + packageVersion + ".tar.gz",
 	)
 	messages <- DownloadInfo{statusCode, packageUrl, contentLength}
 	<- guard
@@ -188,7 +224,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			"Downloading...",
 		)
 	}
-	const maxIdleSeconds = 10
+	const maxIdleSeconds = 20
 	for {
 		select {
 			case msg := <-messages:
@@ -235,7 +271,7 @@ func DownloadPackages(renvLock Renvlock) {
 
 	// Clean up any previous downloaded data.
 	os.RemoveAll(localOutputDirectory)
-	os.MkdirAll(localOutputDirectory, os.ModePerm)
+	os.MkdirAll(localOutputDirectory + "/packages", os.ModePerm)
 
 	biocPackageVersions := make(map[string]map[string]string)
 	biocUrls := make(map[string]string)
@@ -304,13 +340,15 @@ func DownloadPackages(renvLock Renvlock) {
 			} else if v.Source == "GitHub" &&
 				(v.RemoteHost == "api.github.com" || v.RemoteHost == "https://api.github.com") {
 				repoUrl = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
+			} else if v.Source == "GitLab" {
+				repoUrl = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 			} else {
 				repoUrl = getRepositoryUrl(renvLock.R.Repositories, v.Repository)
 			}
 
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoUrl, v.Hash,
+			go downloadSinglePackage(v.Package, v.Version, repoUrl, v.Hash, v.Source,
 				currentCranPackageVersions, biocPackageVersions, biocUrls, messages, guard)
 			numberOfDownloads++
 		}
