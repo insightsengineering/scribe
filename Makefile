@@ -38,10 +38,9 @@ gen: ## go generate
 	go generate ./...
 
 .PHONY: build
-build: ## goreleaser build
 build:
 	$(call print-target)
-	goreleaser build --rm-dist --single-target --snapshot
+	go build -v
 
 .PHONY: spell
 spell: ## misspell
