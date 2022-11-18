@@ -16,6 +16,7 @@ const localOutputDirectory = "/tmp/scribe/downloadedPackages"
 type DownloadInfo struct {
 	statusCode int
 	packageUrl string
+	contentLength int64
 }
 
 func getRepositoryUrl(renvLockRepositories []Rrepository, repository_name string) (string) {
@@ -28,7 +29,8 @@ func getRepositoryUrl(renvLockRepositories []Rrepository, repository_name string
 	return defaultCranMirrorUrl
 }
 
-func downloadFile(url string, outputFile string)  (int) {
+// Returns HTTP status code for downloaded file and number of bytes in downloaded content.
+func downloadFile(url string, outputFile string) (int, int64) {
 	// Get the data
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -40,21 +42,23 @@ func downloadFile(url string, outputFile string)  (int) {
 	if err == nil {
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
-		// Create the file
-		out, err := os.Create(outputFile)
-		checkError(err)
-		defer out.Close()
-		// Write the body to file
-		_, err = io.Copy(out, resp.Body)
-		checkError(err)
+			// Create the file
+			out, err := os.Create(outputFile)
+			checkError(err)
+			defer out.Close()
+			// Write the body to file
+			_, err = io.Copy(out, resp.Body)
+			checkError(err)
 		}
 
-		return resp.StatusCode
+		return resp.StatusCode, resp.ContentLength
 	}
-	return -1
+	return -1, 0
 }
 
-func downloadSinglePackage(packageName string, packageVersion string, repoUrl string, currentCranPackageVersions map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
+// Function executed in parallel goroutines.
+func downloadSinglePackage(packageName string, packageVersion string, repoUrl string,
+	currentCranPackageVersions map[string]string, messages chan DownloadInfo, guard chan struct{}) (error){
 
 	var packageUrl string
 
@@ -67,41 +71,45 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 			log.Debug("CRAN current doesn't have ", packageName, " in any version.")
 		}
 		if ok && versionInCran == packageVersion {
-			log.Debug("CRAN current has package ", packageName, " in sought version ", packageVersion, ".")
+			log.Debug("Retrieving package ", packageName, " from CRAN current.")
 			packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 		} else {
-			// If not, look for the package in Archive
-			log.Debug("Will attempt to retrieve ", packageName, " version ", packageVersion, " from CRAN Archive.")
-			packageUrl = repoUrl + "/src/contrib/Archive/" + packageName + "/" + packageName + "_" + packageVersion + ".tar.gz"
+			// If not, look for the package in Archive.
+			log.Debug(
+				"Attempting to retrieve ", packageName, " in version ", packageVersion,
+				" from CRAN Archive."
+			)
+			packageUrl = (repoUrl + "/src/contrib/Archive/" + packageName +
+				"/" + packageName + "_" + packageVersion + ".tar.gz")
 		}
 	} else {
 		packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
-	statusCode := downloadFile(packageUrl, localOutputDirectory + "/" + packageName + "_" + packageVersion + ".tar.gz")
-
-	log.Info(packageUrl, " = ", statusCode)
-
-	messages <- DownloadInfo{statusCode, packageUrl}
+	statusCode, contentLength := downloadFile(
+		packageUrl, localOutputDirectory + "/" + packageName + "_" + packageVersion + ".tar.gz",
+	)
+	messages <- DownloadInfo{statusCode, packageUrl, contentLength}
 	<- guard
 
 	return nil
 }
 
+// Read PACKAGES file and return map of packages and their versions as stored in the PACKAGES file.
 func getPackageVersions(filePath string, packageVersions map[string]string) {
 	packages, err := os.Open(filePath)
 	checkError(err)
 	defer packages.Close()
 
 	scanner := bufio.NewScanner(packages)
-	// Iterate through lines of PACKAGES file
+	// Iterate through lines of PACKAGES file.
 	for scanner.Scan() {
 		newLine := scanner.Text()
 		if strings.HasPrefix(newLine, "Package:") {
 			packageFields := strings.Fields(newLine)
 			packageName := packageFields[1]
 
-			// Read next line after 'Package:' to get 'Version:'
+			// Read next line after 'Package:' to get 'Version:'.
 			scanner.Scan()
 			nextLine := scanner.Text()
 			versionFields := strings.Fields(nextLine)
@@ -111,7 +119,9 @@ func getPackageVersions(filePath string, packageVersions map[string]string) {
 	}
 }
 
-func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int, failedDownloads *int) {
+// Receive messages from goroutines responsible for package downloads.
+func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int,
+	failedDownloads *int, totalPackages int, totalDownloadedBytes *int64, downloadWaiter chan struct{}) {
 	*successfulDownloads = 0
 	*failedDownloads = 0
 	idleSeconds := 0
@@ -121,10 +131,19 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			case msg := <-messages:
 				if msg.statusCode == http.StatusOK {
 					*successfulDownloads++
+					*totalDownloadedBytes += msg.contentLength
 				} else {
 					*failedDownloads++
 				}
 				idleSeconds = 0
+				log.Info(
+					"[", int(100 * float64(*successfulDownloads + *failedDownloads)/float64(totalPackages)),
+					"%] ", msg.statusCode, " ", msg.packageUrl,
+				)
+				if *successfulDownloads + *failedDownloads == totalPackages {
+					// As soon as we got statuses for all packages we want to return to main routine.
+					idleSeconds = maxIdleSeconds
+				}
 			default:
 				time.Sleep(time.Second)
 				idleSeconds++
@@ -135,25 +154,29 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			break
 		}
 	}
+	// Signal to DownloadPackages function that all downloads have been completed.
+	downloadWaiter <- struct{}{}
 }
 
+// Download packages from renv.lock file.
 func DownloadPackages(renvLock Renvlock) {
 
+	// Clean up any previous downloaded data.
 	os.RemoveAll(localOutputDirectory)
 	os.MkdirAll(localOutputDirectory, os.ModePerm)
 
 	const localCranPackagesPath = localOutputDirectory + "/CRAN_PACKAGES"
 
-	var repositories []string
+	// var repositories []string
 	currentCranPackageVersions := make(map[string]string)
 	for _, v := range renvLock.R.Repositories {
-		repositories = append(repositories, v.Name)
+		// repositories = append(repositories, v.Name)
 
 		// In case any packages are downloaded from CRAN, prepare a map with current versions of the packages.
 		// This way, we'll know whether we should try to download the package from current repository
 		// or from archive.
 		if v.URL == defaultCranMirrorUrl {
-			status := downloadFile(defaultCranMirrorUrl + "/src/contrib/PACKAGES", localCranPackagesPath)
+			status, _ := downloadFile(defaultCranMirrorUrl + "/src/contrib/PACKAGES", localCranPackagesPath)
 			if status == http.StatusOK {
 				getPackageVersions(localCranPackagesPath, currentCranPackageVersions)
 			}
@@ -161,24 +184,49 @@ func DownloadPackages(renvLock Renvlock) {
 	}
 
 	messages := make(chan DownloadInfo)
-	guard := make(chan struct{}, 10)
+
+	// Guard channel ensures that only a fixed number of concurrent goroutines are running.
+	guard := make(chan struct{}, 20)
+	// Channel to wait until all downloads have completed.
+	downloadWaiter := make(chan struct{})
 	numberOfDownloads := 0
 	var successfulDownloads, failedDownloads int
+	var totalDownloadedBytes int64
 
-	go downloadResultReceiver(messages, &successfulDownloads, &failedDownloads)
+	startTime := time.Now()
 
+	go downloadResultReceiver(messages, &successfulDownloads, &failedDownloads,
+		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter)
+
+	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
 	for _, v := range renvLock.Packages {
 		if v.Package != "" && v.Version != "" {
 			repoUrl := getRepositoryUrl(renvLock.R.Repositories, v.Repository)
 
 			guard <- struct{}{}
-			log.Info("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoUrl, currentCranPackageVersions, messages, guard)
+			log.Debug("Downloading package ", v.Package)
+			go downloadSinglePackage(v.Package, v.Version, repoUrl,
+				currentCranPackageVersions, messages, guard)
 			numberOfDownloads++
 		}
 	}
 
-	log.Info("Successfully downloaded ", successfulDownloads, " packages out of ", numberOfDownloads, " requested packages.")
-	log.Info("Downloads failed for ", failedDownloads, " packages out of ", numberOfDownloads, " requested packages.")
+	// Wait for downloadResultReceiver until all download statuses have been retrieved.
+	<- downloadWaiter
 
+	elapsedTime := time.Since(startTime)
+	log.Info("Total download time = ", elapsedTime)
+	log.Info("Downloaded ", totalDownloadedBytes, " bytes")
+	log.Info(
+		"Average throughput = ",
+		float64(int(8000 * (float64(totalDownloadedBytes) / 1000000) / float64(elapsedTime.Seconds()))) / 1000,
+		" Mbps")
+	log.Info(
+		"Download succeeded for ", successfulDownloads, " packages out of ",
+		numberOfDownloads, " requested packages.",
+	)
+	log.Info(
+		"Download failed for ", failedDownloads, " packages out of ",
+		numberOfDownloads, " requested packages.",
+	)
 }
