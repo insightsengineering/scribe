@@ -24,8 +24,8 @@ const bioConductorUrl = "https://www.bioconductor.org/packages"
 
 // within below directory:
 // tar.gz packages are downloaded to packages subdirectory
-// GitHub repositories are cloned into github directory
-// GitLab repositories are cloned into repository with name corresponding to GitLab hostname
+// GitHub repositories are cloned into github subdirectory
+// GitLab repositories are cloned into subdirectory with name corresponding to GitLab hostname
 const localOutputDirectory = "/tmp/scribe/downloadedPackages"
 var bioconductorCategories [4]string = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 const maxDownloadRoutines = 40
