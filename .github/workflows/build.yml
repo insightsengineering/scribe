@@ -48,8 +48,14 @@ jobs:
           fail: true
           publish: true
 
-      - name: Releasing the package (dry-run)
-        run: goreleaser release --rm-dist --snapshot
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
