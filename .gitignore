@@ -95,12 +95,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-coverage.html
-coverage.xml
-coverage.out
-dist/
-
-# scribe app
-scribe
-
+# Transient artifacts
+coverage.*
+junit-report.xml
+test-results.txt
 dist/

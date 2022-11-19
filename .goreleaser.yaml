@@ -1,37 +1,41 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
+# Customization options: https://goreleaser.com/customization/
+project_name: scribe
 before:
   hooks:
-    # You may remove this if you don't use go modules.
     - go mod tidy
-    # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - env:
+  - no_unique_dist_dir: false
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
       - windows
       - darwin
       - solaris
-archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+      - freebsd
+    goarch:
+      - amd64
+      - arm
+      - arm64
+      - ppc64
 checksum:
-  name_template: 'checksums.txt'
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  name_template: '{{ .ProjectName }}_checksums.txt'
+  algorithm: sha512
 changelog:
   sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
-
-# modelines, feel free to remove those if you don't want/use them:
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+dockers:
+  - goos: linux
+    goarch: amd64
+    image_templates:
+    - "ghcr.io/insightsengineering/{{ .ProjectName }}:{{ .Version }}"
+    - "ghcr.io/insightsengineering/{{ .ProjectName }}:latest"
+    skip_push: false
+    build_flag_templates:
+    - "--pull"
+    - "--label=org.opencontainers.image.created={{ .Date }}"
+    - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+    - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+    - "--label=org.opencontainers.image.version={{ .Version }}"
+    - "--build-arg=PROJECT_NAME={{ .ProjectName }}"
+    - "--platform=linux/amd64"

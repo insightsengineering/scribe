@@ -1,71 +1,75 @@
 SHELL := /bin/bash
 
-.DEFAULT_GOAL := all
-.PHONY: all
-all: ## build pipeline
-all: mod inst gen build spell lint test
+# Variables
+GOPATH ?= $(strip $(shell go env GOPATH)/bin) ## Location of dev dependencies
 
-.PHONY: ci
-ci: ## CI build pipeline
-ci: all diff
+# Default goal
+.DEFAULT_GOAL := help
 
-.PHONY: help
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+# Add GOPATH to PATH
+export PATH := $(GOPATH):${PATH}
 
-.PHONY: clean
-clean: ## remove files created during build pipeline
-	$(call print-target)
-	rm -rf dist
-	rm -f coverage.*
-	rm -f '"$(shell go env GOCACHE)/../golangci-lint"'
-	go clean -i -cache -testcache -modcache -fuzzcache -x
+# All targets are phony
+.PHONY: all help devdeps clean tidy generate format build spell lint test
 
-.PHONY: mod
-mod: ## go mod tidy
-	$(call print-target)
-	go mod tidy
-	cd tools && go mod tidy
+# Set the 'all' target
+all: tidy generate format devdeps lint spell test ## Execute all targets
 
-.PHONY: inst
-inst: ## go install tools
-	$(call print-target)
-	cd tools && go install $(shell cd tools && go list -f '{{ join .Imports " " }}' -tags=tools)
+help: ## Show this help menu
+	@sed -ne "s/^##\(.*\)/\1/p" $(MAKEFILE_LIST)
+	@printf "────────────────────────`tput bold``tput setaf 2` Make Commands `tput sgr0`────────────────────────────────\n"
+	@sed -ne "/@sed/!s/\(^[^#?=]*:\).*##\(.*\)/`tput setaf 2``tput bold`\1`tput sgr0`\2/p" $(MAKEFILE_LIST)
+	@printf "────────────────────────`tput bold``tput setaf 4` Make Variables `tput sgr0`───────────────────────────────\n"
+	@sed -ne "/@sed/!s/\(.*\)?=\(.*\)##\(.*\)/`tput setaf 4``tput bold`\1:`tput setaf 5`\2`tput sgr0`\3/p" $(MAKEFILE_LIST)
+	@printf "───────────────────────────────────────────────────────────────────────\n"
 
-.PHONY: gen
-gen: ## go generate
-	$(call print-target)
-	go generate ./...
+devdeps: ## Install development dependencies
+	@printf "Executing target: [$@] 🎯\n"
+	@which -a golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH) v1.50.1
+	@which -a typex > /dev/null || go install github.com/dtgorski/typex@latest
+	@which -a goreleaser > /dev/null || go install github.com/goreleaser/goreleaser@latest
+	@which -a gocover-cobertura > /dev/null || go install github.com/boumenot/gocover-cobertura@latest
+	@which -a misspell > /dev/null || go install github.com/client9/misspell/cmd/misspell@latest
+	@which -a gotestdox > /dev/null || go install github.com/bitfield/gotestdox/cmd/gotestdox@latest
+	@which -a go-junit-report > /dev/null || go install github.com/jstemmer/go-junit-report/v2@latest
 
-.PHONY: build
-build:
-	$(call print-target)
-	go build -v
+clean: ## Remove build and transient test artifacts
+	@printf "Executing target: [$@] 🎯\n"
+	@rm -rf dist coverage.* test-results.txt junit-report.xml '"$(shell go env GOCACHE)/../golangci-lint"'
+	@go clean -i -cache -testcache -modcache -fuzzcache -x 2>&1 > /dev/null
 
-.PHONY: spell
-spell: ## misspell
-	$(call print-target)
-	misspell -error -locale=US -w **.md
+tidy: generate ## Tidy up modules
+	@printf "Executing target: [$@] 🎯\n"
+	@go mod tidy
 
-.PHONY: lint
-lint: ## golangci-lint
-	$(call print-target)
-	golangci-lint run --fix
+generate: ## Run //go:generate commands, if any
+	@printf "Executing target: [$@] 🎯\n"
+	@go generate ./...
 
-.PHONY: test
-test: ## go test
-	$(call print-target)
-	go test -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./...
-	go tool cover -html=coverage.out -o coverage.html
-	gocover-cobertura < coverage.out > coverage.xml
+build: tidy clean devdeps ## Build binaries
+	@printf "Executing target: [$@] 🎯\n"
+	@goreleaser build --snapshot
 
-.PHONY: diff
-diff: ## git diff
-	$(call print-target)
-	git diff --exit-code
-	RES=$$(git status --porcelain) ; if [ -n "$$RES" ]; then echo $$RES && exit 1 ; fi
+spell: format ## Determine spelling errors in code and docs
+	@printf "Executing target: [$@] 🎯\n"
+	@misspell -error -locale=US -w **/*
 
+format: ## Format source code
+	@printf "Executing target: [$@] 🎯\n"
+	@gofmt -s -w -e .
 
-define print-target
-    @printf "Executing target: \033[36m$@\033[0m\n"
-endef
+lint: devdeps spell ## Lint source code
+	@printf "Executing target: [$@] 🎯\n"
+	@golangci-lint run --fast -c .golangci.yml
+
+test: clean tidy devdeps spell ## Run unit tests and generate reports
+	@printf "Executing target: [$@] 🎯\n"
+	@touch coverage.out
+	@gotestdox -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... | tee test-results.txt
+	@go-junit-report -in test-results.txt -iocopy -out junit-report.xml > /dev/null
+	@go tool cover -html=coverage.out -o coverage.html
+	@gocover-cobertura < coverage.out > coverage.xml
+
+types: ## Examine Go types and their transitive dependencies
+	@printf "Executing target: [$@] 🎯\n"
+	@typex -t -u .
