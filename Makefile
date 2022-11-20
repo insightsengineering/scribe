@@ -65,8 +65,9 @@ lint: devdeps spell ## Lint source code
 test: clean tidy devdeps spell ## Run unit tests and generate reports
 	@printf "Executing target: [$@] 🎯\n"
 	@touch coverage.out
-	@gotestdox -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... | tee test-results.txt
-	@go-junit-report -in test-results.txt -iocopy -out junit-report.xml > /dev/null
+	@go test -json -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... 2>&1 > test-results.txt
+	@cat test-results.txt | gotestdox
+	@cat test-results.txt | go-junit-report -parser gojson > junit-report.xml
 	@go tool cover -html=coverage.out -o coverage.html
 	@gocover-cobertura < coverage.out > coverage.xml
 
