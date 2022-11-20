@@ -1,0 +1,63 @@
+name: Lint 🧶
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: lint-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Lint:
+    name: SuperLinter 🦸🏻‍♀️
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo 🛎
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Lint Code Base 🕵🏻‍♀️
+        uses: github/super-linter/slim@v4
+        env:
+          LINTER_RULES_PATH: /
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_GITLEAKS: true
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  GoLint:
+    name: Lint Go Code 🔍
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - 1.19.3
+    steps:
+      - name: Checkout Repo 🛎
+        uses: actions/checkout@v3
+
+      - name: Setup Go 🐹
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Lint Go Code 🕵🏻‍♂️
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          only-new-issues: false

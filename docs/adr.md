@@ -18,9 +18,9 @@ best software engineering practices. The features that are deemed important incl
 
 The consequences to this change are:
 
-* shorter installation time of R packages because of performace improvements related to the
+* shorter installation time of R packages because of performance improvements related to the
   technology used
-* easier maintainance of the tool itself
+* easier maintenance of the tool itself
 * the possibility to share the source code of the tool to a broader comminity (on GitHub)
 * distribution of the tool as a single binary will make it easier to use in automated pipelines
 * better user experience for anyone who would like to use it for their purposes

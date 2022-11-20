@@ -94,3 +94,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Transient artifacts
+coverage.*
+junit-report.xml
+test-results.txt
+dist/

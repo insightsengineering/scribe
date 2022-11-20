@@ -21,13 +21,13 @@ type Rrepository struct {
 }
 
 type Rpackage struct {
-	Package        string
-	Version        string
-	Source         string
-	Repository     string
-	Hash           string
-	RemoteType     string `json:",omitempty"`
-	Requirements   []string `json:",omitempty"`
+	Package      string
+	Version      string
+	Source       string
+	Repository   string
+	Hash         string
+	RemoteType   string   `json:",omitempty"`
+	Requirements []string `json:",omitempty"`
 	// Below 'Remote' properties only exist in renv.lock
 	// if package comes from git repository.
 	RemoteHost     string `json:",omitempty"`
@@ -37,50 +37,51 @@ type Rpackage struct {
 	RemoteSha      string `json:",omitempty"`
 }
 
-func GetRenvLock(filename string, renv_lock *Renvlock) {
+func GetRenvLock(filename string, renvLock *Renvlock) {
 	byteValue, err := os.ReadFile(filename)
 	checkError(err)
 
-	err = json.Unmarshal(byteValue, &renv_lock)
+	err = json.Unmarshal(byteValue, &renvLock)
 	checkError(err)
 }
 
-func WriteRenvLock(filename string, renv_lock Renvlock) {
-	s, err := json.MarshalIndent(renv_lock, "", "  ")
+func WriteRenvLock(filename string, renvLock Renvlock) {
+	s, err := json.MarshalIndent(renvLock, "", "  ")
 	checkError(err)
 
-	err = os.WriteFile(filename, []byte(s), 0644)
+	err = os.WriteFile(filename, s, 0644) //#nosec
 	checkError(err)
 }
 
-func ValidateRenvLock(renv_lock Renvlock) {
+func ValidateRenvLock(renvLock Renvlock) {
 	var repositories []string
-	for _, v := range renv_lock.R.Repositories {
+	for _, v := range renvLock.R.Repositories {
 		repositories = append(repositories, v.Name)
 	}
-	for k, v := range renv_lock.Packages {
-		if v.Package == "" {
+	for k, v := range renvLock.Packages {
+		switch {
+		case v.Package == "":
 			log.Warn("Package ", k, " doesn't have the Package field set.")
-		}
-		if v.Version == "" {
+		case v.Version == "":
 			log.Warn("Package ", k, " doesn't have the Version field set.")
-		}
-		if v.Source == "" {
+		case v.Source == "":
 			log.Warn("Package ", k, " doesn't have the Source field set.")
-		}
-		if v.Hash == "" {
+		case v.Hash == "":
 			log.Warn("Package ", k, " doesn't have the Hash field set.")
 		}
-		if v.Repository == "" && v.Source == "Respository" {
-			log.Warn("Package ", k, " doesn't have the Repository field set.")
-		} else if v.Source == "GitHub" &&
-			(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
-			v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == "") {
-			log.Warn("Package ", k, " with source ", v.Source, " doesn't have the" +
-			" required Remote details provided.")
+		if v.Repository == "" {
+			switch {
+			case v.Source == "Repository":
+				log.Warn("Package ", k, " doesn't have the Repository field set.")
+			case v.Source == "GitHub" &&
+				(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
+					v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == ""):
+				log.Warn("Package ", k, " with source ", v.Source, " doesn't have the"+
+					" required Remote details provided.")
+			}
 		} else if !stringInSlice(v.Repository, repositories) {
-			log.Warn("Repository \"", v.Repository, "\" has not been defined in lock" +
-			" file for package ", k, ".\n")
+			log.Warn("Repository \"", v.Repository, "\" has not been defined in lock"+
+				" file for package ", k, ".\n")
 		}
 	}
 }

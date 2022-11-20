@@ -1,0 +1,41 @@
+# Customization options: https://goreleaser.com/customization/
+project_name: scribe
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - no_unique_dist_dir: false
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+      - solaris
+      - freebsd
+    goarch:
+      - amd64
+      - arm
+      - arm64
+      - ppc64
+checksum:
+  name_template: '{{ .ProjectName }}_checksums.txt'
+  algorithm: sha512
+changelog:
+  sort: asc
+dockers:
+  - goos: linux
+    goarch: amd64
+    image_templates:
+    - "ghcr.io/insightsengineering/{{ .ProjectName }}:{{ .Version }}"
+    - "ghcr.io/insightsengineering/{{ .ProjectName }}:latest"
+    skip_push: false
+    build_flag_templates:
+    - "--pull"
+    - "--label=org.opencontainers.image.created={{ .Date }}"
+    - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+    - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+    - "--label=org.opencontainers.image.version={{ .Version }}"
+    - "--build-arg=PROJECT_NAME={{ .ProjectName }}"
+    - "--platform=linux/amd64"
