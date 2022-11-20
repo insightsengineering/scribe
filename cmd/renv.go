@@ -1,9 +1,28 @@
-package main
+/*
+Copyright 2022 F. Hoffmann-La Roche AG
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+package cmd
 
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.StandardLogger()
 
 type Renvlock struct {
 	R        Rversion
@@ -39,18 +58,26 @@ type Rpackage struct {
 
 func GetRenvLock(filename string, renvLock *Renvlock) {
 	byteValue, err := os.ReadFile(filename)
-	checkError(err)
+	if err != nil {
+		log.Error(err)
+	}
 
 	err = json.Unmarshal(byteValue, &renvLock)
-	checkError(err)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func WriteRenvLock(filename string, renvLock Renvlock) {
 	s, err := json.MarshalIndent(renvLock, "", "  ")
-	checkError(err)
+	if err != nil {
+		log.Error(err)
+	}
 
 	err = os.WriteFile(filename, s, 0644) //#nosec
-	checkError(err)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func ValidateRenvLock(renvLock Renvlock) {

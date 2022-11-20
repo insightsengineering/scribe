@@ -38,6 +38,7 @@ jobs:
           VALIDATE_DOCKERFILE_HADOLINT: true
           VALIDATE_GITLEAKS: true
           DEFAULT_BRANCH: main
+          VALIDATE_JSON: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   GoLint:
