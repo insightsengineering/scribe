@@ -51,9 +51,9 @@ type DownloadInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
-func getRepositoryURL(renvLockRepositories []Rrepository, repository_name string) string {
+func getRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
 	for _, v := range renvLockRepositories {
-		if v.Name == repository_name {
+		if v.Name == repositoryName {
 			return v.URL
 		}
 	}
@@ -390,7 +390,7 @@ func DownloadPackages(renvLock Renvlock) {
 	s, err := json.MarshalIndent(allDownloadInfo, "", "  ")
 	checkError(err)
 
-	err = os.WriteFile("downloadInfo.json", []byte(s), 0644)
+	err = os.WriteFile("downloadInfo.json", []byte(s), 0600)
 	checkError(err)
 
 	elapsedTime := time.Since(startTime)

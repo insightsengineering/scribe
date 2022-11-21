@@ -27,6 +27,7 @@ import (
 var cfgFile string
 var scribeVersion string
 var logLevel string
+var Interactive bool
 
 var log = logrus.New()
 
@@ -50,6 +51,16 @@ func setLogLevel() {
 	default:
 		log.SetLevel(logrus.InfoLevel)
 	}
+	if Interactive {
+		// Save the log to a file instead of outputting it to stdout.
+		file, err := os.OpenFile("scribe.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err == nil {
+			log.Out = file
+		} else {
+			log.Out = os.Stdout
+			log.Info("Failed to log to file, using default stdout")
+		}
+	}
 }
 
 var rootCmd = &cobra.Command{
@@ -62,22 +73,13 @@ var rootCmd = &cobra.Command{
 	Version: scribeVersion,
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
+		// TODO getting renv lock here is just temporary
+		// we'll have to figure out how to use that together with other components
+		var renvLock Renvlock
+		GetRenvLock("renv.lock", &renvLock)
+		ValidateRenvLock(renvLock)
+		DownloadPackages(renvLock)
 	},
-}
-
-var downloadCmd = &cobra.Command{
-  Use:   "download",
-  Short: "Download packages as specified in the renv.lock file",
-  Long:  `Download packages as specified in the renv.lock file`,
-  Run: func(cmd *cobra.Command, args []string) {
-	setLogLevel()
-	// TODO getting renv lock here is just temporary
-	// we'll have to figure out how to use that together with other components
-	var renvLock Renvlock
-	GetRenvLock("renv.lock", &renvLock)
-	ValidateRenvLock(renvLock)
-	DownloadPackages(renvLock)
-  },
 }
 
 func Execute() {
@@ -92,9 +94,8 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "Logging level (trace, debug, info, warn, error)")
+	rootCmd.PersistentFlags().BoolVar(&Interactive, "interactive", false, "Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
-	rootCmd.AddCommand(downloadCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
