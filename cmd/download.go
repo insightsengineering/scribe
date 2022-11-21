@@ -3,7 +3,6 @@ package cmd
 import (
 	"bufio"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,23 +16,23 @@ import (
 	"gopkg.in/src-d/go-git.v4"
 )
 
-// downloading from private GitLab repositories requires providing username and password in environment variables
-
 const defaultCranMirrorURL = "https://cloud.r-project.org"
 const bioConductorURL = "https://www.bioconductor.org/packages"
 
 // within below directory:
-// tar.gz packages are downloaded to packages subdirectory
+// tar.gz packages are downloaded to package_archives subdirectory
 // GitHub repositories are cloned into github subdirectory
-// GitLab repositories are cloned into subdirectory with name corresponding to GitLab hostname
-const localOutputDirectory = "/tmp/scribe/downloadedPackages"
+// GitLab repositories are cloned into gitlab subdirectory
+const localOutputDirectory = "/tmp/scribe/downloaded_packages"
 
 var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
+// Maximum number of concurrently running download goroutines.
 const maxDownloadRoutines = 40
 
 type DownloadInfo struct {
-	// if statusCode > 0 it is identical to HTTP status code from download
+	// if statusCode > 0 it is identical to HTTP status code from download, or 200 in case of successful
+	// git repository clone
 	// message field contains URL of the package
 	// statusCode == -1 means that package version could not be found in any BioConductor repository
 	// message field contains error message
@@ -89,7 +88,9 @@ func downloadFile(url string, outputFile string) (int, int64) {
 }
 
 // Function executed in parallel goroutines.
-func downloadSinglePackage(packageName string, packageVersion string, repoURL string, hash string, packageSource string,
+// It determines whether to download the package as tar.gz file, or from git repository.
+// It then invokes downloadFile function or go-git library respectively.
+func downloadSinglePackage(packageName string, packageVersion string, repoURL string, remoteRef string, packageSource string,
 	currentCranPackageVersions map[string]string, biocPackageVersions map[string]map[string]string,
 	biocUrls map[string]string, messages chan DownloadInfo, guard chan struct{}) error {
 
@@ -148,20 +149,23 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 				URL: repoURL,
 			})
 		if err == nil {
-			// TODO checkout Hash
-			// TODO how can we know the size of repository in bytes
-			messages <- DownloadInfo{200, repoURL, 0, gitDirectory}
+			// The number of bytes downloaded is approximated by the size of repository directory.
+			gitRepoSize, err := dirSize(gitDirectory)
+			checkError(err)
+			log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, gitDirectory}
 		} else {
 			messages <- DownloadInfo{-2, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""}
 		}
 		<-guard
 		return nil
 	} else if packageSource == "GitLab" {
+		// repoURL == https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]
 		remoteRepo := strings.Join(strings.Split(repoURL, "/")[4:], "/")
 
-		gitDirectory := localOutputDirectory + "/" + strings.Split(repoURL, "/")[2] +
+		gitDirectory := localOutputDirectory + "/gitlab/" + strings.Split(repoURL, "/")[2] +
 			"/" + remoteUser + "/" + remoteRepo
 		err := os.MkdirAll(gitDirectory, os.ModePerm)
 		checkError(err)
@@ -173,11 +177,13 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 				Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
 			})
 		if err == nil {
-			// TODO how can we know the size of repository in bytes
-			// TODO checkout Hash
-			messages <- DownloadInfo{200, repoURL, 0, ""}
+			// The number of bytes downloaded is approximated by the size of repository directory.
+			gitRepoSize, err := dirSize(gitDirectory)
+			checkError(err)
+			log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, gitDirectory}
 		} else {
-			messages <- DownloadInfo{-3, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, gitDirectory}
+			messages <- DownloadInfo{-3, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""}
 		}
 		<-guard
 		return nil
@@ -186,30 +192,39 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
-	outputLocation = localOutputDirectory + "/packages/" + packageName + "_" + packageVersion + ".tar.gz"
+	outputLocation = localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
 
 	statusCode, contentLength := downloadFile(
 		packageURL, outputLocation,
 	)
+	if statusCode != http.StatusOK {
+		outputLocation = ""
+	}
 	messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation}
 	<-guard
 
 	return nil
 }
 
-// Read PACKAGES file and return map of packages and their versions as stored in the PACKAGES file.
-func getPackageVersions(filePath string, packageVersions map[string]string) {
+// Read PACKAGES file and save:
+// * map from package names to their versions as stored in the PACKAGES file.
+// * map from package names to their MD5 checksums as stored in the PACKAGES file.
+func parsePackagesFile(filePath string, packageVersions map[string]string,
+	packageChecksums map[string]string) {
 	packages, err := os.Open(filePath)
 	checkError(err)
 	defer packages.Close()
 
 	scanner := bufio.NewScanner(packages)
+	var currentlyProcessedPackage string
+	var packageName string
 	// Iterate through lines of PACKAGES file.
 	for scanner.Scan() {
 		newLine := scanner.Text()
 		if strings.HasPrefix(newLine, "Package:") {
 			packageFields := strings.Fields(newLine)
-			packageName := packageFields[1]
+			packageName = packageFields[1]
+			currentlyProcessedPackage = packageName
 
 			// Read next line after 'Package:' to get 'Version:'.
 			scanner.Scan()
@@ -218,26 +233,36 @@ func getPackageVersions(filePath string, packageVersions map[string]string) {
 			packageVersion := versionFields[1]
 			packageVersions[packageName] = packageVersion
 		}
+		// Save the cheksum from PACKAGES file to compare it with locally cached
+		// tar.gz checksums.
+		if strings.HasPrefix(newLine, "MD5sum:") {
+			checksumFields := strings.Fields(newLine)
+			checksum := checksumFields[1]
+			packageChecksums[currentlyProcessedPackage] = checksum
+		}
 	}
 }
 
 // Retrieve lists of package versions from predefined BioConductor categories.
 func getBioConductorPackages(biocVersion string, biocPackageVersions map[string]map[string]string,
-	biocUrls map[string]string) {
+	biocPackageChecksums map[string]map[string]string ,biocUrls map[string]string) {
 	log.Info("Retrieving PACKAGES from BioConductor version ", biocVersion, ".")
 	for _, biocCategory := range bioconductorCategories {
 		biocPackageVersions[biocCategory] = make(map[string]string)
+		biocPackageChecksums[biocCategory] = make(map[string]string)
 		biocUrls[biocCategory] = bioConductorURL + "/" + biocVersion + "/" +
 			biocCategory + "/src/contrib"
 		status, _ := downloadFile(
-			biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+
-				"/BIOC_PACKAGES_"+strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+			biocUrls[biocCategory] + "/PACKAGES", localOutputDirectory +
+				"/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 		)
 		if status == http.StatusOK {
-			getPackageVersions(
-				localOutputDirectory+"/BIOC_PACKAGES_"+
+			// Get BioConductor package versions and their checksums.
+			parsePackagesFile(
+				localOutputDirectory + "/package_files/BIOC_PACKAGES_" +
 					strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 				biocPackageVersions[biocCategory],
+				biocPackageChecksums[biocCategory],
 			)
 		}
 	}
@@ -302,37 +327,53 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	downloadWaiter <- struct{}{}
 }
 
-// Download packages from renv.lock file.
-func DownloadPackages(renvLock Renvlock) {
+// Download packages from renv.lock file, saves download result structs to allDownloadInfo.
+func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
-	var allDownloadInfo []DownloadInfo
+	// Clean up any previous downloaded data, except tar.gz packages.
+	// We'll later calculate checksums for tar.gz files and compare them checksums in
+	// in PACKAGES files, so tar.gz files don't have to be downloaded again.
+	// Then, recreate these directories.
+	for _, directory := range []string{"/github", "/gitlab", "/package_files"} {
+		err := os.RemoveAll(localOutputDirectory + directory)
+		checkError(err)
+		err = os.MkdirAll(localOutputDirectory + directory, os.ModePerm)
+		checkError(err)
+	}
 
-	// Clean up any previous downloaded data.
-	os.RemoveAll(localOutputDirectory)
-	err := os.MkdirAll(localOutputDirectory + "/packages", os.ModePerm)
+	// Ensure the directory where tar.gz packages will be downloaded exists.
+	err := os.MkdirAll(localOutputDirectory + "/package_archives", os.ModePerm)
 	checkError(err)
 
 	biocPackageVersions := make(map[string]map[string]string)
+	biocPackageChecksums := make(map[string]map[string]string)
 	biocUrls := make(map[string]string)
 
 	if renvLock.Bioconductor.Version != "" {
-		getBioConductorPackages(renvLock.Bioconductor.Version, biocPackageVersions, biocUrls)
+		getBioConductorPackages(
+			renvLock.Bioconductor.Version, biocPackageVersions, biocPackageChecksums, biocUrls,
+		)
 	}
 
-	const localCranPackagesPath = localOutputDirectory + "/CRAN_PACKAGES"
+	const localCranPackagesPath = localOutputDirectory + "/package_files/CRAN_PACKAGES"
 
 	// var repositories []string
 	currentCranPackageVersions := make(map[string]string)
+	currentCranPackageChecksums := make(map[string]string)
 	for _, v := range renvLock.R.Repositories {
 		// repositories = append(repositories, v.Name)
 
 		// In case any packages are downloaded from CRAN, prepare a map with current versions of the packages.
 		// This way, we'll know whether we should try to download the package from current repository
 		// or from archive.
+		// Similarly, prepare a map from package names to checksums to check if any packages have been
+		// previously downloaded to local cache.
 		if v.URL == defaultCranMirrorURL {
 			status, _ := downloadFile(defaultCranMirrorURL + "/src/contrib/PACKAGES", localCranPackagesPath)
 			if status == http.StatusOK {
-				getPackageVersions(localCranPackagesPath, currentCranPackageVersions)
+				parsePackagesFile(
+					localCranPackagesPath, currentCranPackageVersions, currentCranPackageChecksums,
+				)
 			}
 		}
 	}
@@ -352,7 +393,7 @@ func DownloadPackages(renvLock Renvlock) {
 
 	go downloadResultReceiver(messages, &successfulDownloads, &failedDownloads,
 		len(renvLock.Packages), &totalDownloadedBytes, downloadWaiter, &downloadErrors,
-		&allDownloadInfo,
+		allDownloadInfo,
 	)
 
 	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
@@ -372,7 +413,7 @@ func DownloadPackages(renvLock Renvlock) {
 
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoURL, v.Hash, v.Source,
+			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteRef, v.Source,
 				currentCranPackageVersions, biocPackageVersions, biocUrls, messages, guard)
 			numberOfDownloads++
 		}
@@ -387,19 +428,15 @@ func DownloadPackages(renvLock Renvlock) {
 	}
 
 	// Temporary, just to show it's possible to save information about downloaded packages to JSON.
-	s, err := json.MarshalIndent(allDownloadInfo, "", "  ")
-	checkError(err)
-
-	err = os.WriteFile("downloadInfo.json", []byte(s), 0600)
-	checkError(err)
+	WriteJson("downloadInfo.json", *allDownloadInfo)
 
 	elapsedTime := time.Since(startTime)
-	log.Info("Total download time = ", elapsedTime)
-	log.Info("Downloaded ", totalDownloadedBytes, " bytes")
+	log.Info("Total download time = ", elapsedTime.Seconds(), " seconds.")
+	log.Info("Downloaded ", totalDownloadedBytes, " bytes.")
 	log.Info(
 		"Average throughput = ",
 		float64(int(8000*(float64(totalDownloadedBytes)/1000000)/(float64(elapsedTime.Milliseconds())/1000)))/1000,
-		" Mbps")
+		" Mbps.")
 	log.Info(
 		"Download succeeded for ", successfulDownloads, " packages out of ",
 		numberOfDownloads, " requested packages.",

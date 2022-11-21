@@ -15,6 +15,12 @@ limitations under the License.
 */
 package cmd
 
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+)
+
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
@@ -28,4 +34,24 @@ func checkError(err error) {
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+func dirSize(path string) (int64, error) {
+    var size int64
+    err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+        checkError(err)
+        if !info.IsDir() {
+            size += info.Size()
+        }
+        return err
+    })
+    return size, err
+}
+
+func WriteJson(filename string, j interface{}) {
+	s, err := json.MarshalIndent(j, "", "  ")
+	checkError(err)
+
+	err = os.WriteFile(filename, s, 0644) //#nosec
+	checkError(err)
 }

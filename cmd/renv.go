@@ -65,14 +65,6 @@ func GetRenvLock(filename string, renvLock *Renvlock) {
 	checkError(err)
 }
 
-func WriteRenvLock(filename string, renvLock Renvlock) {
-	s, err := json.MarshalIndent(renvLock, "", "  ")
-	checkError(err)
-
-	err = os.WriteFile(filename, s, 0644) //#nosec
-	checkError(err)
-}
-
 func ValidateRenvLock(renvLock Renvlock) {
 	var repositories []string
 	for _, v := range renvLock.R.Repositories {
