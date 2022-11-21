@@ -19,12 +19,38 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
 var scribeVersion string
+var logLevel string
+
+var log = logrus.New()
+
+func setLogLevel() {
+	customFormatter := new(logrus.TextFormatter)
+	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	log.SetFormatter(customFormatter)
+	customFormatter.FullTimestamp = true
+	fmt.Println("Loglevel =", logLevel)
+	switch logLevel {
+	case "trace":
+		log.SetLevel(logrus.TraceLevel)
+	case "debug":
+		log.SetLevel(logrus.DebugLevel)
+	case "info":
+		log.SetLevel(logrus.InfoLevel)
+	case "warn":
+		log.SetLevel(logrus.WarnLevel)
+	case "error":
+		log.SetLevel(logrus.ErrorLevel)
+	default:
+		log.SetLevel(logrus.InfoLevel)
+	}
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "scribe",
@@ -34,6 +60,24 @@ var rootCmd = &cobra.Command{
 	for a collection of R packages that are defined in an
 	[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
 	Version: scribeVersion,
+	Run: func(cmd *cobra.Command, args []string) {
+		setLogLevel()
+	},
+}
+
+var downloadCmd = &cobra.Command{
+  Use:   "download",
+  Short: "Download packages as specified in the renv.lock file",
+  Long:  `Download packages as specified in the renv.lock file`,
+  Run: func(cmd *cobra.Command, args []string) {
+	setLogLevel()
+	// TODO getting renv lock here is just temporary
+	// we'll have to figure out how to use that together with other components
+	var renvLock Renvlock
+	GetRenvLock("renv.lock", &renvLock)
+	ValidateRenvLock(renvLock)
+	DownloadPackages(renvLock)
+  },
 }
 
 func Execute() {
@@ -47,7 +91,10 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scribe.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "Logging level (trace, debug, info, warn, error)")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.AddCommand(downloadCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

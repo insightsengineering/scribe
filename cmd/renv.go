@@ -18,15 +18,16 @@ package cmd
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
-var log = logrus.StandardLogger()
-
 type Renvlock struct {
-	R        Rversion
-	Packages map[string]Rpackage
+	R            Rversion
+	Bioconductor BioC
+	Packages     map[string]Rpackage
+}
+
+type BioC struct {
+	Version string
 }
 
 type Rversion struct {
