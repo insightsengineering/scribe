@@ -21,25 +21,25 @@
 #### List of all command line options
 
 ```bash
-$ scribe  --help
+scribe  --help
 ```
 
 #### Version of `scribe`
 
 ```bash
-$ scribe  --version
+scribe  --version
 ```
 
 #### List of all system variables used for `scribe`
 
 ```bash
-$ scribe  --env
+scribe  --env
 ```
 
 #### Installing packages from renv.lock file
 
 ```bash
-$ scribe  renv.lock
+scribe  renv.lock
 
 
 Progress:
@@ -51,7 +51,7 @@ install   [###########----] 40/100
 #### Installing packages from renv.lock URL
 
 ```bash
-$ scribe  https://raw.githubusercontent.com/org/repo/blob/main/renv.lock
+scribe  https://raw.githubusercontent.com/org/repo/blob/main/renv.lock
 
 
 Progress:
@@ -76,43 +76,43 @@ Not all packages in renv.lock file have Version parameter (Package: ggplot2).
 
 Error (Only errors are displayed)
 ```bash
-$ scribe  --log=error renv.lock
+scribe  --log=error renv.lock
 ```
 
 Warning (default log level, it shows R warnings )
 
 ```bash
-$ scribe  --log=warning renv.lock
+scribe  --log=warning renv.lock
 ```
 
 Info (it shows information about completed steps)
 
 ```bash
-$ scribe  --log=info renv.lock
+scribe  --log=info renv.lock
 ```
 
 Debug (Info level + messages from R command)
 
 ```bash
-$ scribe  --log=debug renv.lock
+scribe  --log=debug renv.lock
 ```
 
 Trace (Debug level + http requests)
 
 ```bash
-$ scribe  --log=trace renv.lock
+scribe  --log=trace renv.lock
 ```
 
 Quiet (will return 1 if there will be an error)
 
 ```bash
-$ scribe  --quiet renv.lock
+scribe  --quiet renv.lock
 ```
 
 Short form
 
 ```bash
-$ scribe  -q renv.lock
+scribe  -q renv.lock
 ```
 
 ### Generating installation report
@@ -120,7 +120,7 @@ $ scribe  -q renv.lock
 Installing packages from renv.lock file and generating report
 
 ```bash
-$ scribe --report=html renv.lock
+scribe --report=html renv.lock
 
 Progress:
 download  [###########----] 90/120
@@ -131,7 +131,7 @@ install   [###########----] 40/100
 `html` report is the default report type. We can shorten it to:
 
 ```bash
-$ scribe --report renv.lock
+scribe --report renv.lock
 
 Progress:
 download  [###########----] 90/120
@@ -142,7 +142,7 @@ install   [###########----] 40/100
 ### Choosing which packages should go through `check` step
 
 ```bash
-$ scribe --report --check-package teal,tern,teal.*  -check-as-cran  renv.lock
+scribe --report --check-package teal,tern,teal.*  -check-as-cran  renv.lock
 
 Progress:
 download  [###########----] 90/120
@@ -156,7 +156,7 @@ check     [###------------]  2/8
 ### Using configuration file
 
 ```bash
-$ scribe renv.lock
+scribe renv.lock
 ```
 
 Additionally, package could be mentioned in `.scribe` file:
@@ -172,7 +172,7 @@ check:
 ### Checking packages from repositories
 
 ```bash
-$ scribe --report --check-remoteusername insightsengineering renv.lock
+scribe --report --check-remoteusername insightsengineering renv.lock
 
 Progress:
 download  [###########----] 90/120
@@ -192,7 +192,7 @@ check:
 ### Checking packages from RSPM Repository
 
 ```bash
-$ scribe --report -check-repository NEST_RSPM  renv.lock
+scribe --report -check-repository NEST_RSPM  renv.lock
 ```
 
 `.scribe` file:
@@ -206,6 +206,5 @@ check:
 ### Checking packages based on multiple filters
 
 ```bash
-$ scribe --report -check-filter repository=NEST_RSPM,remoteusername=insightsengineering  renv.lock
+scribe --report -check-filter repository=NEST_RSPM,remoteusername=insightsengineering  renv.lock
 ```
-
