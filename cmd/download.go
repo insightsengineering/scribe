@@ -19,8 +19,8 @@ import (
 
 // downloading from private GitLab repositories requires providing username and password in environment variables
 
-const defaultCranMirrorUrl = "https://cloud.r-project.org"
-const bioConductorUrl = "https://www.bioconductor.org/packages"
+const defaultCranMirrorURL = "https://cloud.r-project.org"
+const bioConductorURL = "https://www.bioconductor.org/packages"
 
 // within below directory:
 // tar.gz packages are downloaded to packages subdirectory
@@ -28,7 +28,7 @@ const bioConductorUrl = "https://www.bioconductor.org/packages"
 // GitLab repositories are cloned into subdirectory with name corresponding to GitLab hostname
 const localOutputDirectory = "/tmp/scribe/downloadedPackages"
 
-var bioconductorCategories [4]string = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
+var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
 const maxDownloadRoutines = 40
 
@@ -51,14 +51,14 @@ type DownloadInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
-func getRepositoryUrl(renvLockRepositories []Rrepository, repository_name string) string {
+func getRepositoryURL(renvLockRepositories []Rrepository, repository_name string) string {
 	for _, v := range renvLockRepositories {
 		if v.Name == repository_name {
 			return v.URL
 		}
 	}
 	// return default mirror if the repository is not defined in lock file
-	return defaultCranMirrorUrl
+	return defaultCranMirrorURL
 }
 
 // Returns HTTP status code for downloaded file and number of bytes in downloaded content.
@@ -69,24 +69,18 @@ func downloadFile(url string, outputFile string) (int, int64) {
 	}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	if err == nil {
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
 			// Create the file
 			out, err := os.Create(outputFile)
-			if err != nil {
-				log.Error(err)
-			}
+			checkError(err)
 			defer out.Close()
 			// Write the body to file
 			_, err = io.Copy(out, resp.Body)
-			if err != nil {
-				log.Error(err)
-			}
+			checkError(err)
 		}
 
 		return resp.StatusCode, resp.ContentLength
@@ -95,14 +89,14 @@ func downloadFile(url string, outputFile string) (int, int64) {
 }
 
 // Function executed in parallel goroutines.
-func downloadSinglePackage(packageName string, packageVersion string, repoUrl string, hash string, packageSource string,
+func downloadSinglePackage(packageName string, packageVersion string, repoURL string, hash string, packageSource string,
 	currentCranPackageVersions map[string]string, biocPackageVersions map[string]map[string]string,
 	biocUrls map[string]string, messages chan DownloadInfo, guard chan struct{}) error {
 
-	var packageUrl string
+	var packageURL string
 	var outputLocation string
 
-	if repoUrl == defaultCranMirrorUrl {
+	if repoURL == defaultCranMirrorURL {
 		// Check if package is in current CRAN repository
 		versionInCran, ok := currentCranPackageVersions[packageName]
 		if ok {
@@ -112,17 +106,17 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 		}
 		if ok && versionInCran == packageVersion {
 			log.Debug("Retrieving package ", packageName, " from CRAN current.")
-			packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
+			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 		} else {
 			// If not, look for the package in Archive.
 			log.Debug(
 				"Attempting to retrieve ", packageName, " version ", packageVersion,
 				" from CRAN Archive.",
 			)
-			packageUrl = (repoUrl + "/src/contrib/Archive/" + packageName +
+			packageURL = (repoURL + "/src/contrib/Archive/" + packageName +
 				"/" + packageName + "_" + packageVersion + ".tar.gz")
 		}
-	} else if repoUrl == bioConductorUrl {
+	} else if repoURL == bioConductorURL {
 		for _, biocCategory := range bioconductorCategories {
 			biocPackageVersion, ok := biocPackageVersions[biocCategory][packageName]
 			if ok {
@@ -132,70 +126,72 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 				)
 				if biocPackageVersion == packageVersion {
 					log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
-					packageUrl = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
+					packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
 					break
 				}
 			}
 		}
 		// Package not found in any of Bioconductor categories.
-		if packageUrl == "" {
+		if packageURL == "" {
 			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, ""}
 			<-guard
 			return nil
 		}
 	} else if packageSource == "GitHub" {
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
-		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoUrl, "https://github.com")
-		os.MkdirAll(gitDirectory, os.ModePerm)
+		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoURL, "https://github.com")
+		err := os.MkdirAll(gitDirectory, os.ModePerm)
+		checkError(err)
 		log.Debug("Cloning repo to ", gitDirectory)
-		_, err := git.PlainClone(
+		_, err = git.PlainClone(
 			gitDirectory, false, &git.CloneOptions{
-				URL: repoUrl,
+				URL: repoURL,
 			})
 		if err == nil {
 			// TODO checkout Hash
 			// TODO how can we know the size of repository in bytes
-			messages <- DownloadInfo{200, repoUrl, 0, gitDirectory}
+			messages <- DownloadInfo{200, repoURL, 0, gitDirectory}
 		} else {
-			messages <- DownloadInfo{-2, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0, ""}
+			messages <- DownloadInfo{-2, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""}
 		}
 		<-guard
 		return nil
 	} else if packageSource == "GitLab" {
-		remoteHost := strings.Join(strings.Split(repoUrl, "/")[:3], "/")
-		remoteUser := strings.Split(repoUrl, "/")[3]
-		remoteRepo := strings.Join(strings.Split(repoUrl, "/")[4:], "/")
+		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
+		remoteUser := strings.Split(repoURL, "/")[3]
+		remoteRepo := strings.Join(strings.Split(repoURL, "/")[4:], "/")
 
-		gitDirectory := localOutputDirectory + "/" + strings.Split(repoUrl, "/")[2] +
+		gitDirectory := localOutputDirectory + "/" + strings.Split(repoURL, "/")[2] +
 			"/" + remoteUser + "/" + remoteRepo
-		os.MkdirAll(gitDirectory, os.ModePerm)
+		err := os.MkdirAll(gitDirectory, os.ModePerm)
+		checkError(err)
 		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ", remoteHost, " to directory ", gitDirectory)
-		_, err := git.PlainClone(
+		_, err = git.PlainClone(
 			gitDirectory, false, &git.CloneOptions{
-				URL: repoUrl,
+				URL: repoURL,
 				// TODO document this, or change the way credentials are passed
 				Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
 			})
 		if err == nil {
 			// TODO how can we know the size of repository in bytes
 			// TODO checkout Hash
-			messages <- DownloadInfo{200, repoUrl, 0, ""}
+			messages <- DownloadInfo{200, repoURL, 0, ""}
 		} else {
-			messages <- DownloadInfo{-3, "Error while cloning repo " + repoUrl + ": " + err.Error(), 0, gitDirectory}
+			messages <- DownloadInfo{-3, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, gitDirectory}
 		}
 		<-guard
 		return nil
 	} else {
 		// Repositories other than CRAN or BioConductor
-		packageUrl = repoUrl + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
+		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
 	outputLocation = localOutputDirectory + "/packages/" + packageName + "_" + packageVersion + ".tar.gz"
 
 	statusCode, contentLength := downloadFile(
-		packageUrl, outputLocation,
+		packageURL, outputLocation,
 	)
-	messages <- DownloadInfo{statusCode, packageUrl, contentLength, outputLocation}
+	messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation}
 	<-guard
 
 	return nil
@@ -204,9 +200,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoUrl st
 // Read PACKAGES file and return map of packages and their versions as stored in the PACKAGES file.
 func getPackageVersions(filePath string, packageVersions map[string]string) {
 	packages, err := os.Open(filePath)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 	defer packages.Close()
 
 	scanner := bufio.NewScanner(packages)
@@ -223,6 +217,28 @@ func getPackageVersions(filePath string, packageVersions map[string]string) {
 			versionFields := strings.Fields(nextLine)
 			packageVersion := versionFields[1]
 			packageVersions[packageName] = packageVersion
+		}
+	}
+}
+
+// Retrieve lists of package versions from predefined BioConductor categories.
+func getBioConductorPackages(biocVersion string, biocPackageVersions map[string]map[string]string,
+	biocUrls map[string]string) {
+	log.Info("Retrieving PACKAGES from BioConductor version ", biocVersion, ".")
+	for _, biocCategory := range bioconductorCategories {
+		biocPackageVersions[biocCategory] = make(map[string]string)
+		biocUrls[biocCategory] = bioConductorURL + "/" + biocVersion + "/" +
+			biocCategory + "/src/contrib"
+		status, _ := downloadFile(
+			biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+
+				"/BIOC_PACKAGES_"+strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+		)
+		if status == http.StatusOK {
+			getPackageVersions(
+				localOutputDirectory+"/BIOC_PACKAGES_"+
+					strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+				biocPackageVersions[biocCategory],
+			)
 		}
 	}
 }
@@ -253,7 +269,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			}
 			idleSeconds = 0
 			if Interactive {
-				bar.Add(1)
+				err := bar.Add(1)
+				checkError(err)
 			}
 			messageString := "[" +
 				strconv.Itoa(int(100*float64(*successfulDownloads+*failedDownloads)/float64(totalPackages))) +
@@ -292,30 +309,14 @@ func DownloadPackages(renvLock Renvlock) {
 
 	// Clean up any previous downloaded data.
 	os.RemoveAll(localOutputDirectory)
-	os.MkdirAll(localOutputDirectory+"/packages", os.ModePerm)
+	err := os.MkdirAll(localOutputDirectory + "/packages", os.ModePerm)
+	checkError(err)
 
 	biocPackageVersions := make(map[string]map[string]string)
 	biocUrls := make(map[string]string)
 
-	// Retrieve lists of package versions from predefined BioConductor categories.
 	if renvLock.Bioconductor.Version != "" {
-		log.Info("Retrieving PACKAGES from BioConductor version ", renvLock.Bioconductor.Version, ".")
-		for _, biocCategory := range bioconductorCategories {
-			biocPackageVersions[biocCategory] = make(map[string]string)
-			biocUrls[biocCategory] = bioConductorUrl + "/" + renvLock.Bioconductor.Version + "/" +
-				biocCategory + "/src/contrib"
-			status, _ := downloadFile(
-				biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+
-					"/BIOC_PACKAGES_"+strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
-			)
-			if status == http.StatusOK {
-				getPackageVersions(
-					localOutputDirectory+"/BIOC_PACKAGES_"+
-						strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
-					biocPackageVersions[biocCategory],
-				)
-			}
-		}
+		getBioConductorPackages(renvLock.Bioconductor.Version, biocPackageVersions, biocUrls)
 	}
 
 	const localCranPackagesPath = localOutputDirectory + "/CRAN_PACKAGES"
@@ -328,8 +329,8 @@ func DownloadPackages(renvLock Renvlock) {
 		// In case any packages are downloaded from CRAN, prepare a map with current versions of the packages.
 		// This way, we'll know whether we should try to download the package from current repository
 		// or from archive.
-		if v.URL == defaultCranMirrorUrl {
-			status, _ := downloadFile(defaultCranMirrorUrl+"/src/contrib/PACKAGES", localCranPackagesPath)
+		if v.URL == defaultCranMirrorURL {
+			status, _ := downloadFile(defaultCranMirrorURL + "/src/contrib/PACKAGES", localCranPackagesPath)
 			if status == http.StatusOK {
 				getPackageVersions(localCranPackagesPath, currentCranPackageVersions)
 			}
@@ -355,23 +356,23 @@ func DownloadPackages(renvLock Renvlock) {
 	)
 
 	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
-	var repoUrl string
+	var repoURL string
 	for _, v := range renvLock.Packages {
 		if v.Package != "" && v.Version != "" {
 			if v.Source == "Bioconductor" {
-				repoUrl = bioConductorUrl
+				repoURL = bioConductorURL
 			} else if v.Source == "GitHub" &&
 				(v.RemoteHost == "api.github.com" || v.RemoteHost == "https://api.github.com") {
-				repoUrl = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
+				repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
 			} else if v.Source == "GitLab" {
-				repoUrl = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
+				repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 			} else {
-				repoUrl = getRepositoryUrl(renvLock.R.Repositories, v.Repository)
+				repoURL = getRepositoryURL(renvLock.R.Repositories, v.Repository)
 			}
 
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoUrl, v.Hash, v.Source,
+			go downloadSinglePackage(v.Package, v.Version, repoURL, v.Hash, v.Source,
 				currentCranPackageVersions, biocPackageVersions, biocUrls, messages, guard)
 			numberOfDownloads++
 		}
@@ -387,14 +388,10 @@ func DownloadPackages(renvLock Renvlock) {
 
 	// Temporary, just to show it's possible to save information about downloaded packages to JSON.
 	s, err := json.MarshalIndent(allDownloadInfo, "", "  ")
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	err = os.WriteFile("downloadInfo.json", []byte(s), 0644)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	elapsedTime := time.Since(startTime)
 	log.Info("Total download time = ", elapsedTime)

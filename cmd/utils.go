@@ -26,3 +26,9 @@ func stringInSlice(a string, list []string) bool {
 	}
 	return false
 }
+
+func checkError(err error) {
+	if err != nil {
+		log.Error(err)
+	}
+}

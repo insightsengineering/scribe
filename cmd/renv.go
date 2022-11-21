@@ -59,26 +59,18 @@ type Rpackage struct {
 
 func GetRenvLock(filename string, renvLock *Renvlock) {
 	byteValue, err := os.ReadFile(filename)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	err = json.Unmarshal(byteValue, &renvLock)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 }
 
 func WriteRenvLock(filename string, renvLock Renvlock) {
 	s, err := json.MarshalIndent(renvLock, "", "  ")
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	err = os.WriteFile(filename, s, 0644) //#nosec
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 }
 
 func ValidateRenvLock(renvLock Renvlock) {
