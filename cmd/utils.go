@@ -15,6 +15,9 @@ limitations under the License.
 */
 package cmd
 
+// TODO this has to be replaced with actual checking whether we're running in a pipeline
+const Interactive = false
+
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {

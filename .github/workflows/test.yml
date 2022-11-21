@@ -72,6 +72,8 @@ jobs:
           fail: false
           publish: true
           diff: true
+          coverage-reduction-failure: true
+          new-uncovered-statements-failure: true
         continue-on-error: true
 
       - name: Upload report 🔼
