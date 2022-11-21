@@ -1,0 +1,36 @@
+{
+  "R": {
+    "Version": "",
+    "Repositories": [
+      {
+        "Name": "",
+        "URL": ""
+      }
+    ],
+    "Bioconductor": {
+        "Version": ""
+    }
+  },
+  "Packages": {
+    "SomePackage": {
+      "Package": "SomePackage",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "",
+      "Hash": "",
+      "Requirements": []
+    },
+    "SomeOtherPackage": {
+      "Package": "SomeOtherPackage",
+      "Version": "2.0.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "",
+      "RemoteRepo": "",
+      "RemoteRef": "",
+      "RemoteSha": "",
+      "Hash": ""
+    }
+  }
+}

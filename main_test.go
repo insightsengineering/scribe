@@ -1,10 +1,12 @@
 package main
 
-import "testing"
+import (
+	"testing"
 
-func Test_greet(t *testing.T) {
-	want := 2
-	if got := 1 + 1; got != want {
-		t.Errorf("greet() = %v, want %v", got, want)
-	}
+	"github.com/stretchr/testify/assert"
+)
+
+func Test_rootCmd(t *testing.T) {
+	// TODO: Implement CLI unit tests
+	assert.Equal(t, "TEST", "TEST")
 }
