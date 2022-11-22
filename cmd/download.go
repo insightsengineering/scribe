@@ -64,7 +64,7 @@ func getRepositoryURL(renvLockRepositories []Rrepository, repositoryName string)
 func downloadFile(url string, outputFile string) (int, int64) {
 	// Get the data
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //#nosec
 	}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
@@ -97,48 +97,56 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 	var packageURL string
 	var outputLocation string
 
-	if repoURL == defaultCranMirrorURL {
-		// Check if package is in current CRAN repository
-		versionInCran, ok := currentCranPackageVersions[packageName]
-		if ok {
-			log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
-		} else {
-			log.Debug("CRAN current doesn't have ", packageName, " in any version.")
-		}
-		if ok && versionInCran == packageVersion {
-			log.Debug("Retrieving package ", packageName, " from CRAN current.")
-			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
-		} else {
-			// If not, look for the package in Archive.
-			log.Debug(
-				"Attempting to retrieve ", packageName, " version ", packageVersion,
-				" from CRAN Archive.",
-			)
-			packageURL = (repoURL + "/src/contrib/Archive/" + packageName +
-				"/" + packageName + "_" + packageVersion + ".tar.gz")
-		}
-	} else if repoURL == bioConductorURL {
-		for _, biocCategory := range bioconductorCategories {
-			biocPackageVersion, ok := biocPackageVersions[biocCategory][packageName]
+	if packageSource != "GitHub" && packageSource != "GitLab" {
+		switch repoURL {
+		case defaultCranMirrorURL :
+			// Check if package is in current CRAN repository
+			versionInCran, ok := currentCranPackageVersions[packageName]
 			if ok {
+				log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
+			} else {
+				log.Debug("CRAN current doesn't have ", packageName, " in any version.")
+			}
+			if ok && versionInCran == packageVersion {
+				log.Debug("Retrieving package ", packageName, " from CRAN current.")
+				packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
+			} else {
+				// If not, look for the package in Archive.
 				log.Debug(
-					"BioConductor category ", biocCategory, " has package ", packageName,
-					" version ", biocPackageVersion, ".",
+					"Attempting to retrieve ", packageName, " version ", packageVersion,
+					" from CRAN Archive.",
 				)
-				if biocPackageVersion == packageVersion {
-					log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
-					packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
-					break
+				packageURL = (repoURL + "/src/contrib/Archive/" + packageName +
+					"/" + packageName + "_" + packageVersion + ".tar.gz")
+			}
+		case bioConductorURL:
+			for _, biocCategory := range bioconductorCategories {
+				biocPackageVersion, ok := biocPackageVersions[biocCategory][packageName]
+				if ok {
+					log.Debug(
+						"BioConductor category ", biocCategory, " has package ", packageName,
+						" version ", biocPackageVersion, ".",
+					)
+					if biocPackageVersion == packageVersion {
+						log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
+						packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
+						break
+					}
 				}
 			}
+			// Package not found in any of Bioconductor categories.
+			if packageURL == "" {
+				messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, ""}
+				<-guard
+				return nil
+			}
+		default:
+			// Repositories other than CRAN or BioConductor
+			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 		}
-		// Package not found in any of Bioconductor categories.
-		if packageURL == "" {
-			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, ""}
-			<-guard
-			return nil
-		}
-	} else if packageSource == "GitHub" {
+	}
+	switch packageSource {
+	case "GitHub":
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoURL, "https://github.com")
 		err := os.MkdirAll(gitDirectory, os.ModePerm)
@@ -150,7 +158,8 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			})
 		if err == nil {
 			// The number of bytes downloaded is approximated by the size of repository directory.
-			gitRepoSize, err := dirSize(gitDirectory)
+			var gitRepoSize int64
+			gitRepoSize, err = dirSize(gitDirectory)
 			checkError(err)
 			log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, gitDirectory}
@@ -159,7 +168,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 		}
 		<-guard
 		return nil
-	} else if packageSource == "GitLab" {
+	case "GitLab":
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]
@@ -178,7 +187,8 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			})
 		if err == nil {
 			// The number of bytes downloaded is approximated by the size of repository directory.
-			gitRepoSize, err := dirSize(gitDirectory)
+			var gitRepoSize int64
+			gitRepoSize, err = dirSize(gitDirectory)
 			checkError(err)
 			log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, gitDirectory}
@@ -187,9 +197,6 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 		}
 		<-guard
 		return nil
-	} else {
-		// Repositories other than CRAN or BioConductor
-		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
 	outputLocation = localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
@@ -400,14 +407,14 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	var repoURL string
 	for _, v := range renvLock.Packages {
 		if v.Package != "" && v.Version != "" {
-			if v.Source == "Bioconductor" {
+			switch v.Source {
+			case "Bioconductor":
 				repoURL = bioConductorURL
-			} else if v.Source == "GitHub" &&
-				(v.RemoteHost == "api.github.com" || v.RemoteHost == "https://api.github.com") {
+			case "GitHub":
 				repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
-			} else if v.Source == "GitLab" {
+			case "GitLab":
 				repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
-			} else {
+			default:
 				repoURL = getRepositoryURL(renvLock.R.Repositories, v.Repository)
 			}
 
