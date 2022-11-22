@@ -80,9 +80,9 @@ func getRepositoryURL(renvLockRepositories []Rrepository, repositoryName string)
 // Returns HTTP status code for downloaded file and number of bytes in downloaded content.
 func downloadFile(url string, outputFile string) (int, int64) {
 	// Get the data
-	tr := &http.Transport{
+	tr := &http.Transport{ // #nosec
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec
-	}
+	} // #nosec
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
 	checkError(err)
