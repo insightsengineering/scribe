@@ -85,7 +85,7 @@ func ValidateRenvLock(renvLock Renvlock) {
 			switch {
 			case v.Source == "Repository":
 				log.Warn("Package ", k, " doesn't have the Repository field set.")
-			case v.Source == "GitHub" &&
+			case v.Source == GitHub &&
 				(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
 					v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == ""):
 				log.Warn("Package ", k, " with source ", v.Source, " doesn't have the"+

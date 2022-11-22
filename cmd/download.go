@@ -18,6 +18,7 @@ import (
 
 const defaultCranMirrorURL = "https://cloud.r-project.org"
 const bioConductorURL = "https://www.bioconductor.org/packages"
+const GitHub = "GitHub"
 
 // within below directory:
 // tar.gz packages are downloaded to package_archives subdirectory
@@ -97,56 +98,49 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 	var packageURL string
 	var outputLocation string
 
-	if packageSource != "GitHub" && packageSource != "GitLab" {
-		switch repoURL {
-		case defaultCranMirrorURL :
-			// Check if package is in current CRAN repository
-			versionInCran, ok := currentCranPackageVersions[packageName]
+	switch {
+	case repoURL == defaultCranMirrorURL:
+		// Check if package is in current CRAN repository
+		versionInCran, ok := currentCranPackageVersions[packageName]
+		if ok {
+			log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
+		} else {
+			log.Debug("CRAN current doesn't have ", packageName, " in any version.")
+		}
+		if ok && versionInCran == packageVersion {
+			log.Debug("Retrieving package ", packageName, " from CRAN current.")
+			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
+		} else {
+			// If not, look for the package in Archive.
+			log.Debug(
+				"Attempting to retrieve ", packageName, " version ", packageVersion,
+				" from CRAN Archive.",
+			)
+			packageURL = (repoURL + "/src/contrib/Archive/" + packageName +
+				"/" + packageName + "_" + packageVersion + ".tar.gz")
+		}
+	case repoURL == bioConductorURL:
+		for _, biocCategory := range bioconductorCategories {
+			biocPackageVersion, ok := biocPackageVersions[biocCategory][packageName]
 			if ok {
-				log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
-			} else {
-				log.Debug("CRAN current doesn't have ", packageName, " in any version.")
-			}
-			if ok && versionInCran == packageVersion {
-				log.Debug("Retrieving package ", packageName, " from CRAN current.")
-				packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
-			} else {
-				// If not, look for the package in Archive.
 				log.Debug(
-					"Attempting to retrieve ", packageName, " version ", packageVersion,
-					" from CRAN Archive.",
+					"BioConductor category ", biocCategory, " has package ", packageName,
+					" version ", biocPackageVersion, ".",
 				)
-				packageURL = (repoURL + "/src/contrib/Archive/" + packageName +
-					"/" + packageName + "_" + packageVersion + ".tar.gz")
-			}
-		case bioConductorURL:
-			for _, biocCategory := range bioconductorCategories {
-				biocPackageVersion, ok := biocPackageVersions[biocCategory][packageName]
-				if ok {
-					log.Debug(
-						"BioConductor category ", biocCategory, " has package ", packageName,
-						" version ", biocPackageVersion, ".",
-					)
-					if biocPackageVersion == packageVersion {
-						log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
-						packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
-						break
-					}
+				if biocPackageVersion == packageVersion {
+					log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
+					packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
+					break
 				}
 			}
-			// Package not found in any of Bioconductor categories.
-			if packageURL == "" {
-				messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, ""}
-				<-guard
-				return nil
-			}
-		default:
-			// Repositories other than CRAN or BioConductor
-			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 		}
-	}
-	switch packageSource {
-	case "GitHub":
+		// Package not found in any of Bioconductor categories.
+		if packageURL == "" {
+			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, ""}
+			<-guard
+			return nil
+		}
+	case packageSource == GitHub:
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoURL, "https://github.com")
 		err := os.MkdirAll(gitDirectory, os.ModePerm)
@@ -168,7 +162,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 		}
 		<-guard
 		return nil
-	case "GitLab":
+	case packageSource == "GitLab":
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]
@@ -197,6 +191,9 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 		}
 		<-guard
 		return nil
+	default:
+		// Repositories other than CRAN or BioConductor
+		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 	}
 
 	outputLocation = localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
@@ -410,7 +407,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 			switch v.Source {
 			case "Bioconductor":
 				repoURL = bioConductorURL
-			case "GitHub":
+			case GitHub:
 				repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
 			case "GitLab":
 				repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
@@ -435,7 +432,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	}
 
 	// Temporary, just to show it's possible to save information about downloaded packages to JSON.
-	WriteJson("downloadInfo.json", *allDownloadInfo)
+	WriteJSON("downloadInfo.json", *allDownloadInfo)
 
 	elapsedTime := time.Since(startTime)
 	log.Info("Total download time = ", elapsedTime.Seconds(), " seconds.")

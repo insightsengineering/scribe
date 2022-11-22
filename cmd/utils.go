@@ -48,7 +48,7 @@ func dirSize(path string) (int64, error) {
     return size, err
 }
 
-func WriteJson(filename string, j interface{}) {
+func WriteJSON(filename string, j interface{}) {
 	s, err := json.MarshalIndent(j, "", "  ")
 	checkError(err)
 
