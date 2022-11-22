@@ -81,7 +81,7 @@ func getRepositoryURL(renvLockRepositories []Rrepository, repositoryName string)
 func downloadFile(url string, outputFile string) (int, int64) {
 	// Get the data
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //#nosec
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec
 	}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
@@ -319,20 +319,19 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 // Iterate through files in directoryName and save the checksums of .tar.gz files found there.
 // TODO parallelize this if required - takes around 3 seconds for 820 MB of data
 func computeChecksums(directoryPath string, localArchiveChecksums map[string]*CacheInfo) {
-	filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
-		checkError(err)
+	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(info.Name(), ".tar.gz") {
 			filePath := directoryPath + "/" + info.Name()
 			byteValue, err := os.ReadFile(filePath)
 			checkError(err)
-			var fileLength int64
-			fileLength = int64(len(byteValue))
-			hash := md5.Sum(byteValue)
+			fileLength := int64(len(byteValue))
+			hash := md5.Sum(byteValue) // #nosec
 			hashValue := hex.EncodeToString(hash[:])
 			localArchiveChecksums[hashValue] = &CacheInfo{filePath, fileLength}
 		}
 		return nil
 	})
+	checkError(err)
 }
 
 // Receive messages from goroutines responsible for package downloads.
