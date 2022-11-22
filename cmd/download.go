@@ -129,10 +129,9 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			log.Debug("CRAN current doesn't have ", packageName, " in any version.")
 		}
 		if ok && versionInCran == packageVersion {
-			log.Debug("Retrieving package ", packageName, " from CRAN current.")
-			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 			// Check if the package is cached locally.
 			localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
+			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 			if ok {
 				log.Debug(
 					"Package ", packageName, " version ", packageVersion,
@@ -142,6 +141,8 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 				<-guard
 				return nil
 			}
+			// Package not cached locally.
+			log.Debug("Retrieving package ", packageName, " from CRAN current.")
 		} else {
 			// If not, look for the package in Archive.
 			log.Debug(
@@ -162,7 +163,6 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 					" version ", biocPackageInfo.Version, ".",
 				)
 				if biocPackageInfo.Version == packageVersion {
-					log.Debug("Package ", packageName, " will be retrieved from Bioconductor category ", biocCategory)
 					packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
 					packageChecksum = biocPackageInfo.Checksum
 					break
@@ -170,6 +170,7 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			}
 		}
 		if packageURL != "" {
+			// Check if package is cached locally.
 			localCachedFile, ok := localArchiveChecksums[packageChecksum]
 			if ok {
 				log.Debug(
@@ -180,6 +181,8 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 				<-guard
 				return nil
 			}
+			// Package not cached locally.
+			log.Debug("Retrieving package ", packageName, " from BioConductor.")
 		} else {
 			// Package not found in any of Bioconductor categories.
 			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, "", 0}
@@ -251,7 +254,6 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 	}
 	messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0}
 	<-guard
-
 	return nil
 }
 
@@ -315,7 +317,7 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 }
 
 // Iterate through files in directoryName and save the checksums of .tar.gz files found there.
-// TODO parallelize this if required
+// TODO parallelize this if required - takes around 3 seconds for 820 MB of data
 func computeChecksums(directoryPath string, localArchiveChecksums map[string]*CacheInfo) {
 	filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		checkError(err)
@@ -432,11 +434,11 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	for _, v := range renvLock.R.Repositories {
 		// repositories = append(repositories, v.Name)
 
-		// In case any packages are downloaded from CRAN, prepare a map with current versions of the packages.
+		// In case any packages are downloaded from CRAN, prepare a map from package name to
+		// current versions of the packages and their checksums as read from PACKAGES file.
 		// This way, we'll know whether we should try to download the package from current repository
-		// or from archive.
-		// Similarly, prepare a map from package names to checksums to check if any packages have been
-		// previously downloaded to local cache.
+		// or from archive, and if we should download the package at all (it may have been already
+		// downloaded to local cache).
 		if v.URL == defaultCranMirrorURL {
 			status, _ := downloadFile(defaultCranMirrorURL + "/src/contrib/PACKAGES", localCranPackagesPath)
 			if status == http.StatusOK {
@@ -451,6 +453,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	// and calculate their checksums. Later on, if we see a package to be downloaded that will have a matching
 	// checksum in the PACKAGES file, we'll skip the download and point to already existing file in the cache.
 	localArchiveChecksums := make(map[string]*CacheInfo)
+	log.Info("Computing local cache checksums...")
 	startTime := time.Now()
 	computeChecksums(localOutputDirectory + "/package_archives", localArchiveChecksums)
 	elapsedTime := time.Since(startTime)
@@ -514,13 +517,16 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	WriteJSON("downloadInfo.json", *allDownloadInfo)
 
 	elapsedTime = time.Since(startTime)
-	log.Info("Total download time = ", elapsedTime.Seconds(), " seconds.")
+	averageThroughputMbps := float64(int(8000 * (float64(totalDownloadedBytes) /
+		1000000) / (float64(elapsedTime.Milliseconds()) / 1000))) / 1000
+	averageThroughputBytesPerSecond := float64(totalDownloadedBytes) /
+		(float64(elapsedTime.Milliseconds()) / 1000)
+	downloadTimeSaved := float64(totalSavedBandwidth) / averageThroughputBytesPerSecond
+	log.Info("Total download time = ", fmt.Sprintf("%.2f", elapsedTime.Seconds()), " seconds.")
 	log.Info("Downloaded ", totalDownloadedBytes, " bytes.")
-	log.Info("Saved ", totalSavedBandwidth, " bytes of bandwidth due to caching.")
-	log.Info(
-		"Average throughput = ",
-		float64(int(8000*(float64(totalDownloadedBytes)/1000000)/(float64(elapsedTime.Milliseconds())/1000)))/1000,
-		" Mbps.")
+	log.Info("Saved ", totalSavedBandwidth, " bytes of bandwidth and ",
+		fmt.Sprintf("%.2f", downloadTimeSaved), " seconds of download time due to caching.")
+	log.Info("Average throughput = ", averageThroughputMbps ," Mbps.")
 	log.Info(
 		"Download succeeded for ", successfulDownloads, " packages out of ",
 		numberOfDownloads, " requested packages.",
