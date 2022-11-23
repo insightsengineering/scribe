@@ -34,7 +34,6 @@ func Test_GetRenvLock(t *testing.T) {
 	assert.Equal(t, renvLock.Packages["SomePackage"].Source, "Repository")
 	assert.Equal(t, renvLock.Packages["SomePackage"].Repository, "CRAN")
 	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].Package, "SomeOtherPackage")
-	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].Version, "2.0.0")
 	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].Source, "GitHub")
 	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteType, "github")
 	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteHost, "api.github.com")
@@ -45,5 +44,5 @@ func Test_ValidateRenvLock(t *testing.T) {
 	var renvLock Renvlock
 	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	numberOfWarnings := ValidateRenvLock(renvLock)
-	assert.Equal(t, numberOfWarnings, 0)
+	assert.Equal(t, numberOfWarnings, 6)
 }
