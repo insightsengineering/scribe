@@ -104,19 +104,45 @@ func downloadFile(url string, outputFile string) (int, int64) {
 	return -4, 0
 }
 
-// Function executed in parallel goroutines.
-// It determines whether to download the package as tar.gz file, or from git repository.
-// It then invokes downloadFile function or go-git library respectively.
-func downloadSinglePackage(packageName string, packageVersion string, repoURL string,
-	remoteRef string, packageSource string, currentCranPackageInfo map[string]*PackageInfo,
+// Clones git repository and returns string with error value (empty if cloning was
+// successful) and approximate number of downloaded bytes.
+func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool) (string, int64) {
+	err := os.MkdirAll(gitDirectory, os.ModePerm)
+	checkError(err)
+	var gitCloneOptions *git.CloneOptions
+	if useEnvironmentCredentials {
+		gitCloneOptions = &git.CloneOptions{
+			URL: repoURL,
+			// TODO document this, or change the way credentials are passed
+			Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
+		}
+	} else {
+		gitCloneOptions = &git.CloneOptions{
+			URL: repoURL,
+		}
+	}
+
+	_, err = git.PlainClone(gitDirectory, false, gitCloneOptions)
+	if err == nil {
+		// The number of bytes downloaded is approximated by the size of repository directory.
+		var gitRepoSize int64
+		gitRepoSize, err = dirSize(gitDirectory)
+		checkError(err)
+		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
+		return "", gitRepoSize
+	} else {
+		return "Error while cloning repo " + repoURL + ": " + err.Error(), 0
+	}
+}
+
+func getPackageDetails(packageName string, packageVersion string, repoURL string,
+	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
-	localArchiveChecksums map[string]*CacheInfo, messages chan DownloadInfo, guard chan struct{}) error {
-
+	localArchiveChecksums map[string]*CacheInfo) (string, string, string, int64) {
 	var packageURL string
-	var outputLocation string
-
 	switch {
 	case repoURL == defaultCranMirrorURL:
+		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
 		// Check if package is in current CRAN repository
 		var versionInCran string
 		packageInfo, ok := currentCranPackageInfo[packageName]
@@ -133,16 +159,11 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
 			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 			if ok {
-				log.Debug(
-					"Package ", packageName, " version ", packageVersion,
-					" found in cache: ", localCachedFile.Path,
-				)
-				messages <- DownloadInfo{200, "[cached] " + packageURL, 0, localCachedFile.Path, localCachedFile.Length}
-				<-guard
-				return nil
+				return "cache", packageURL, localCachedFile.Path, localCachedFile.Length
 			}
 			// Package not cached locally.
 			log.Debug("Retrieving package ", packageName, " from CRAN current.")
+			return "download", packageURL, outputLocation, 0
 		} else {
 			// If not, look for the package in Archive.
 			log.Debug(
@@ -151,10 +172,12 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			)
 			packageURL = repoURL + "/src/contrib/Archive/" + packageName +
 				"/" + packageName + "_" + packageVersion + ".tar.gz"
+			return "download", packageURL, outputLocation, 0
 		}
 
 	case repoURL == bioConductorURL:
 		var packageChecksum string
+		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
 		for _, biocCategory := range bioconductorCategories {
 			biocPackageInfo, ok := biocPackageInfo[biocCategory][packageName]
 			if ok {
@@ -173,44 +196,21 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 			// Check if package is cached locally.
 			localCachedFile, ok := localArchiveChecksums[packageChecksum]
 			if ok {
-				log.Debug(
-					"Package ", packageName, " version ", packageVersion,
-					" found in cache: ", localCachedFile.Path,
-				)
-				messages <- DownloadInfo{200, "[cached] " + packageURL, 0, localCachedFile.Path, localCachedFile.Length}
-				<-guard
-				return nil
+				return "cache", packageURL, localCachedFile.Path, localCachedFile.Length
 			}
 			// Package not cached locally.
 			log.Debug("Retrieving package ", packageName, " from BioConductor.")
+			return "download", packageURL, outputLocation, 0
 		} else {
 			// Package not found in any of Bioconductor categories.
-			messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, "", 0}
-			<-guard
-			return nil
+			return "notfound_bioc", "", "", 0
 		}
 	case packageSource == GitHub:
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoURL, "https://github.com")
-		err := os.MkdirAll(gitDirectory, os.ModePerm)
-		checkError(err)
-		log.Debug("Cloning repo to ", gitDirectory)
-		_, err = git.PlainClone(
-			gitDirectory, false, &git.CloneOptions{
-				URL: repoURL,
-			})
-		if err == nil {
-			// The number of bytes downloaded is approximated by the size of repository directory.
-			var gitRepoSize int64
-			gitRepoSize, err = dirSize(gitDirectory)
-			checkError(err)
-			log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, gitDirectory, 0}
-		} else {
-			messages <- DownloadInfo{-2, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, "", 0}
-		}
-		<-guard
-		return nil
+		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
+		return "github", repoURL, gitDirectory, 0
+
 	case packageSource == "GitLab":
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
@@ -219,40 +219,63 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 
 		gitDirectory := localOutputDirectory + "/gitlab/" + strings.Split(repoURL, "/")[2] +
 			"/" + remoteUser + "/" + remoteRepo
-		err := os.MkdirAll(gitDirectory, os.ModePerm)
-		checkError(err)
 		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ", remoteHost, " to directory ", gitDirectory)
-		_, err = git.PlainClone(
-			gitDirectory, false, &git.CloneOptions{
-				URL: repoURL,
-				// TODO document this, or change the way credentials are passed
-				Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
-			})
-		if err == nil {
-			// The number of bytes downloaded is approximated by the size of repository directory.
-			var gitRepoSize int64
-			gitRepoSize, err = dirSize(gitDirectory)
-			checkError(err)
-			log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, gitDirectory, 0}
-		} else {
-			messages <- DownloadInfo{-3, "Error while cloning repo " + repoURL + ": " + err.Error(), 0, "", 0}
-		}
-		<-guard
-		return nil
+		return "gitlab", repoURL, gitDirectory, 0
+
 	default:
 		// Repositories other than CRAN or BioConductor
 		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
+		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
+		return "download", packageURL, outputLocation, 0
 	}
+}
 
-	outputLocation = localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
-	statusCode, contentLength := downloadFile(
-		packageURL, outputLocation,
+// Function executed in parallel goroutines.
+func downloadSinglePackage(packageName string, packageVersion string, repoURL string,
+	remoteRef string, packageSource string, currentCranPackageInfo map[string]*PackageInfo,
+	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
+	localArchiveChecksums map[string]*CacheInfo, messages chan DownloadInfo, guard chan struct{}) error {
+
+	// Determine whether to download the package as tar.gz file, or from git repository.
+	action, packageURL, outputLocation, savedBandwidth := getPackageDetails(
+		packageName, packageVersion, repoURL, packageSource, currentCranPackageInfo,
+		biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
-	if statusCode != http.StatusOK {
-		outputLocation = ""
+
+	switch action {
+	case "cache":
+		log.Debug(
+			"Package ", packageName, " version ", packageVersion,
+			" found in cache: ", outputLocation,
+		)
+		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth}
+	case "download":
+		statusCode, contentLength := downloadFile(
+			packageURL, outputLocation,
+		)
+		if statusCode != http.StatusOK {
+			outputLocation = ""
+		}
+		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0}
+	case "notfound_bioc":
+		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, "", 0}
+	case "github":
+		message, gitRepoSize := cloneGitRepo(outputLocation, packageURL, false)
+		if message == "" {
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
+		} else {
+			messages <- DownloadInfo{-2, message, 0, "", 0}
+		}
+	case "gitlab":
+		message, gitRepoSize := cloneGitRepo(outputLocation, packageURL, true)
+		if message == "" {
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
+		} else {
+			messages <- DownloadInfo{-3, message, 0, "", 0}
+		}
+	default:
+		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0}
 	}
-	messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0}
 	<-guard
 	return nil
 }
