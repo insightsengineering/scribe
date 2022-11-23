@@ -25,3 +25,10 @@ func Test_stringInSlice(t *testing.T) {
 	var testSlice = []string{"a", "b", "c", "d"}
 	assert.True(t, true, stringInSlice("a", testSlice))
 }
+
+func Test_WriteJSON(t *testing.T) {
+	var renvLock Renvlock
+	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	numberOfBytes := WriteJSON("testdata/test_output.json", renvLock)
+	assert.Equal(t, numberOfBytes, 1898)
+}

@@ -19,12 +19,49 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
 var scribeVersion string
+var logLevel string
+var Interactive bool
+
+var log = logrus.New()
+
+func setLogLevel() {
+	customFormatter := new(logrus.TextFormatter)
+	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	log.SetFormatter(customFormatter)
+	customFormatter.FullTimestamp = true
+	fmt.Println("Loglevel =", logLevel)
+	switch logLevel {
+	case "trace":
+		log.SetLevel(logrus.TraceLevel)
+	case "debug":
+		log.SetLevel(logrus.DebugLevel)
+	case "info":
+		log.SetLevel(logrus.InfoLevel)
+	case "warn":
+		log.SetLevel(logrus.WarnLevel)
+	case "error":
+		log.SetLevel(logrus.ErrorLevel)
+	default:
+		log.SetLevel(logrus.InfoLevel)
+	}
+	if Interactive {
+		// Save the log to a file instead of outputting it to stdout.
+		file, err := os.OpenFile("scribe.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err == nil {
+			log.Out = file
+		} else {
+			log.Out = os.Stdout
+			log.Info("Failed to log to file, using default stdout")
+		}
+	}
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "scribe",
@@ -34,6 +71,16 @@ var rootCmd = &cobra.Command{
 	for a collection of R packages that are defined in an
 	[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
 	Version: scribeVersion,
+	Run: func(cmd *cobra.Command, args []string) {
+		setLogLevel()
+		// TODO getting renv lock here is just temporary
+		// we'll have to figure out how to use that together with other components
+		var renvLock Renvlock
+		GetRenvLock("renv.lock", &renvLock)
+		ValidateRenvLock(renvLock)
+		var allDownloadInfo []DownloadInfo
+		DownloadPackages(renvLock, &allDownloadInfo)
+	},
 }
 
 func Execute() {
@@ -47,6 +94,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scribe.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "Logging level (trace, debug, info, warn, error)")
+	rootCmd.PersistentFlags().BoolVar(&Interactive, "interactive", false, "Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

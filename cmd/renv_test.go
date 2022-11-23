@@ -25,15 +25,24 @@ func Test_GetRenvLock(t *testing.T) {
 	var renvLock Renvlock
 	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	assert.NotNil(t, renvLock)
-	// TODO: Implement proper tests and assertions
+	assert.Equal(t, renvLock.R.Version, "4.1.1")
+	assert.Equal(t, renvLock.Bioconductor.Version, "3.13")
+	assert.Equal(t, renvLock.R.Repositories[0].Name, "CRAN")
+	assert.Equal(t, renvLock.R.Repositories[0].URL, "https://cloud.r-project.org")
+	assert.Equal(t, renvLock.Packages["SomePackage"].Package, "SomePackage")
+	assert.Equal(t, renvLock.Packages["SomePackage"].Version, "1.0.0")
+	assert.Equal(t, renvLock.Packages["SomePackage"].Source, "Repository")
+	assert.Equal(t, renvLock.Packages["SomePackage"].Repository, "CRAN")
+	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].Package, "SomeOtherPackage")
+	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].Source, "GitHub")
+	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteType, "github")
+	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteHost, "api.github.com")
+	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteUsername, "RemoteUsername")
 }
 
 func Test_ValidateRenvLock(t *testing.T) {
-	// TODO: Implement test
-	assert.Equal(t, "TEST", "TEST")
-}
-
-func Test_WriteRenvLock(t *testing.T) {
-	// TODO: Implement test
-	assert.Equal(t, "TEST", "TEST")
+	var renvLock Renvlock
+	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	numberOfWarnings := ValidateRenvLock(renvLock)
+	assert.Equal(t, numberOfWarnings, 6)
 }

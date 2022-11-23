@@ -18,15 +18,16 @@ package cmd
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
-var log = logrus.StandardLogger()
-
 type Renvlock struct {
-	R        Rversion
-	Packages map[string]Rpackage
+	R            Rversion
+	Bioconductor BioC
+	Packages     map[string]Rpackage
+}
+
+type BioC struct {
+	Version string
 }
 
 type Rversion struct {
@@ -58,30 +59,16 @@ type Rpackage struct {
 
 func GetRenvLock(filename string, renvLock *Renvlock) {
 	byteValue, err := os.ReadFile(filename)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	err = json.Unmarshal(byteValue, &renvLock)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 }
 
-func WriteRenvLock(filename string, renvLock Renvlock) {
-	s, err := json.MarshalIndent(renvLock, "", "  ")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = os.WriteFile(filename, s, 0644) //#nosec
-	if err != nil {
-		log.Error(err)
-	}
-}
-
-func ValidateRenvLock(renvLock Renvlock) {
+// Returns number of warnings during validation of renv.lock file
+func ValidateRenvLock(renvLock Renvlock) (int) {
 	var repositories []string
+	var numberOfWarnings int
 	for _, v := range renvLock.R.Repositories {
 		repositories = append(repositories, v.Name)
 	}
@@ -89,26 +76,31 @@ func ValidateRenvLock(renvLock Renvlock) {
 		switch {
 		case v.Package == "":
 			log.Warn("Package ", k, " doesn't have the Package field set.")
+			numberOfWarnings++
 		case v.Version == "":
 			log.Warn("Package ", k, " doesn't have the Version field set.")
+			numberOfWarnings++
 		case v.Source == "":
 			log.Warn("Package ", k, " doesn't have the Source field set.")
-		case v.Hash == "":
-			log.Warn("Package ", k, " doesn't have the Hash field set.")
+			numberOfWarnings++
 		}
 		if v.Repository == "" {
 			switch {
 			case v.Source == "Repository":
 				log.Warn("Package ", k, " doesn't have the Repository field set.")
-			case v.Source == "GitHub" &&
+				numberOfWarnings++
+			case v.Source == GitHub &&
 				(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
 					v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == ""):
 				log.Warn("Package ", k, " with source ", v.Source, " doesn't have the"+
 					" required Remote details provided.")
+					numberOfWarnings++
 			}
 		} else if !stringInSlice(v.Repository, repositories) {
 			log.Warn("Repository \"", v.Repository, "\" has not been defined in lock"+
 				" file for package ", k, ".\n")
+			numberOfWarnings++
 		}
 	}
+	return numberOfWarnings
 }
