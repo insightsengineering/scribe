@@ -69,16 +69,6 @@ type PackageInfo struct {
 	Checksum string
 }
 
-func getRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
-	for _, v := range renvLockRepositories {
-		if v.Name == repositoryName {
-			return v.URL
-		}
-	}
-	// return default mirror if the repository is not defined in lock file
-	return defaultCranMirrorURL
-}
-
 // Returns HTTP status code for downloaded file and number of bytes in downloaded content.
 func downloadFile(url string, outputFile string) (int, int64) {
 	// Get the data
@@ -243,15 +233,10 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 
 	switch action {
 	case cache:
-		log.Debug(
-			"Package ", packageName, " version ", packageVersion,
-			" found in cache: ", outputLocation,
-		)
+		log.Debug("Package ", packageName, " version ", packageVersion, " found in cache: ", outputLocation)
 		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth}
 	case download:
-		statusCode, contentLength := downloadFile(
-			packageURL, outputLocation,
-		)
+		statusCode, contentLength := downloadFile(packageURL, outputLocation)
 		if statusCode != http.StatusOK {
 			outputLocation = ""
 		}
@@ -520,7 +505,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 			case "GitLab":
 				repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 			default:
-				repoURL = getRepositoryURL(renvLock.R.Repositories, v.Repository)
+				repoURL = GetRepositoryURL(renvLock.R.Repositories, v.Repository)
 			}
 
 			guard <- struct{}{}

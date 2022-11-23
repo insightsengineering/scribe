@@ -65,6 +65,16 @@ func GetRenvLock(filename string, renvLock *Renvlock) {
 	checkError(err)
 }
 
+func GetRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
+	for _, v := range renvLockRepositories {
+		if v.Name == repositoryName {
+			return v.URL
+		}
+	}
+	// return default mirror if the repository is not defined in lock file
+	return defaultCranMirrorURL
+}
+
 // Returns number of warnings during validation of renv.lock file
 func ValidateRenvLock(renvLock Renvlock) (int) {
 	var repositories []string
