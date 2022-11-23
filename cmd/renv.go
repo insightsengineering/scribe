@@ -65,7 +65,7 @@ func GetRenvLock(filename string, renvLock *Renvlock) {
 	checkError(err)
 }
 
-func GetRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
+func GetRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
 	for _, v := range renvLockRepositories {
 		if v.Name == repositoryName {
 			return v.URL

@@ -40,16 +40,6 @@ func Test_GetRenvLock(t *testing.T) {
 	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteUsername, "RemoteUsername")
 }
 
-func Test_GetRepositoryUrl(t *testing.T) {
-	var renvLock Renvlock
-	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
-	repoURL := GetRepositoryURL(renvLock.R.Repositories, "CRAN")
-	assert.Equal(t, repoURL, "https://cloud.r-project.org")
-	repoURL = GetRepositoryURL(renvLock.R.Repositories, "nonExistentRepo")
-	// default value returned
-	assert.Equal(t, repoURL, "https://cloud.r-project.org")
-}
-
 func Test_ValidateRenvLock(t *testing.T) {
 	var renvLock Renvlock
 	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
