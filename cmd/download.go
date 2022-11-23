@@ -22,6 +22,8 @@ import (
 const defaultCranMirrorURL = "https://cloud.r-project.org"
 const bioConductorURL = "https://www.bioconductor.org/packages"
 const GitHub = "GitHub"
+const cache = "cache"
+const download = "download"
 
 // within below directory:
 // tar.gz packages are downloaded to package_archives subdirectory
@@ -130,9 +132,8 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 		checkError(err)
 		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
 		return "", gitRepoSize
-	} else {
-		return "Error while cloning repo " + repoURL + ": " + err.Error(), 0
 	}
+	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0
 }
 
 func getPackageDetails(packageName string, packageVersion string, repoURL string,
@@ -159,21 +160,20 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
 			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 			if ok {
-				return "cache", packageURL, localCachedFile.Path, localCachedFile.Length
+				return cache, packageURL, localCachedFile.Path, localCachedFile.Length
 			}
 			// Package not cached locally.
 			log.Debug("Retrieving package ", packageName, " from CRAN current.")
-			return "download", packageURL, outputLocation, 0
-		} else {
-			// If not, look for the package in Archive.
-			log.Debug(
-				"Attempting to retrieve ", packageName, " version ", packageVersion,
-				" from CRAN Archive.",
-			)
-			packageURL = repoURL + "/src/contrib/Archive/" + packageName +
-				"/" + packageName + "_" + packageVersion + ".tar.gz"
-			return "download", packageURL, outputLocation, 0
+			return download, packageURL, outputLocation, 0
 		}
+		// If CRAN current doesn't have the package version, look for the package in Archive.
+		log.Debug(
+			"Attempting to retrieve ", packageName, " version ", packageVersion,
+			" from CRAN Archive.",
+		)
+		packageURL = repoURL + "/src/contrib/Archive/" + packageName +
+			"/" + packageName + "_" + packageVersion + ".tar.gz"
+		return download, packageURL, outputLocation, 0
 
 	case repoURL == bioConductorURL:
 		var packageChecksum string
@@ -196,15 +196,14 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			// Check if package is cached locally.
 			localCachedFile, ok := localArchiveChecksums[packageChecksum]
 			if ok {
-				return "cache", packageURL, localCachedFile.Path, localCachedFile.Length
+				return cache, packageURL, localCachedFile.Path, localCachedFile.Length
 			}
 			// Package not cached locally.
 			log.Debug("Retrieving package ", packageName, " from BioConductor.")
-			return "download", packageURL, outputLocation, 0
-		} else {
-			// Package not found in any of Bioconductor categories.
-			return "notfound_bioc", "", "", 0
+			return download, packageURL, outputLocation, 0
 		}
+		// Package not found in any of Bioconductor categories.
+		return "notfound_bioc", "", "", 0
 	case packageSource == GitHub:
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoURL, "https://github.com")
@@ -226,7 +225,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		// Repositories other than CRAN or BioConductor
 		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
-		return "download", packageURL, outputLocation, 0
+		return download, packageURL, outputLocation, 0
 	}
 }
 
@@ -243,13 +242,13 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 	)
 
 	switch action {
-	case "cache":
+	case cache:
 		log.Debug(
 			"Package ", packageName, " version ", packageVersion,
 			" found in cache: ", outputLocation,
 		)
 		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth}
-	case "download":
+	case download:
 		statusCode, contentLength := downloadFile(
 			packageURL, outputLocation,
 		)
