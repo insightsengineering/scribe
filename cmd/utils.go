@@ -37,21 +37,24 @@ func checkError(err error) {
 }
 
 func dirSize(path string) (int64, error) {
-    var size int64
-    err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-        checkError(err)
-        if !info.IsDir() {
-            size += info.Size()
-        }
-        return err
-    })
-    return size, err
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		checkError(err)
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
 }
 
-func WriteJSON(filename string, j interface{}) {
+// Returns number of bytes written to a file
+func WriteJSON(filename string, j interface{}) (int) {
 	s, err := json.MarshalIndent(j, "", "  ")
 	checkError(err)
 
 	err = os.WriteFile(filename, s, 0644) //#nosec
 	checkError(err)
+
+	return len(s)
 }

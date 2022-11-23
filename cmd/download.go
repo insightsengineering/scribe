@@ -452,11 +452,11 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	// and calculate their checksums. Later on, if we see a package to be downloaded that will have a matching
 	// checksum in the PACKAGES file, we'll skip the download and point to already existing file in the cache.
 	localArchiveChecksums := make(map[string]*CacheInfo)
-	log.Info("Computing local cache checksums...")
+	log.Info("Calculating local cache checksums...")
 	startTime := time.Now()
 	computeChecksums(localOutputDirectory + "/package_archives", localArchiveChecksums)
 	elapsedTime := time.Since(startTime)
-	log.Info("Computing local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()), " seconds.")
+	log.Info("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()), " seconds.")
 	for k, v := range localArchiveChecksums {
 		log.Debug(k, " = ", v)
 	}
