@@ -231,7 +231,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 
 // Function executed in parallel goroutines.
 func downloadSinglePackage(packageName string, packageVersion string, repoURL string,
-	remoteRef string, packageSource string, currentCranPackageInfo map[string]*PackageInfo,
+	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo, messages chan DownloadInfo, guard chan struct{}) error {
 
@@ -315,14 +315,19 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 	}
 }
 
+func getBiocUrls(biocVersion string, biocUrls map[string]string) {
+	for _, biocCategory := range bioconductorCategories {
+		biocUrls[biocCategory] = bioConductorURL + "/" + biocVersion + "/" +
+			biocCategory + "/src/contrib"
+	}
+}
+
 // Retrieve lists of package versions from predefined BioConductor categories.
 func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[string]*PackageInfo,
 	biocUrls map[string]string) {
 	log.Info("Retrieving PACKAGES from BioConductor version ", biocVersion, ".")
 	for _, biocCategory := range bioconductorCategories {
 		biocPackageInfo[biocCategory] = make(map[string]*PackageInfo)
-		biocUrls[biocCategory] = bioConductorURL + "/" + biocVersion + "/" +
-			biocCategory + "/src/contrib"
 		status, _ := downloadFile(
 			biocUrls[biocCategory] + "/PACKAGES", localOutputDirectory +
 				"/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
@@ -443,6 +448,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	biocUrls := make(map[string]string)
 
 	if renvLock.Bioconductor.Version != "" {
+		getBiocUrls(renvLock.Bioconductor.Version, biocUrls)
 		getBioConductorPackages(
 			renvLock.Bioconductor.Version, biocPackageInfo, biocUrls,
 		)
@@ -519,7 +525,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteRef, v.Source,
+			go downloadSinglePackage(v.Package, v.Version, repoURL, v.Source,
 				currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, messages, guard)
 			numberOfDownloads++
