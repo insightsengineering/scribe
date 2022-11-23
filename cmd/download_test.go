@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"testing"
+	"sort"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +37,6 @@ func Test_GetRepositoryURL(t *testing.T) {
 	repoURL = GetRepositoryURL(renvLock.Packages["SomeOtherPackage2"], renvLock.R.Repositories)
 	assert.Equal(t, repoURL, "https://gitlab.com/RemoteUsername/RemoteRepo")
 }
-
 
 func Test_parsePackagesFile(t *testing.T) {
 	packages := make(map[string]*PackageInfo)
@@ -149,4 +149,41 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, packageURL, "https://gitlab.com/example/gitLabPackage")
 	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/gitlab/gitlab.com/example/gitLabPackage")
 	assert.Equal(t, savedBandwidth, int64(0))
+}
+
+func mockedDownloadFile(url string, outputFile string) (int, int64) {
+	return 200, 1
+}
+
+func mockedCloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool) (string, int64) {
+	return "", 1
+}
+
+func Test_downloadPackages(t *testing.T) {
+	var renvLock Renvlock
+	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	var allDownloadInfo []DownloadInfo
+	DownloadPackages(renvLock, &allDownloadInfo, mockedDownloadFile, mockedCloneGitRepo)
+	var localFiles []string
+	var messages []string
+	for _, v := range allDownloadInfo {
+		localFiles = append(localFiles, v.OutputLocation)
+		messages = append(messages, v.Message)
+	}
+	sort.Strings(localFiles)
+	sort.Strings(messages)
+	assert.Equal(t, localFiles, []string{"",
+		"/tmp/scribe/downloaded_packages/github/RemoteUsername/RemoteRepo",
+		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage3_1.0.0.tar.gz",
+		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage4_1.0.0.tar.gz",
+		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage5_1.0.0.tar.gz",
+		"/tmp/scribe/downloaded_packages/package_archives/SomePackage_1.0.0.tar.gz"},
+	)
+	assert.Equal(t, messages, []string{"Couldn't find SomeBiocPackage version 1.0.1 in BioConductor.",
+		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage3/SomeOtherPackage3_1.0.0.tar.gz",
+		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage4/SomeOtherPackage4_1.0.0.tar.gz",
+		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage5/SomeOtherPackage5_1.0.0.tar.gz",
+		"https://cloud.r-project.org/src/contrib/Archive/SomePackage/SomePackage_1.0.0.tar.gz",
+		"https://github.com/RemoteUsername/RemoteRepo"},
+	)
 }

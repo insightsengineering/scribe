@@ -79,7 +79,7 @@ var rootCmd = &cobra.Command{
 		GetRenvLock("renv.lock", &renvLock)
 		ValidateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		DownloadPackages(renvLock, &allDownloadInfo)
+		DownloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 	},
 }
 
