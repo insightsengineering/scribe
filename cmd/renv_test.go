@@ -45,6 +45,9 @@ func Test_GetRepositoryUrl(t *testing.T) {
 	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	repoURL := GetRepositoryURL(renvLock.R.Repositories, "CRAN")
 	assert.Equal(t, repoURL, "https://cloud.r-project.org")
+	repoURL = GetRepositoryURL(renvLock.R.Repositories, "nonExistentRepo")
+	// default value returned
+	assert.Equal(t, repoURL, "https://cloud.r-project.org")
 }
 
 func Test_ValidateRenvLock(t *testing.T) {

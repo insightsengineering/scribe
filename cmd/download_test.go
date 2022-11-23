@@ -57,6 +57,7 @@ func Test_getPackageDetails(t *testing.T) {
 	biocPackageInfo["data/experiment"]["someBiocPackage1"] = &PackageInfo{"1.0.1", "bcdef0123"}
 	// someBiocPackage2 should be downloaded from BioConductor (we're not adding it to cache)
 	biocPackageInfo["workflows"]["someBiocPackage2"] = &PackageInfo{"2.0.1", "bbbcccddd"}
+	// someBiocPackage3 doesn't exist in any BioConductor category - therefore not added to packageInfo
 
 	action, packageURL, outputLocation, savedBandwidth := getPackageDetails(
 		"package1", "5.0.1", "https://cran.r-project.org", "SomeOtherCRAN",
@@ -105,6 +106,14 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, action, "download")
 	assert.Equal(t, packageURL, "https://www.bioconductor.org/packages/3.13/workflows/src/contrib/someBiocPackage2_2.0.1.tar.gz")
 	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_2.0.1.tar.gz")
+	assert.Equal(t, savedBandwidth, int64(0))
+	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+		"someBiocPackage3", "3.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
+		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
+	)
+	assert.Equal(t, action, "notfound_bioc")
+	assert.Equal(t, packageURL, "")
+	assert.Equal(t, outputLocation, "")
 	assert.Equal(t, savedBandwidth, int64(0))
 
 	// git packages
