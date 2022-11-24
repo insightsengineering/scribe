@@ -75,6 +75,40 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 	return defaultCranMirrorURL
 }
 
+// Returns number of warnings occurring during validation
+func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) (int) {
+	var numberOfWarnings int
+	switch {
+	case packageFields.Package == "":
+		log.Warn("Package ", packageName, " doesn't have the Package field set.")
+		numberOfWarnings++
+	case packageFields.Version == "":
+		log.Warn("Package ", packageName, " doesn't have the Version field set.")
+		numberOfWarnings++
+	case packageFields.Source == "":
+		log.Warn("Package ", packageName, " doesn't have the Source field set.")
+		numberOfWarnings++
+	}
+	if packageFields.Repository == "" {
+		switch {
+		case packageFields.Source == "Repository":
+			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
+			numberOfWarnings++
+		case packageFields.Source == GitHub &&
+			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" || packageFields.RemoteRepo == "" ||
+			packageFields.RemoteUsername == "" || packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
+			log.Warn("Package ", packageName, " with source ", packageFields.Source, " doesn't have the"+
+				" required Remote details provided.")
+				numberOfWarnings++
+		}
+	} else if !stringInSlice(packageFields.Repository, repositories) {
+		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
+			" file for package ", packageName, ".\n")
+		numberOfWarnings++
+	}
+	return numberOfWarnings
+}
+
 // Returns number of warnings during validation of renv.lock file
 func validateRenvLock(renvLock Renvlock) (int) {
 	var repositories []string
@@ -83,34 +117,8 @@ func validateRenvLock(renvLock Renvlock) (int) {
 		repositories = append(repositories, v.Name)
 	}
 	for k, v := range renvLock.Packages {
-		switch {
-		case v.Package == "":
-			log.Warn("Package ", k, " doesn't have the Package field set.")
-			numberOfWarnings++
-		case v.Version == "":
-			log.Warn("Package ", k, " doesn't have the Version field set.")
-			numberOfWarnings++
-		case v.Source == "":
-			log.Warn("Package ", k, " doesn't have the Source field set.")
-			numberOfWarnings++
-		}
-		if v.Repository == "" {
-			switch {
-			case v.Source == "Repository":
-				log.Warn("Package ", k, " doesn't have the Repository field set.")
-				numberOfWarnings++
-			case v.Source == GitHub &&
-				(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
-					v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == ""):
-				log.Warn("Package ", k, " with source ", v.Source, " doesn't have the"+
-					" required Remote details provided.")
-					numberOfWarnings++
-			}
-		} else if !stringInSlice(v.Repository, repositories) {
-			log.Warn("Repository \"", v.Repository, "\" has not been defined in lock"+
-				" file for package ", k, ".\n")
-			numberOfWarnings++
-		}
+		newWarnings := validatePackageFields(k, v, repositories)
+		numberOfWarnings += newWarnings
 	}
 	return numberOfWarnings
 }
