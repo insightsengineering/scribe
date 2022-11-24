@@ -49,7 +49,7 @@ func dirSize(path string) (int64, error) {
 }
 
 // Returns number of bytes written to a file
-func writeJSON(filename string, j interface{}) (int) {
+func writeJSON(filename string, j interface{}) int {
 	s, err := json.MarshalIndent(j, "", "  ")
 	checkError(err)
 

@@ -76,7 +76,7 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 }
 
 // Returns number of warnings occurring during validation
-func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) (int) {
+func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) int {
 	var numberOfWarnings int
 	switch {
 	case packageFields.Package == "":
@@ -96,10 +96,10 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 			numberOfWarnings++
 		case packageFields.Source == GitHub &&
 			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" || packageFields.RemoteRepo == "" ||
-			packageFields.RemoteUsername == "" || packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
+				packageFields.RemoteUsername == "" || packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
 			log.Warn("Package ", packageName, " with source ", packageFields.Source, " doesn't have the"+
 				" required Remote details provided.")
-				numberOfWarnings++
+			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {
 		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
@@ -110,7 +110,7 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 }
 
 // Returns number of warnings during validation of renv.lock file
-func validateRenvLock(renvLock Renvlock) (int) {
+func validateRenvLock(renvLock Renvlock) int {
 	var repositories []string
 	var numberOfWarnings int
 	for _, v := range renvLock.R.Repositories {

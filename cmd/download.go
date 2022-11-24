@@ -17,17 +17,17 @@ package cmd
 
 import (
 	"bufio"
-	"crypto/tls"
 	"crypto/md5"
+	"crypto/tls"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-	"path/filepath"
-	"encoding/hex"
 
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/schollz/progressbar/v3"
@@ -80,11 +80,11 @@ type CacheInfo struct {
 }
 
 type PackageInfo struct {
-	Version string
+	Version  string
 	Checksum string
 }
 
-func getRepositoryURL(v Rpackage, repositories []Rrepository) (string) {
+func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 	var repoURL string
 	switch v.Source {
 	case "Bioconductor":
@@ -346,13 +346,13 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 	for _, biocCategory := range bioconductorCategories {
 		biocPackageInfo[biocCategory] = make(map[string]*PackageInfo)
 		status, _ := downloadFileFunction(
-			biocUrls[biocCategory] + "/PACKAGES", localOutputDirectory +
-				"/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+			biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+
+				"/package_files/BIOC_PACKAGES_"+strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 		)
 		if status == http.StatusOK {
 			// Get BioConductor package versions and their checksums.
 			parsePackagesFile(
-				localOutputDirectory + "/package_files/BIOC_PACKAGES_" +
+				localOutputDirectory+"/package_files/BIOC_PACKAGES_"+
 					strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 				biocPackageInfo[biocCategory],
 			)
@@ -455,12 +455,12 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	for _, directory := range []string{"/github", "/gitlab", "/package_files"} {
 		err := os.RemoveAll(localOutputDirectory + directory)
 		checkError(err)
-		err = os.MkdirAll(localOutputDirectory + directory, os.ModePerm)
+		err = os.MkdirAll(localOutputDirectory+directory, os.ModePerm)
 		checkError(err)
 	}
 
 	// Ensure the directory where tar.gz packages will be downloaded exists.
-	err := os.MkdirAll(localOutputDirectory + "/package_archives", os.ModePerm)
+	err := os.MkdirAll(localOutputDirectory+"/package_archives", os.ModePerm)
 	checkError(err)
 
 	biocPackageInfo := make(map[string]map[string]*PackageInfo)
@@ -487,7 +487,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 		// or from archive, and if we should download the package at all (it may have been already
 		// downloaded to local cache).
 		if v.URL == defaultCranMirrorURL {
-			status, _ := downloadFileFunction(defaultCranMirrorURL + "/src/contrib/PACKAGES", localCranPackagesPath)
+			status, _ := downloadFileFunction(defaultCranMirrorURL+"/src/contrib/PACKAGES", localCranPackagesPath)
 			if status == http.StatusOK {
 				parsePackagesFile(
 					localCranPackagesPath, currentCranPackageInfo,
@@ -502,7 +502,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	localArchiveChecksums := make(map[string]*CacheInfo)
 	log.Info("Calculating local cache checksums...")
 	startTime := time.Now()
-	computeChecksums(localOutputDirectory + "/package_archives", localArchiveChecksums)
+	computeChecksums(localOutputDirectory+"/package_archives", localArchiveChecksums)
 	elapsedTime := time.Since(startTime)
 	log.Info("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()), " seconds.")
 	for k, v := range localArchiveChecksums {
@@ -554,8 +554,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	writeJSON("downloadInfo.json", *allDownloadInfo)
 
 	elapsedTime = time.Since(startTime)
-	averageThroughputMbps := float64(int(8000 * (float64(totalDownloadedBytes) /
-		1000000) / (float64(elapsedTime.Milliseconds()) / 1000))) / 1000
+	averageThroughputMbps := float64(int(8000*(float64(totalDownloadedBytes)/
+		1000000)/(float64(elapsedTime.Milliseconds())/1000))) / 1000
 	averageThroughputBytesPerSecond := float64(totalDownloadedBytes) /
 		(float64(elapsedTime.Milliseconds()) / 1000)
 	downloadTimeSaved := float64(totalSavedBandwidth) / averageThroughputBytesPerSecond
@@ -563,7 +563,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	log.Info("Downloaded ", totalDownloadedBytes, " bytes.")
 	log.Info("Saved ", totalSavedBandwidth, " bytes of bandwidth and ",
 		fmt.Sprintf("%.2f", downloadTimeSaved), " seconds of download time due to caching.")
-	log.Info("Average throughput = ", averageThroughputMbps ," Mbps.")
+	log.Info("Average throughput = ", averageThroughputMbps, " Mbps.")
 	log.Info(
 		"Download succeeded for ", successfulDownloads, " packages out of ",
 		numberOfDownloads, " requested packages.",

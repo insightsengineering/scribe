@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"testing"
 	"sort"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
