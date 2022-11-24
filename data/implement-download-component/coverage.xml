@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.70731705" branch-rate="0" version="" timestamp="1669276890321" lines-covered="377" lines-valid="533" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.70731705" branch-rate="0" version="" timestamp="1669277097931" lines-covered="377" lines-valid="533" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -1134,7 +1134,7 @@
                 <line number="48" hits="0"></line>
               </lines>
             </method>
-            <method name="WriteJSON" signature="" line-rate="1" branch-rate="0" complexity="0">
+            <method name="writeJSON" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
                 <line number="52" hits="2"></line>
                 <line number="53" hits="2"></line>
