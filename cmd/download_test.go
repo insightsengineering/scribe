@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetRepositoryURL(t *testing.T) {
+func Test_getRepositoryURL(t *testing.T) {
 	var renvLock Renvlock
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	repoURL := getRepositoryURL(renvLock.Packages["SomePackage"], renvLock.R.Repositories)

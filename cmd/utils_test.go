@@ -26,9 +26,9 @@ func Test_stringInSlice(t *testing.T) {
 	assert.True(t, true, stringInSlice("a", testSlice))
 }
 
-func Test_WriteJSON(t *testing.T) {
+func Test_writeJSON(t *testing.T) {
 	var renvLock Renvlock
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
-	numberOfBytes := WriteJSON("testdata/test_output.json", renvLock)
+	numberOfBytes := writeJSON("testdata/test_output.json", renvLock)
 	assert.Greater(t, numberOfBytes, 0)
 }

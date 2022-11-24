@@ -551,7 +551,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	}
 
 	// Temporary, just to show it's possible to save information about downloaded packages to JSON.
-	WriteJSON("downloadInfo.json", *allDownloadInfo)
+	writeJSON("downloadInfo.json", *allDownloadInfo)
 
 	elapsedTime = time.Since(startTime)
 	averageThroughputMbps := float64(int(8000 * (float64(totalDownloadedBytes) /

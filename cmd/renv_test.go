@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetRenvLock(t *testing.T) {
+func Test_getRenvLock(t *testing.T) {
 	var renvLock Renvlock
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	assert.NotNil(t, renvLock)
@@ -40,7 +40,7 @@ func Test_GetRenvLock(t *testing.T) {
 	assert.Equal(t, renvLock.Packages["SomeOtherPackage"].RemoteUsername, "RemoteUsername")
 }
 
-func Test_ValidateRenvLock(t *testing.T) {
+func Test_validateRenvLock(t *testing.T) {
 	var renvLock Renvlock
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	numberOfWarnings := validateRenvLock(renvLock)
