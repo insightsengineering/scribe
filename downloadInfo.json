@@ -1,0 +1,44 @@
+[
+  {
+    "statusCode": 200,
+    "message": "https://cloud.r-project.org/src/contrib/getopt_1.20.3.tar.gz",
+    "contentLength": 18573,
+    "outputLocation": "/tmp/scribe/downloaded_packages/package_archives/getopt_1.20.3.tar.gz",
+    "savedBandwidth": 0
+  },
+  {
+    "statusCode": 200,
+    "message": "https://github.com/insightsengineering/teal.logger",
+    "contentLength": 720833,
+    "outputLocation": "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.logger",
+    "savedBandwidth": 0
+  },
+  {
+    "statusCode": 200,
+    "message": "https://www.bioconductor.org/packages/3.13/bioc/src/contrib/BiocVersion_3.13.1.tar.gz",
+    "contentLength": 985,
+    "outputLocation": "/tmp/scribe/downloaded_packages/package_archives/BiocVersion_3.13.1.tar.gz",
+    "savedBandwidth": 0
+  },
+  {
+    "statusCode": 200,
+    "message": "https://cloud.r-project.org/src/contrib/shinyvalidate_0.1.2.tar.gz",
+    "contentLength": 251714,
+    "outputLocation": "/tmp/scribe/downloaded_packages/package_archives/shinyvalidate_0.1.2.tar.gz",
+    "savedBandwidth": 0
+  },
+  {
+    "statusCode": 200,
+    "message": "https://cloud.r-project.org/src/contrib/Archive/devtools/devtools_2.4.2.tar.gz",
+    "contentLength": 371298,
+    "outputLocation": "/tmp/scribe/downloaded_packages/package_archives/devtools_2.4.2.tar.gz",
+    "savedBandwidth": 0
+  },
+  {
+    "statusCode": 200,
+    "message": "https://github.com/insightsengineering/rbmi",
+    "contentLength": 8611207,
+    "outputLocation": "/tmp/scribe/downloaded_packages/github/insightsengineering/rbmi",
+    "savedBandwidth": 0
+  }
+]
