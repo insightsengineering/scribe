@@ -42,14 +42,6 @@ const GitHub = "GitHub"
 const cache = "cache"
 const download = "download"
 
-// within below directory:
-// tar.gz packages are downloaded to package_archives subdirectory
-// GitHub repositories are cloned into github subdirectory
-// GitLab repositories are cloned into gitlab subdirectory
-const localOutputDirectory = "/tmp/scribe/downloaded_packages"
-
-var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
-
 // Maximum number of concurrently running download goroutines.
 const maxDownloadRoutines = 40
 
@@ -73,6 +65,8 @@ type DownloadInfo struct {
 	OutputLocation string `json:"outputLocation"`
 	// number of bytes saved thanks to caching (size of cached package file)
 	SavedBandwidth int64 `json:"savedBandwidth"`
+	// possible values: tar.gz, git, bioconductor or empty value in case of error
+	DownloadedPackageType string `json:"downloadedPackageType"`
 }
 
 // Struct used to store data about tar.gz packages saved in local cache.
@@ -323,34 +317,46 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	case cache:
 		log.Debug("Package ", packageName, " version ", packageVersion,
 			" found in cache: ", outputLocation)
-		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth}
+		var packageType string
+		if strings.HasPrefix(packageURL, bioConductorURL) {
+			packageType = "bioconductor"
+		} else {
+			packageType = "tar.gz"
+		}
+		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth, packageType}
 	case download:
 		statusCode, contentLength := downloadFileFunction(packageURL, outputLocation)
 		if statusCode != http.StatusOK {
 			outputLocation = ""
 		}
-		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0}
+		var packageType string
+		if strings.HasPrefix(packageURL, bioConductorURL) {
+			packageType = "bioconductor"
+		} else {
+			packageType = "tar.gz"
+		}
+		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0, packageType}
 	case "notfound_bioc":
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
-			packageVersion + " in BioConductor.", 0, "", 0}
+			packageVersion + " in BioConductor.", 0, "", 0, ""}
 	case "github":
 		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git"}
 		} else {
-			messages <- DownloadInfo{-2, message, 0, "", 0}
+			messages <- DownloadInfo{-2, message, 0, "", 0, ""}
 		}
 	case "gitlab":
 		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git"}
 		} else {
-			messages <- DownloadInfo{-3, message, 0, "", 0}
+			messages <- DownloadInfo{-3, message, 0, "", 0, ""}
 		}
 	default:
-		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0}
+		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0, ""}
 	}
 	<-guard
 }
@@ -485,7 +491,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			*allDownloadInfo = append(
 				*allDownloadInfo,
 				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength,
-					msg.OutputLocation, msg.SavedBandwidth},
+					msg.OutputLocation, msg.SavedBandwidth, msg.DownloadedPackageType},
 			)
 
 			if *successfulDownloads+*failedDownloads == totalPackages {
@@ -539,10 +545,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 
 	const localCranPackagesPath = localOutputDirectory + "/package_files/CRAN_PACKAGES"
 
-	// var repositories []string
 	currentCranPackageInfo := make(map[string]*PackageInfo)
 	for _, v := range renvLock.R.Repositories {
-		// repositories = append(repositories, v.Name)
 
 		// In case any packages are downloaded from CRAN, prepare a map from package name to
 		// current versions of the packages and their checksums as read from PACKAGES file.
@@ -611,12 +615,10 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	<-downloadWaiter
 
 	if downloadErrors != "" {
+		// Not using log for that because we want to see this no matter if running in interactive mode or not.
 		fmt.Println("\n\nThe following errors were encountered during download:")
 		fmt.Print(downloadErrors)
 	}
-
-	// Temporary, just to show it's possible to save information about downloaded packages to JSON.
-	writeJSON("downloadInfo.json", *allDownloadInfo)
 
 	elapsedTime = time.Since(startTime)
 	averageThroughputMbps := float64(int(8000*(float64(totalDownloadedBytes)/
