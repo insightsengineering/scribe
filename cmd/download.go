@@ -29,9 +29,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/schollz/progressbar/v3"
-	"gopkg.in/src-d/go-git.v4"
 )
 
 const defaultCranMirrorURL = "https://cloud.r-project.org"
@@ -128,14 +130,19 @@ func downloadFile(url string, outputFile string) (int, int64) {
 
 // Clones git repository and returns string with error value (empty if cloning was
 // successful) and approximate number of downloaded bytes.
-func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool) (string, int64) {
+// If commitSha or branchName is specified, the respective commit or branch are checked out.
+// If useEnvironmentCredentials is true, this function expects username and token to be set in
+// GITLAB_USER and GITLAB_TOKEN environment variables.
+// This implementation assumes that RemoteSha renv.lock field contains commit SHA,
+// and that RemoteRef renv.lock field contains branch name.
+func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool,
+	commitSha string, branchName string) (string, int64) {
 	err := os.MkdirAll(gitDirectory, os.ModePerm)
 	checkError(err)
 	var gitCloneOptions *git.CloneOptions
 	if useEnvironmentCredentials {
 		gitCloneOptions = &git.CloneOptions{
-			URL: repoURL,
-			// TODO document this, or change the way credentials are passed
+			URL:  repoURL,
 			Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
 		}
 	} else {
@@ -144,8 +151,40 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 		}
 	}
 
-	_, err = git.PlainClone(gitDirectory, false, gitCloneOptions)
+	repository, err := git.PlainClone(gitDirectory, false, gitCloneOptions)
 	if err == nil {
+		w, er := repository.Worktree()
+		checkError(er)
+		// Checkout the commit.
+		if commitSha != "" {
+			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash: plumbing.NewHash(commitSha),
+			})
+			checkError(err)
+		}
+		// Checkout the branch.
+		if branchName != "" {
+			log.Info("Checking out branch ", branchName, " in ", gitDirectory)
+			refSpec := config.RefSpec(fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName))
+			var fetchOptions *git.FetchOptions
+			if useEnvironmentCredentials {
+				fetchOptions = &git.FetchOptions{
+					RefSpecs: []config.RefSpec{refSpec},
+					Auth:     &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
+				}
+			} else {
+				fetchOptions = &git.FetchOptions{
+					RefSpecs: []config.RefSpec{refSpec},
+				}
+			}
+			err = repository.Fetch(fetchOptions)
+			checkError(err)
+			err = w.Checkout(&git.CheckoutOptions{
+				Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branchName)),
+			})
+			checkError(err)
+		}
 		// The number of bytes downloaded is approximated by the size of repository directory.
 		var gitRepoSize int64
 		gitRepoSize, err = dirSize(gitDirectory)
@@ -250,12 +289,13 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 }
 
 // Function executed in parallel goroutines.
-func downloadSinglePackage(packageName string, packageVersion string, repoURL string,
+func downloadSinglePackage(packageName string, packageVersion string,
+	repoURL string, gitCommitSha string, gitBranch string,
 	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo,
 	downloadFileFunction func(string, string) (int, int64),
-	gitCloneFunction func(string, string, bool) (string, int64),
+	gitCloneFunction func(string, string, bool, string, string) (string, int64),
 	messages chan DownloadInfo, guard chan struct{}) {
 
 	// Determine whether to download the package as tar.gz file, or from git repository.
@@ -277,14 +317,14 @@ func downloadSinglePackage(packageName string, packageVersion string, repoURL st
 	case "notfound_bioc":
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, "", 0}
 	case "github":
-		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false)
+		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false, gitCommitSha, gitBranch)
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0}
 		}
 	case "gitlab":
-		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true)
+		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true, gitCommitSha, gitBranch)
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
 		} else {
@@ -446,7 +486,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 // Download packages from renv.lock file, saves download result structs to allDownloadInfo.
 func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	downloadFileFunction func(string, string) (int, int64),
-	gitCloneFunction func(string, string, bool) (string, int64)) {
+	gitCloneFunction func(string, string, bool, string, string) (string, int64)) {
 
 	// Clean up any previous downloaded data, except tar.gz packages.
 	// We'll later calculate checksums for tar.gz files and compare them checksums in
@@ -535,7 +575,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 			repoURL = getRepositoryURL(v, renvLock.R.Repositories)
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoURL, v.Source,
+			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef, v.Source,
 				currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, downloadFileFunction, gitCloneFunction, messages, guard)
 			numberOfDownloads++
