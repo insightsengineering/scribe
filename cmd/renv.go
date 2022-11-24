@@ -95,10 +95,11 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
 			numberOfWarnings++
 		case packageFields.Source == GitHub &&
-			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" || packageFields.RemoteRepo == "" ||
-				packageFields.RemoteUsername == "" || packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
-			log.Warn("Package ", packageName, " with source ", packageFields.Source, " doesn't have the"+
-				" required Remote details provided.")
+			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" ||
+				packageFields.RemoteRepo == "" || packageFields.RemoteUsername == "" ||
+				packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
+			log.Warn("Package ", packageName, " with source ", packageFields.Source,
+				"doesn't have the required Remote details provided.")
 			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {

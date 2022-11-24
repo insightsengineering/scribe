@@ -81,7 +81,8 @@ func Test_getPackageDetails(t *testing.T) {
 	)
 	assert.Equal(t, action, "download")
 	assert.Equal(t, packageURL, "https://cran.r-project.org/src/contrib/package1_5.0.1.tar.gz")
-	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/package_archives/package1_5.0.1.tar.gz")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/package1_5.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
 	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
 		"somePackage1", "1.0.0", "https://cloud.r-project.org", "CRAN",
@@ -97,22 +98,26 @@ func Test_getPackageDetails(t *testing.T) {
 	)
 	assert.Equal(t, action, "download")
 	assert.Equal(t, packageURL, "https://cloud.r-project.org/src/contrib/somePackage2_2.0.0.tar.gz")
-	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/package_archives/somePackage2_2.0.0.tar.gz")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/somePackage2_2.0.0.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
 	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
 		"somePackage3", "3.0.0", "https://cloud.r-project.org", "CRAN",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
 	assert.Equal(t, action, "download")
-	assert.Equal(t, packageURL, "https://cloud.r-project.org/src/contrib/Archive/somePackage3/somePackage3_3.0.0.tar.gz")
-	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/package_archives/somePackage3_3.0.0.tar.gz")
+	assert.Equal(t, packageURL,
+		"https://cloud.r-project.org/src/contrib/Archive/somePackage3/somePackage3_3.0.0.tar.gz")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/somePackage3_3.0.0.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
 	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
 		"someBiocPackage1", "1.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
 	assert.Equal(t, action, "cache")
-	assert.Equal(t, packageURL, "https://www.bioconductor.org/packages/3.13/data/experiment/src/contrib/someBiocPackage1_1.0.1.tar.gz")
+	assert.Equal(t, packageURL,
+		"https://www.bioconductor.org/packages/3.13/data/experiment/src/contrib/someBiocPackage1_1.0.1.tar.gz")
 	assert.Equal(t, outputLocation, "/tmp/scribe/someBiocPackage_1.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(2000))
 	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
@@ -120,8 +125,10 @@ func Test_getPackageDetails(t *testing.T) {
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
 	assert.Equal(t, action, "download")
-	assert.Equal(t, packageURL, "https://www.bioconductor.org/packages/3.13/workflows/src/contrib/someBiocPackage2_2.0.1.tar.gz")
-	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_2.0.1.tar.gz")
+	assert.Equal(t, packageURL,
+		"https://www.bioconductor.org/packages/3.13/workflows/src/contrib/someBiocPackage2_2.0.1.tar.gz")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_2.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
 	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
 		"someBiocPackage3", "3.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
@@ -139,7 +146,8 @@ func Test_getPackageDetails(t *testing.T) {
 	)
 	assert.Equal(t, action, "github")
 	assert.Equal(t, packageURL, "https://github.com/insightsengineering/gitHubPackage")
-	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/github/insightsengineering/gitHubPackage")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/github/insightsengineering/gitHubPackage")
 	assert.Equal(t, savedBandwidth, int64(0))
 	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
 		"gitLabPackage", "0.0.6", "https://gitlab.com/example/gitLabPackage", "GitLab",
@@ -147,7 +155,8 @@ func Test_getPackageDetails(t *testing.T) {
 	)
 	assert.Equal(t, action, "gitlab")
 	assert.Equal(t, packageURL, "https://gitlab.com/example/gitLabPackage")
-	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/gitlab/gitlab.com/example/gitLabPackage")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/gitlab/gitlab.com/example/gitLabPackage")
 	assert.Equal(t, savedBandwidth, int64(0))
 }
 

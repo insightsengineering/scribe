@@ -93,9 +93,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scribe.yaml)")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "Logging level (trace, debug, info, warn, error)")
-	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false, "Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
+		"config file (default is $HOME/.scribe.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
+		"Logging level (trace, debug, info, warn, error)")
+	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
+		"Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

@@ -135,6 +135,7 @@ func downloadFile(url string, outputFile string) (int, int64) {
 // GITLAB_USER and GITLAB_TOKEN environment variables.
 // This implementation assumes that RemoteSha renv.lock field contains commit SHA,
 // and that RemoteRef renv.lock field contains branch name.
+// If this assumption is not correct for some package, the default branch will be checked out.
 func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool,
 	commitSha string, branchName string) (string, int64) {
 	err := os.MkdirAll(gitDirectory, os.ModePerm)
@@ -142,8 +143,11 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 	var gitCloneOptions *git.CloneOptions
 	if useEnvironmentCredentials {
 		gitCloneOptions = &git.CloneOptions{
-			URL:  repoURL,
-			Auth: &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
+			URL: repoURL,
+			Auth: &githttp.BasicAuth{
+				Username: os.Getenv("GITLAB_USER"),
+				Password: os.Getenv("GITLAB_TOKEN"),
+			},
 		}
 	} else {
 		gitCloneOptions = &git.CloneOptions{
@@ -166,12 +170,17 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 		// Checkout the branch.
 		if branchName != "" {
 			log.Info("Checking out branch ", branchName, " in ", gitDirectory)
-			refSpec := config.RefSpec(fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName))
+			refSpec := config.RefSpec(
+				fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName),
+			)
 			var fetchOptions *git.FetchOptions
 			if useEnvironmentCredentials {
 				fetchOptions = &git.FetchOptions{
 					RefSpecs: []config.RefSpec{refSpec},
-					Auth:     &githttp.BasicAuth{Username: os.Getenv("GITLAB_USER"), Password: os.Getenv("GITLAB_TOKEN")},
+					Auth: &githttp.BasicAuth{
+						Username: os.Getenv("GITLAB_USER"),
+						Password: os.Getenv("GITLAB_TOKEN"),
+					},
 				}
 			} else {
 				fetchOptions = &git.FetchOptions{
@@ -202,7 +211,8 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 	var packageURL string
 	switch {
 	case repoURL == defaultCranMirrorURL:
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
+		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
+			"_" + packageVersion + ".tar.gz"
 		// Check if package is in current CRAN repository
 		var versionInCran string
 		packageInfo, ok := currentCranPackageInfo[packageName]
@@ -236,7 +246,8 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 
 	case repoURL == bioConductorURL:
 		var packageChecksum string
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
+		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
+			"_" + packageVersion + ".tar.gz"
 		for _, biocCategory := range bioconductorCategories {
 			biocPackageInfo, ok := biocPackageInfo[biocCategory][packageName]
 			if ok {
@@ -245,7 +256,8 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 					" version ", biocPackageInfo.Version, ".",
 				)
 				if biocPackageInfo.Version == packageVersion {
-					packageURL = biocUrls[biocCategory] + "/" + packageName + "_" + packageVersion + ".tar.gz"
+					packageURL = biocUrls[biocCategory] + "/" + packageName +
+						"_" + packageVersion + ".tar.gz"
 					packageChecksum = biocPackageInfo.Checksum
 					break
 				}
@@ -265,7 +277,8 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		return "notfound_bioc", "", "", 0
 	case packageSource == GitHub:
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
-		gitDirectory := localOutputDirectory + "/github" + strings.TrimPrefix(repoURL, "https://github.com")
+		gitDirectory := localOutputDirectory + "/github" +
+			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
 		return "github", repoURL, gitDirectory, 0
 
@@ -277,13 +290,15 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 
 		gitDirectory := localOutputDirectory + "/gitlab/" + strings.Split(repoURL, "/")[2] +
 			"/" + remoteUser + "/" + remoteRepo
-		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ", remoteHost, " to directory ", gitDirectory)
+		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ",
+			remoteHost, " to directory ", gitDirectory)
 		return "gitlab", repoURL, gitDirectory, 0
 
 	default:
 		// Repositories other than CRAN or BioConductor
 		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName + "_" + packageVersion + ".tar.gz"
+		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
+			"_" + packageVersion + ".tar.gz"
 		return download, packageURL, outputLocation, 0
 	}
 }
@@ -306,7 +321,8 @@ func downloadSinglePackage(packageName string, packageVersion string,
 
 	switch action {
 	case cache:
-		log.Debug("Package ", packageName, " version ", packageVersion, " found in cache: ", outputLocation)
+		log.Debug("Package ", packageName, " version ", packageVersion,
+			" found in cache: ", outputLocation)
 		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth}
 	case download:
 		statusCode, contentLength := downloadFileFunction(packageURL, outputLocation)
@@ -315,16 +331,19 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		}
 		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0}
 	case "notfound_bioc":
-		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " + packageVersion + " in BioConductor.", 0, "", 0}
+		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
+			packageVersion + " in BioConductor.", 0, "", 0}
 	case "github":
-		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false, gitCommitSha, gitBranch)
+		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false,
+			gitCommitSha, gitBranch)
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0}
 		}
 	case "gitlab":
-		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true, gitCommitSha, gitBranch)
+		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true,
+			gitCommitSha, gitBranch)
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0}
 		} else {
@@ -367,7 +386,8 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 		if strings.HasPrefix(newLine, "MD5sum:") {
 			checksumFields := strings.Fields(newLine)
 			checksum := checksumFields[1]
-			packageInfo[currentlyProcessedPackageName] = &PackageInfo{currentlyProcessedPackageVersion, checksum}
+			packageInfo[currentlyProcessedPackageName] = &PackageInfo{
+				currentlyProcessedPackageVersion, checksum}
 		}
 	}
 }
@@ -387,7 +407,8 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 		biocPackageInfo[biocCategory] = make(map[string]*PackageInfo)
 		status, _ := downloadFileFunction(
 			biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+
-				"/package_files/BIOC_PACKAGES_"+strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
+				"/package_files/BIOC_PACKAGES_"+
+				strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 		)
 		if status == http.StatusOK {
 			// Get BioConductor package versions and their checksums.
@@ -451,7 +472,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 				checkError(err)
 			}
 			messageString := "[" +
-				strconv.Itoa(int(100*float64(*successfulDownloads+*failedDownloads)/float64(totalPackages))) +
+				strconv.Itoa(int(100*float64(*successfulDownloads+*failedDownloads)/
+					float64(totalPackages))) +
 				"%] " + strconv.Itoa(msg.StatusCode) + " " + msg.Message
 			if msg.StatusCode == http.StatusOK {
 				log.Info(messageString)
@@ -462,7 +484,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 
 			*allDownloadInfo = append(
 				*allDownloadInfo,
-				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength, msg.OutputLocation, msg.SavedBandwidth},
+				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength,
+					msg.OutputLocation, msg.SavedBandwidth},
 			)
 
 			if *successfulDownloads+*failedDownloads == totalPackages {
@@ -489,7 +512,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	gitCloneFunction func(string, string, bool, string, string) (string, int64)) {
 
 	// Clean up any previous downloaded data, except tar.gz packages.
-	// We'll later calculate checksums for tar.gz files and compare them checksums in
+	// We'll later calculate checksums for tar.gz files and compare them with checksums in
 	// in PACKAGES files, so tar.gz files don't have to be downloaded again.
 	// Then, recreate these directories.
 	for _, directory := range []string{"/github", "/gitlab", "/package_files"} {
@@ -527,7 +550,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 		// or from archive, and if we should download the package at all (it may have been already
 		// downloaded to local cache).
 		if v.URL == defaultCranMirrorURL {
-			status, _ := downloadFileFunction(defaultCranMirrorURL+"/src/contrib/PACKAGES", localCranPackagesPath)
+			status, _ := downloadFileFunction(defaultCranMirrorURL+"/src/contrib/PACKAGES",
+				localCranPackagesPath)
 			if status == http.StatusOK {
 				parsePackagesFile(
 					localCranPackagesPath, currentCranPackageInfo,
@@ -544,7 +568,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	startTime := time.Now()
 	computeChecksums(localOutputDirectory+"/package_archives", localArchiveChecksums)
 	elapsedTime := time.Since(startTime)
-	log.Info("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()), " seconds.")
+	log.Info("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()),
+		" seconds.")
 	for k, v := range localArchiveChecksums {
 		log.Debug(k, " = ", v)
 	}
@@ -564,8 +589,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	startTime = time.Now()
 
 	go downloadResultReceiver(messages, &successfulDownloads, &failedDownloads,
-		len(renvLock.Packages), &totalDownloadedBytes, &totalSavedBandwidth, downloadWaiter, &downloadErrors,
-		allDownloadInfo,
+		len(renvLock.Packages), &totalDownloadedBytes, &totalSavedBandwidth,
+		downloadWaiter, &downloadErrors, allDownloadInfo,
 	)
 
 	log.Info("There are ", len(renvLock.Packages), " packages to be downloaded.")
@@ -575,8 +600,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 			repoURL = getRepositoryURL(v, renvLock.R.Repositories)
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
-			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef, v.Source,
-				currentCranPackageInfo, biocPackageInfo, biocUrls,
+			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef,
+				v.Source, currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, downloadFileFunction, gitCloneFunction, messages, guard)
 			numberOfDownloads++
 		}
