@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"bufio"
-	"crypto/md5"
+	"crypto/md5" // #nosec
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
