@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.70731705" branch-rate="0" version="" timestamp="1669277097931" lines-covered="377" lines-valid="533" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.71057516" branch-rate="0" version="" timestamp="1669277933328" lines-covered="383" lines-valid="539" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
   <packages>
-    <package name="github.com/insightsengineering/scribe/cmd" line-rate="0.71132076" branch-rate="0" complexity="0">
+    <package name="github.com/insightsengineering/scribe/cmd" line-rate="0.7145522" branch-rate="0" complexity="0">
       <classes>
         <class name="-" filename="cmd/download.go" line-rate="0.77020204" branch-rate="0" complexity="0">
           <methods>
@@ -294,7 +294,7 @@
                 <line number="396" hits="0"></line>
                 <line number="397" hits="1"></line>
                 <line number="398" hits="1"></line>
-                <line number="399" hits="27"></line>
+                <line number="399" hits="26"></line>
                 <line number="400" hits="6"></line>
                 <line number="401" hits="5"></line>
                 <line number="402" hits="5"></line>
@@ -326,9 +326,9 @@
                 <line number="429" hits="0"></line>
                 <line number="430" hits="0"></line>
                 <line number="431" hits="0"></line>
-                <line number="432" hits="21"></line>
-                <line number="433" hits="21"></line>
-                <line number="434" hits="21"></line>
+                <line number="432" hits="20"></line>
+                <line number="433" hits="20"></line>
+                <line number="434" hits="20"></line>
                 <line number="438" hits="1"></line>
                 <line number="439" hits="1"></line>
                 <line number="443" hits="1"></line>
@@ -698,7 +698,7 @@
             <line number="396" hits="0"></line>
             <line number="397" hits="1"></line>
             <line number="398" hits="1"></line>
-            <line number="399" hits="27"></line>
+            <line number="399" hits="26"></line>
             <line number="400" hits="6"></line>
             <line number="401" hits="5"></line>
             <line number="402" hits="5"></line>
@@ -730,9 +730,9 @@
             <line number="429" hits="0"></line>
             <line number="430" hits="0"></line>
             <line number="431" hits="0"></line>
-            <line number="432" hits="21"></line>
-            <line number="433" hits="21"></line>
-            <line number="434" hits="21"></line>
+            <line number="432" hits="20"></line>
+            <line number="433" hits="20"></line>
+            <line number="434" hits="20"></line>
             <line number="438" hits="1"></line>
             <line number="439" hits="1"></line>
             <line number="443" hits="1"></line>
@@ -872,40 +872,50 @@
                 <line number="75" hits="3"></line>
               </lines>
             </method>
-            <method name="validateRenvLock" signature="" line-rate="1" branch-rate="0" complexity="0">
+            <method name="validatePackageFields" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
-                <line number="79" hits="1"></line>
-                <line number="80" hits="1"></line>
-                <line number="81" hits="1"></line>
+                <line number="79" hits="8"></line>
+                <line number="80" hits="8"></line>
+                <line number="81" hits="8"></line>
                 <line number="82" hits="1"></line>
                 <line number="83" hits="1"></line>
                 <line number="84" hits="1"></line>
                 <line number="85" hits="1"></line>
-                <line number="86" hits="8"></line>
+                <line number="86" hits="1"></line>
                 <line number="87" hits="1"></line>
                 <line number="88" hits="1"></line>
                 <line number="89" hits="1"></line>
                 <line number="90" hits="1"></line>
-                <line number="91" hits="1"></line>
-                <line number="92" hits="1"></line>
-                <line number="93" hits="1"></line>
+                <line number="92" hits="5"></line>
+                <line number="93" hits="5"></line>
                 <line number="94" hits="1"></line>
                 <line number="95" hits="1"></line>
-                <line number="97" hits="5"></line>
-                <line number="98" hits="5"></line>
+                <line number="96" hits="1"></line>
                 <line number="99" hits="1"></line>
                 <line number="100" hits="1"></line>
                 <line number="101" hits="1"></line>
+                <line number="102" hits="1"></line>
                 <line number="104" hits="1"></line>
                 <line number="105" hits="1"></line>
                 <line number="106" hits="1"></line>
                 <line number="107" hits="1"></line>
-                <line number="109" hits="1"></line>
-                <line number="110" hits="1"></line>
-                <line number="111" hits="1"></line>
-                <line number="112" hits="1"></line>
+                <line number="108" hits="1"></line>
+                <line number="109" hits="8"></line>
+              </lines>
+            </method>
+            <method name="validateRenvLock" signature="" line-rate="1" branch-rate="0" complexity="0">
+              <lines>
                 <line number="113" hits="1"></line>
+                <line number="114" hits="1"></line>
                 <line number="115" hits="1"></line>
+                <line number="116" hits="1"></line>
+                <line number="117" hits="1"></line>
+                <line number="118" hits="1"></line>
+                <line number="119" hits="1"></line>
+                <line number="120" hits="8"></line>
+                <line number="121" hits="8"></line>
+                <line number="122" hits="8"></line>
+                <line number="123" hits="1"></line>
               </lines>
             </method>
           </methods>
@@ -923,38 +933,44 @@
             <line number="71" hits="3"></line>
             <line number="72" hits="3"></line>
             <line number="75" hits="3"></line>
-            <line number="79" hits="1"></line>
-            <line number="80" hits="1"></line>
-            <line number="81" hits="1"></line>
+            <line number="79" hits="8"></line>
+            <line number="80" hits="8"></line>
+            <line number="81" hits="8"></line>
             <line number="82" hits="1"></line>
             <line number="83" hits="1"></line>
             <line number="84" hits="1"></line>
             <line number="85" hits="1"></line>
-            <line number="86" hits="8"></line>
+            <line number="86" hits="1"></line>
             <line number="87" hits="1"></line>
             <line number="88" hits="1"></line>
             <line number="89" hits="1"></line>
             <line number="90" hits="1"></line>
-            <line number="91" hits="1"></line>
-            <line number="92" hits="1"></line>
-            <line number="93" hits="1"></line>
+            <line number="92" hits="5"></line>
+            <line number="93" hits="5"></line>
             <line number="94" hits="1"></line>
             <line number="95" hits="1"></line>
-            <line number="97" hits="5"></line>
-            <line number="98" hits="5"></line>
+            <line number="96" hits="1"></line>
             <line number="99" hits="1"></line>
             <line number="100" hits="1"></line>
             <line number="101" hits="1"></line>
+            <line number="102" hits="1"></line>
             <line number="104" hits="1"></line>
             <line number="105" hits="1"></line>
             <line number="106" hits="1"></line>
             <line number="107" hits="1"></line>
-            <line number="109" hits="1"></line>
-            <line number="110" hits="1"></line>
-            <line number="111" hits="1"></line>
-            <line number="112" hits="1"></line>
+            <line number="108" hits="1"></line>
+            <line number="109" hits="8"></line>
             <line number="113" hits="1"></line>
+            <line number="114" hits="1"></line>
             <line number="115" hits="1"></line>
+            <line number="116" hits="1"></line>
+            <line number="117" hits="1"></line>
+            <line number="118" hits="1"></line>
+            <line number="119" hits="1"></line>
+            <line number="120" hits="8"></line>
+            <line number="121" hits="8"></line>
+            <line number="122" hits="8"></line>
+            <line number="123" hits="1"></line>
           </lines>
         </class>
         <class name="-" filename="cmd/root.go" line-rate="0.13114753" branch-rate="0" complexity="0">
