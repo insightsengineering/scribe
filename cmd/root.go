@@ -16,12 +16,13 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io/ioutil"
+	"os"
 )
 
 var cfgFile string
@@ -79,7 +80,17 @@ var rootCmd = &cobra.Command{
 		GetRenvLock("renv.lock", &renvLock)
 		ValidateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		DownloadPackages(renvLock, &allDownloadInfo)
+		readFile := "downloadInfo.json"
+		if _, err := os.Stat(readFile); err == nil {
+			log.Info("Reading", readFile)
+			jsonFile, _ := ioutil.ReadFile(readFile)
+			json.Unmarshal(jsonFile, &allDownloadInfo)
+		} else {
+			log.Info("No", readFile)
+			DownloadPackages(renvLock, &allDownloadInfo)
+		}
+		InstallPackages(&allDownloadInfo)
+
 	},
 }
 

@@ -16,9 +16,14 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
+	"unicode"
 )
 
 func stringInSlice(a string, list []string) bool {
@@ -49,7 +54,7 @@ func dirSize(path string) (int64, error) {
 }
 
 // Returns number of bytes written to a file
-func WriteJSON(filename string, j interface{}) (int) {
+func WriteJSON(filename string, j interface{}) int {
 	s, err := json.MarshalIndent(j, "", "  ")
 	checkError(err)
 
@@ -57,4 +62,83 @@ func WriteJSON(filename string, j interface{}) (int) {
 	checkError(err)
 
 	return len(s)
+}
+
+// Execute a system command
+func execCommand(command string, showOutput bool, returnOutput bool) (string, error) {
+	lastQuote := rune(0)
+	f := func(c rune) bool {
+		switch {
+		case c == lastQuote:
+			lastQuote = rune(0)
+			return false
+		case lastQuote != rune(0):
+			return false
+		case unicode.In(c, unicode.Quotation_Mark):
+			lastQuote = c
+			return false
+		default:
+			return unicode.IsSpace(c)
+		}
+	}
+
+	var parts []string
+	preParts := strings.FieldsFunc(command, f)
+	for i := range preParts {
+		part := preParts[i]
+		parts = append(parts, strings.Replace(part, "'", "", -1))
+	}
+	if returnOutput {
+		data, err := exec.Command(parts[0], parts[1:]...).Output()
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd := exec.Command(parts[0], parts[1:]...)
+
+	stdoutIn, _ := cmd.StdoutPipe()
+	stderrIn, _ := cmd.StderrPipe()
+
+	var errStdout, errStderr error
+	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
+	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
+	err := cmd.Start()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	go func() {
+		_, errStdout = io.Copy(stdout, stdoutIn)
+	}()
+
+	go func() {
+		_, errStderr = io.Copy(stderr, stderrIn)
+	}()
+
+	if errStdout != nil || errStderr != nil {
+		if showOutput {
+			log.Fatalln("Failed to capture stdout or stderr!")
+		}
+		if errStdout != nil {
+			return "", errStdout
+		}
+		return "", errStderr
+	}
+
+	err = cmd.Wait()
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	if err != nil {
+		if showOutput {
+			log.Println(errStr)
+		}
+		return "", err
+	}
+	if showOutput {
+		log.Println(outStr)
+	}
+
+	return "", nil
 }
