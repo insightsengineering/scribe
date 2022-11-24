@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.70731705" branch-rate="0" version="" timestamp="1669234980713" lines-covered="377" lines-valid="533" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.70731705" branch-rate="0" version="" timestamp="1669276890321" lines-covered="377" lines-valid="533" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -9,7 +9,7 @@
       <classes>
         <class name="-" filename="cmd/download.go" line-rate="0.77020204" branch-rate="0" complexity="0">
           <methods>
-            <method name="GetRepositoryURL" signature="" line-rate="1" branch-rate="0" complexity="0">
+            <method name="getRepositoryURL" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
                 <line number="87" hits="11"></line>
                 <line number="88" hits="11"></line>
@@ -334,7 +334,7 @@
                 <line number="443" hits="1"></line>
               </lines>
             </method>
-            <method name="DownloadPackages" signature="" line-rate="0.972973" branch-rate="0" complexity="0">
+            <method name="downloadPackages" signature="" line-rate="0.972973" branch-rate="0" complexity="0">
               <lines>
                 <line number="449" hits="1"></line>
                 <line number="450" hits="1"></line>
@@ -851,7 +851,7 @@
         </class>
         <class name="-" filename="cmd/renv.go" line-rate="1" branch-rate="0" complexity="0">
           <methods>
-            <method name="GetRenvLock" signature="" line-rate="1" branch-rate="0" complexity="0">
+            <method name="getRenvLock" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
                 <line number="60" hits="5"></line>
                 <line number="61" hits="5"></line>
@@ -862,7 +862,7 @@
                 <line number="66" hits="5"></line>
               </lines>
             </method>
-            <method name="GetRenvRepositoryURL" signature="" line-rate="1" branch-rate="0" complexity="0">
+            <method name="getRenvRepositoryURL" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
                 <line number="68" hits="6"></line>
                 <line number="69" hits="6"></line>
@@ -872,7 +872,7 @@
                 <line number="75" hits="3"></line>
               </lines>
             </method>
-            <method name="ValidateRenvLock" signature="" line-rate="1" branch-rate="0" complexity="0">
+            <method name="validateRenvLock" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
                 <line number="79" hits="1"></line>
                 <line number="80" hits="1"></line>
