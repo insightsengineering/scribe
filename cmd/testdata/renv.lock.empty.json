@@ -19,6 +19,12 @@
             "Repository": "CRAN",
             "Requirements": []
         },
+        "SomeBiocPackage": {
+            "Package": "SomeBiocPackage",
+            "Version": "1.0.1",
+            "Source": "Bioconductor",
+            "Requirements": []
+        },
         "SomeOtherPackage": {
             "Package": "SomeOtherPackage",
             "Version": "",

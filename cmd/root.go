@@ -28,7 +28,7 @@ import (
 var cfgFile string
 var scribeVersion string
 var logLevel string
-var Interactive bool
+var interactive bool
 
 var log = logrus.New()
 
@@ -52,7 +52,7 @@ func setLogLevel() {
 	default:
 		log.SetLevel(logrus.InfoLevel)
 	}
-	if Interactive {
+	if interactive {
 		// Save the log to a file instead of outputting it to stdout.
 		file, err := os.OpenFile("scribe.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err == nil {
@@ -77,8 +77,8 @@ var rootCmd = &cobra.Command{
 		// TODO getting renv lock here is just temporary
 		// we'll have to figure out how to use that together with other components
 		var renvLock Renvlock
-		GetRenvLock("renv.lock", &renvLock)
-		ValidateRenvLock(renvLock)
+		getRenvLock("renv.lock", &renvLock)
+		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
 		readFile := "downloadInfo.json"
 		if _, err := os.Stat(readFile); err == nil {
@@ -91,6 +91,7 @@ var rootCmd = &cobra.Command{
 		}
 		InstallPackages(&allDownloadInfo)
 
+		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 	},
 }
 
@@ -106,7 +107,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "Logging level (trace, debug, info, warn, error)")
-	rootCmd.PersistentFlags().BoolVar(&Interactive, "interactive", false, "Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
+	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false, "Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

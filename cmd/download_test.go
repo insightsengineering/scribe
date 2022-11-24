@@ -16,11 +16,27 @@ limitations under the License.
 package cmd
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_getRepositoryURL(t *testing.T) {
+	var renvLock Renvlock
+	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	repoURL := getRepositoryURL(renvLock.Packages["SomePackage"], renvLock.R.Repositories)
+	assert.Equal(t, repoURL, defaultCranMirrorURL)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage5"], renvLock.R.Repositories)
+	// default value returned because SomeOtherPackage5 has repository set to undefined CRAN1
+	assert.Equal(t, repoURL, defaultCranMirrorURL)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeBiocPackage"], renvLock.R.Repositories)
+	assert.Equal(t, repoURL, bioConductorURL)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage"], renvLock.R.Repositories)
+	assert.Equal(t, repoURL, "https://github.com/RemoteUsername/RemoteRepo")
+	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage2"], renvLock.R.Repositories)
+	assert.Equal(t, repoURL, "https://gitlab.com/RemoteUsername/RemoteRepo")
+}
 
 func Test_parsePackagesFile(t *testing.T) {
 	packages := make(map[string]*PackageInfo)
@@ -57,6 +73,7 @@ func Test_getPackageDetails(t *testing.T) {
 	biocPackageInfo["data/experiment"]["someBiocPackage1"] = &PackageInfo{"1.0.1", "bcdef0123"}
 	// someBiocPackage2 should be downloaded from BioConductor (we're not adding it to cache)
 	biocPackageInfo["workflows"]["someBiocPackage2"] = &PackageInfo{"2.0.1", "bbbcccddd"}
+	// someBiocPackage3 doesn't exist in any BioConductor category - therefore not added to packageInfo
 
 	action, packageURL, outputLocation, savedBandwidth := getPackageDetails(
 		"package1", "5.0.1", "https://cran.r-project.org", "SomeOtherCRAN",
@@ -106,4 +123,67 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, packageURL, "https://www.bioconductor.org/packages/3.13/workflows/src/contrib/someBiocPackage2_2.0.1.tar.gz")
 	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_2.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
+	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+		"someBiocPackage3", "3.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
+		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
+	)
+	assert.Equal(t, action, "notfound_bioc")
+	assert.Equal(t, packageURL, "")
+	assert.Equal(t, outputLocation, "")
+	assert.Equal(t, savedBandwidth, int64(0))
+
+	// git packages
+	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+		"gitHubPackage", "0.0.5", "https://github.com/insightsengineering/gitHubPackage", "GitHub",
+		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
+	)
+	assert.Equal(t, action, "github")
+	assert.Equal(t, packageURL, "https://github.com/insightsengineering/gitHubPackage")
+	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/github/insightsengineering/gitHubPackage")
+	assert.Equal(t, savedBandwidth, int64(0))
+	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+		"gitLabPackage", "0.0.6", "https://gitlab.com/example/gitLabPackage", "GitLab",
+		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
+	)
+	assert.Equal(t, action, "gitlab")
+	assert.Equal(t, packageURL, "https://gitlab.com/example/gitLabPackage")
+	assert.Equal(t, outputLocation, "/tmp/scribe/downloaded_packages/gitlab/gitlab.com/example/gitLabPackage")
+	assert.Equal(t, savedBandwidth, int64(0))
+}
+
+func mockedDownloadFile(_ string, _ string) (int, int64) {
+	return 200, 1
+}
+
+func mockedCloneGitRepo(_ string, _ string, _ bool) (string, int64) {
+	return "", 1
+}
+
+func Test_downloadPackages(t *testing.T) {
+	var renvLock Renvlock
+	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	var allDownloadInfo []DownloadInfo
+	downloadPackages(renvLock, &allDownloadInfo, mockedDownloadFile, mockedCloneGitRepo)
+	var localFiles []string
+	var messages []string
+	for _, v := range allDownloadInfo {
+		localFiles = append(localFiles, v.OutputLocation)
+		messages = append(messages, v.Message)
+	}
+	sort.Strings(localFiles)
+	sort.Strings(messages)
+	assert.Equal(t, localFiles, []string{"",
+		"/tmp/scribe/downloaded_packages/github/RemoteUsername/RemoteRepo",
+		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage3_1.0.0.tar.gz",
+		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage4_1.0.0.tar.gz",
+		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage5_1.0.0.tar.gz",
+		"/tmp/scribe/downloaded_packages/package_archives/SomePackage_1.0.0.tar.gz"},
+	)
+	assert.Equal(t, messages, []string{"Couldn't find SomeBiocPackage version 1.0.1 in BioConductor.",
+		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage3/SomeOtherPackage3_1.0.0.tar.gz",
+		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage4/SomeOtherPackage4_1.0.0.tar.gz",
+		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage5/SomeOtherPackage5_1.0.0.tar.gz",
+		"https://cloud.r-project.org/src/contrib/Archive/SomePackage/SomePackage_1.0.0.tar.gz",
+		"https://github.com/RemoteUsername/RemoteRepo"},
+	)
 }
