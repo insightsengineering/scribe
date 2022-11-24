@@ -23,7 +23,7 @@ import (
 
 func Test_GetRenvLock(t *testing.T) {
 	var renvLock Renvlock
-	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	assert.NotNil(t, renvLock)
 	assert.Equal(t, renvLock.R.Version, "4.1.1")
 	assert.Equal(t, renvLock.Bioconductor.Version, "3.13")
@@ -42,7 +42,7 @@ func Test_GetRenvLock(t *testing.T) {
 
 func Test_ValidateRenvLock(t *testing.T) {
 	var renvLock Renvlock
-	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
-	numberOfWarnings := ValidateRenvLock(renvLock)
+	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	numberOfWarnings := validateRenvLock(renvLock)
 	assert.Equal(t, numberOfWarnings, 6)
 }

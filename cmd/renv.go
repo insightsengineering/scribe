@@ -57,7 +57,7 @@ type Rpackage struct {
 	RemoteSha      string `json:",omitempty"`
 }
 
-func GetRenvLock(filename string, renvLock *Renvlock) {
+func getRenvLock(filename string, renvLock *Renvlock) {
 	byteValue, err := os.ReadFile(filename)
 	checkError(err)
 
@@ -65,7 +65,7 @@ func GetRenvLock(filename string, renvLock *Renvlock) {
 	checkError(err)
 }
 
-func GetRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
+func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
 	for _, v := range renvLockRepositories {
 		if v.Name == repositoryName {
 			return v.URL
@@ -76,7 +76,7 @@ func GetRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 }
 
 // Returns number of warnings during validation of renv.lock file
-func ValidateRenvLock(renvLock Renvlock) (int) {
+func validateRenvLock(renvLock Renvlock) (int) {
 	var repositories []string
 	var numberOfWarnings int
 	for _, v := range renvLock.R.Repositories {

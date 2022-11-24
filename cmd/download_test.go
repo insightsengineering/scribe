@@ -24,17 +24,17 @@ import (
 
 func Test_GetRepositoryURL(t *testing.T) {
 	var renvLock Renvlock
-	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
-	repoURL := GetRepositoryURL(renvLock.Packages["SomePackage"], renvLock.R.Repositories)
+	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	repoURL := getRepositoryURL(renvLock.Packages["SomePackage"], renvLock.R.Repositories)
 	assert.Equal(t, repoURL, defaultCranMirrorURL)
-	repoURL = GetRepositoryURL(renvLock.Packages["SomeOtherPackage5"], renvLock.R.Repositories)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage5"], renvLock.R.Repositories)
 	// default value returned because SomeOtherPackage5 has repository set to undefined CRAN1
 	assert.Equal(t, repoURL, defaultCranMirrorURL)
-	repoURL = GetRepositoryURL(renvLock.Packages["SomeBiocPackage"], renvLock.R.Repositories)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeBiocPackage"], renvLock.R.Repositories)
 	assert.Equal(t, repoURL, bioConductorURL)
-	repoURL = GetRepositoryURL(renvLock.Packages["SomeOtherPackage"], renvLock.R.Repositories)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage"], renvLock.R.Repositories)
 	assert.Equal(t, repoURL, "https://github.com/RemoteUsername/RemoteRepo")
-	repoURL = GetRepositoryURL(renvLock.Packages["SomeOtherPackage2"], renvLock.R.Repositories)
+	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage2"], renvLock.R.Repositories)
 	assert.Equal(t, repoURL, "https://gitlab.com/RemoteUsername/RemoteRepo")
 }
 
@@ -161,9 +161,9 @@ func mockedCloneGitRepo(_ string, _ string, _ bool) (string, int64) {
 
 func Test_downloadPackages(t *testing.T) {
 	var renvLock Renvlock
-	GetRenvLock("testdata/renv.lock.empty.json", &renvLock)
+	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	var allDownloadInfo []DownloadInfo
-	DownloadPackages(renvLock, &allDownloadInfo, mockedDownloadFile, mockedCloneGitRepo)
+	downloadPackages(renvLock, &allDownloadInfo, mockedDownloadFile, mockedCloneGitRepo)
 	var localFiles []string
 	var messages []string
 	for _, v := range allDownloadInfo {

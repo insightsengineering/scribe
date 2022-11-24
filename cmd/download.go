@@ -84,7 +84,7 @@ type PackageInfo struct {
 	Checksum string
 }
 
-func GetRepositoryURL(v Rpackage, repositories []Rrepository) (string) {
+func getRepositoryURL(v Rpackage, repositories []Rrepository) (string) {
 	var repoURL string
 	switch v.Source {
 	case "Bioconductor":
@@ -94,7 +94,7 @@ func GetRepositoryURL(v Rpackage, repositories []Rrepository) (string) {
 	case "GitLab":
 		repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 	default:
-		repoURL = GetRenvRepositoryURL(repositories, v.Repository)
+		repoURL = getRenvRepositoryURL(repositories, v.Repository)
 	}
 	return repoURL
 }
@@ -388,7 +388,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
 	var bar progressbar.ProgressBar
-	if Interactive {
+	if interactive {
 		bar = *progressbar.Default(
 			int64(totalPackages),
 			"Downloading...",
@@ -406,7 +406,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			}
 			*totalSavedBandwidth += msg.SavedBandwidth
 			idleSeconds = 0
-			if Interactive {
+			if interactive {
 				err := bar.Add(1)
 				checkError(err)
 			}
@@ -444,7 +444,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 }
 
 // Download packages from renv.lock file, saves download result structs to allDownloadInfo.
-func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
+func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	downloadFileFunction func(string, string) (int, int64),
 	gitCloneFunction func(string, string, bool) (string, int64)) {
 
@@ -532,7 +532,7 @@ func DownloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	var repoURL string
 	for _, v := range renvLock.Packages {
 		if v.Package != "" && v.Version != "" {
-			repoURL = GetRepositoryURL(v, renvLock.R.Repositories)
+			repoURL = getRepositoryURL(v, renvLock.R.Repositories)
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
 			go downloadSinglePackage(v.Package, v.Version, repoURL, v.Source,
