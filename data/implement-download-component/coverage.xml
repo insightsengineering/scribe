@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.71057516" branch-rate="0" version="" timestamp="1669277933328" lines-covered="383" lines-valid="539" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.71057516" branch-rate="0" version="" timestamp="1669278200119" lines-covered="383" lines-valid="539" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -294,7 +294,7 @@
                 <line number="396" hits="0"></line>
                 <line number="397" hits="1"></line>
                 <line number="398" hits="1"></line>
-                <line number="399" hits="26"></line>
+                <line number="399" hits="27"></line>
                 <line number="400" hits="6"></line>
                 <line number="401" hits="5"></line>
                 <line number="402" hits="5"></line>
@@ -326,9 +326,9 @@
                 <line number="429" hits="0"></line>
                 <line number="430" hits="0"></line>
                 <line number="431" hits="0"></line>
-                <line number="432" hits="20"></line>
-                <line number="433" hits="20"></line>
-                <line number="434" hits="20"></line>
+                <line number="432" hits="21"></line>
+                <line number="433" hits="21"></line>
+                <line number="434" hits="21"></line>
                 <line number="438" hits="1"></line>
                 <line number="439" hits="1"></line>
                 <line number="443" hits="1"></line>
@@ -698,7 +698,7 @@
             <line number="396" hits="0"></line>
             <line number="397" hits="1"></line>
             <line number="398" hits="1"></line>
-            <line number="399" hits="26"></line>
+            <line number="399" hits="27"></line>
             <line number="400" hits="6"></line>
             <line number="401" hits="5"></line>
             <line number="402" hits="5"></line>
@@ -730,9 +730,9 @@
             <line number="429" hits="0"></line>
             <line number="430" hits="0"></line>
             <line number="431" hits="0"></line>
-            <line number="432" hits="20"></line>
-            <line number="433" hits="20"></line>
-            <line number="434" hits="20"></line>
+            <line number="432" hits="21"></line>
+            <line number="433" hits="21"></line>
+            <line number="434" hits="21"></line>
             <line number="438" hits="1"></line>
             <line number="439" hits="1"></line>
             <line number="443" hits="1"></line>
