@@ -32,6 +32,14 @@ var interactive bool
 
 var log = logrus.New()
 
+// within below directory:
+// tar.gz packages are downloaded to package_archives subdirectory
+// GitHub repositories are cloned into github subdirectory
+// GitLab repositories are cloned into gitlab subdirectory
+const localOutputDirectory = "/tmp/scribe/downloaded_packages"
+
+var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
+
 func setLogLevel() {
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
