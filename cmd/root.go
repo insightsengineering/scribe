@@ -98,7 +98,6 @@ var rootCmd = &cobra.Command{
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 		}
 		InstallPackages(&allDownloadInfo)
-
 	},
 }
 

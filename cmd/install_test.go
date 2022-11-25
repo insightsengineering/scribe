@@ -1,18 +1,33 @@
 package cmd
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_parsePackagesFile(t *testing.T) {
-	packages := make(map[string]*PackageInfo)
-	assert.Equal(t, true, true)
+func Test_cleanDescription(t *testing.T) {
+	cleanedDescription := cleanDescription(description)
+	assert.True(t, strings.Contains(cleanedDescription, "Imports"))
+	assert.False(t, strings.Contains(cleanedDescription, "BugReports"))
+	assert.False(t, strings.Contains(cleanedDescription, "Roxygen"))
 }
 
-func Test_parsePackagesFile(t *testing.T) {
-	description := `
-	Package: tern
+func Test_parseDescription(t *testing.T) {
+	kv := parseDescription(description)
+	assert.Equal(t, kv["Imports"], []string{"methods", "optimx", "parallel"})
+}
+
+func Test_getPackageContent(t *testing.T) {
+	content, _ := getPackageContent()
+	fmt.Print("test it out")
+	assert.False(t, strings.Contains(content, "Package:"))
+}
+
+const description = `
+Package: tern
 Title: Create Common TLGs used in Clinical Trials
 Version: 0.7.6.9037
 Date: 2022-01-27
@@ -42,6 +57,3 @@ RoxygenNote: 7.1.2
 Collate:
     'formats.R'
 `
-	control.
-		assert.Equal(t, true, true)
-}
