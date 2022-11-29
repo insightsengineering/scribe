@@ -18,11 +18,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"io/ioutil"
-	"os"
 )
 
 var cfgFile string
@@ -97,7 +98,7 @@ var rootCmd = &cobra.Command{
 			log.Info("No", readFile)
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 		}
-		InstallPackages(&allDownloadInfo)
+		InstallPackages(renvLock, &allDownloadInfo)
 	},
 }
 

@@ -17,14 +17,7 @@ limitations under the License.
 package cmd
 
 import (
-	"crypto/tls"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 const maxInstallRoutines = 40
@@ -37,95 +30,35 @@ type InstallInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
-func installSinglePackage(packageName string) error {
-
-	return nil
+func installSinglePackage(outputLocation string) error {
+	log.Info("Package location is", outputLocation)
+	cmd := "R CMD INSTALL " + outputLocation + " -l " + temporalLibPath
+	log.Debug(cmd)
+	result, err := execCommand(cmd, true, true)
+	log.Error(result)
+	if err != nil {
+		log.Error(err)
+	}
+	return err
 }
-func InstallPackages(allDownloadInfo *[]DownloadInfo) {
+
+func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	err := os.MkdirAll(temporalLibPath, os.ModePerm)
 	checkError(err)
 
-	for i := 0; i < len(*allDownloadInfo); i++ {
-		v := (*allDownloadInfo)[i]
+	packages := make([]string, 0, len(renvLock.Packages))
+	for _, p := range renvLock.Packages {
+		packages = append(packages, p.Package)
+	}
+	deps := getPackageDepsFromCrandbWithChunk(packages)
+
+	depsOrdered := tsort(deps)
+
+	for i := 0; i < len(depsOrdered); i++ {
+		v := depsOrdered[i]
 		log.Debug(v)
-		log.Info("Package location is", v.OutputLocation)
-		cmd := "R CMD INSTALL " + v.OutputLocation + " -l " + temporalLibPath
-		log.Debug(cmd)
-		result, err := execCommand(cmd, true, true)
-		log.Error(result)
-		if err != nil {
-			log.Error(err)
-		}
+		//installSinglePackage(v.OutputLocation)
 	}
 
 	log.Info("Done")
-}
-
-func parseDescriptionFile(descriptionFilePath string) map[string]string {
-	jsonFile, _ := ioutil.ReadFile(descriptionFilePath)
-	return parseDescription(string(jsonFile))
-}
-
-func parseDescription(description string) map[string]string {
-	cleaned := cleanDescription(description)
-	m := make(map[string]string)
-	err := yaml.Unmarshal([]byte(cleaned), &m)
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-	return m
-}
-
-func cleanDescription(description string) string {
-	lines := strings.Split(description, "\n")
-	filterFields := []string{"Version", "Depends", "Imports", "Suggests"}
-	continuation := false
-	content := ""
-	for _, line := range lines {
-		for _, filed := range filterFields {
-			if strings.HasPrefix(line, filed) {
-				content += line + "\n"
-				continuation = true
-				break
-			}
-		}
-
-		if continuation && strings.HasPrefix(line, " ") {
-			content += line + "\n"
-		} else if line == "\n" {
-			content += "\n"
-		} else {
-			continuation = false
-		}
-	}
-	return content
-}
-
-func getPackageContent() (string, error) {
-	url := "https://cloud.r-project.org/src/contrib/PACKAGES"
-
-	tr := &http.Transport{ // #nosec
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec
-	} // #nosec
-	client := &http.Client{Transport: tr}
-	resp, err := client.Get(url)
-	checkError(err)
-
-	if err == nil {
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
-			b, err := io.ReadAll(resp.Body)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			return string(b), nil
-		}
-	}
-	return "", err
-}
-
-func getPackageDepsFromPackagesFile(packages []string) {
-	_, err := getPackageContent()
-	checkError(err)
-
 }
