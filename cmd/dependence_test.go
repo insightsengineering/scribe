@@ -27,6 +27,39 @@ func Test_getPackageContent(t *testing.T) {
 	assert.True(t, strings.Contains(content, "Package:"))
 }
 
+func Test_removePackageVersionConstraints(t *testing.T) {
+	cases := []struct{ input, expected string }{
+		{"", ""},
+		{"R", "R"},
+		{"R (>=4.0.3)", "R"},
+		{" R (  >=   4.0.3) ", "R"},
+	}
+	for _, c := range cases {
+		assert.Equal(t, c.expected, removePackageVersionConstraints(c.input))
+	}
+}
+
+func Test_getPackageDepsFromSinglePackageLocation(t *testing.T) {
+	repoLocation := "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.code"
+	packDeps := getPackageDepsFromSinglePackageLocation(repoLocation, true)
+
+	assert.NotEmpty(t, packDeps)
+}
+
+func Test_getPackageDepsFromPackagesFile(t *testing.T) {
+	packagesFilePath := "/tmp/scribe/downloaded_packages/package_files/BIOC_PACKAGES_BIOC"
+	packDeps := getPackageDepsFromPackagesFile(packagesFilePath, map[string]struct{}{"Rgraphviz": {}, "S4Vectors": {}})
+	assert.NotNil(t, packDeps)
+	assert.NotEmpty(t, packDeps["Rgraphviz"])
+	assert.NotEmpty(t, packDeps["S4Vectors"])
+}
+
+func Test_getPackageDepsFromBioconductor(t *testing.T) {
+	deps := getPackageDepsFromBioconductor([]string{"Rgraphviz", "S4Vectors"})
+	assert.NotEmpty(t, deps["Rgraphviz"])
+	assert.NotEmpty(t, deps["S4Vectors"])
+}
+
 func Test_getPackageDepsFromCrandb(t *testing.T) {
 	pkgs := []string{"ggplot2", "dplyr"}
 	packDeps := getPackageDepsFromCrandb(pkgs)
@@ -40,7 +73,7 @@ func Test_getPackageDepsFromCrandbWithChunk(t *testing.T) {
 	packDeps := getPackageDepsFromCrandbWithChunk(pkgs)
 
 	assert.NotEmpty(t, packDeps)
-	assert.Contains(t, packDeps["dplyr"], "rlang")
+	assert.Contains(t, packDeps["childsds"], "tidyr")
 }
 
 func Test_getCrandbUrl(t *testing.T) {
@@ -49,14 +82,14 @@ func Test_getCrandbUrl(t *testing.T) {
 	assert.True(t, strings.Contains(url, "ggplot2"))
 }
 
-func Test_getDependenciesFileds(t *testing.T) {
+func Test_getDependenciesFields(t *testing.T) {
 	cases := []struct{ included bool }{
 		{true},
 		{false},
 	}
 	var fileds []string
 	for _, v := range cases {
-		fileds = getDependenciesFileds(v.included)
+		fileds = getDependenciesFields(v.included)
 		assert.True(t, slices.Contains(fileds, "Suggests") == v.included)
 
 	}

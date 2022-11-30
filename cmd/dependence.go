@@ -6,9 +6,11 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"math"
+	"path/filepath"
 	"sort"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -88,14 +90,35 @@ func getPackageContent() string {
 	return content
 }
 
-func getPackageDepsFromPackagesFile(packages []string) map[string][]string {
-	getPackageContent()
-	return nil
+func removePackageVersionConstraints(packageVersion string) string {
+	return strings.Split(strings.TrimSpace(packageVersion), " ")[0]
 }
 
-func getDependenciesFileds(incloudSuggests bool) []string {
+func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggests bool) []string {
+	descFilePath := filepath.Join(repoLocation, "DESCRIPTION")
+	deps := make([]string, 0)
+	if _, err := os.Stat(descFilePath); !os.IsNotExist(err) {
+		desc := parseDescriptionFile(descFilePath)
+		fields := getDependenciesFields(includeSuggests)
+		for _, field := range fields {
+			fieldLine := desc[field]
+			for _, pversionConstraints := range strings.Split(fieldLine, ",") {
+				p := removePackageVersionConstraints(pversionConstraints)
+				if p != "" {
+					deps = append(deps, p)
+				}
+			}
+		}
+		if len(deps) == 0 {
+			deps = append(deps, "R")
+		}
+	}
+	return deps
+}
+
+func getDependenciesFields(includeSuggests bool) []string {
 	res := []string{"Depends", "Imports"}
-	if incloudSuggests {
+	if includeSuggests {
 		res = append(res, "Suggests")
 	}
 	return res
@@ -117,7 +140,7 @@ func getPackageDepsFromCrandbWithChunk(packages []string) map[string][]string {
 }
 
 func getPackageDepsFromCrandb(packages []string) map[string][]string {
-	depsFields := getDependenciesFileds(false)
+	depsFields := getDependenciesFields(false)
 	url := getCrandbUrl(packages)
 	log.Trace("Request for package deps from CranDB on URL: " + url)
 	depsJson, _ := request(url)
@@ -133,6 +156,66 @@ func getPackageDepsFromCrandb(packages []string) map[string][]string {
 					}
 				}
 			}
+			if len(deps[p]) == 0 {
+				deps[p] = append(deps[p], "R")
+			}
+		}
+	}
+	return deps
+}
+
+func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]struct{}) map[string][]string {
+	depFields := getDependenciesFields(false)
+	deps := make(map[string][]string)
+	if _, err := os.Stat(packagesFilePath); !os.IsNotExist(err) {
+		packagesContent, _ := ioutil.ReadFile(packagesFilePath)
+		for _, linegroup := range strings.Split(string(packagesContent), "\n\n") {
+			firstLine := strings.Split(linegroup, "\n")[0]
+			packageName := strings.ReplaceAll(firstLine, "Package: ", "")
+			if _, ok := packages[packageName]; ok {
+				m := make(map[string]string)
+				err := yaml.Unmarshal([]byte(linegroup), &m)
+				if err != nil {
+					log.Fatalf("error: %v", err)
+				} else {
+					if len(m) > 1 {
+						packageDep := make([]string, 0)
+						for _, field := range depFields {
+							fieldLine := m[field]
+							for _, pversionConstraints := range strings.Split(fieldLine, ",") {
+								p := removePackageVersionConstraints(pversionConstraints)
+								if p != "" {
+									packageDep = append(packageDep, p)
+								}
+							}
+						}
+						if len(packageDep) == 0 {
+							packageDep = append(packageDep, "R")
+						}
+						deps[packageName] = packageDep
+					}
+				}
+
+			}
+		}
+
+	} else {
+		log.Warnf("File %s doesn't exists", packagesFilePath)
+	}
+	return deps
+}
+
+func getPackageDepsFromBioconductor(packages []string) map[string][]string {
+	deps := make(map[string][]string)
+	packagesSet := make(map[string]struct{}, 0)
+	for _, v := range packages {
+		packagesSet[v] = struct{}{}
+	}
+	for _, biocCategory := range bioconductorCategories {
+		packageFileLocation := localOutputDirectory + "/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_"))
+		depsBiocCategory := getPackageDepsFromPackagesFile(packageFileLocation, packagesSet)
+		for k := range depsBiocCategory {
+			deps[k] = depsBiocCategory[k]
 		}
 	}
 	return deps

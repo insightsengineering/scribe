@@ -17,7 +17,10 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"os"
+
+	mapset "github.com/deckarep/golang-set/v2"
 )
 
 const maxInstallRoutines = 40
@@ -31,8 +34,8 @@ type InstallInfo struct {
 }
 
 func installSinglePackage(outputLocation string) error {
-	log.Info("Package location is", outputLocation)
-	cmd := "R CMD INSTALL " + outputLocation + " -l " + temporalLibPath
+	log.Debugf("Package location is %s", outputLocation)
+	cmd := "R CMD INSTALL --install-tests -l" + temporalLibPath + " " + outputLocation
 	log.Debug(cmd)
 	result, err := execCommand(cmd, true, true)
 	log.Error(result)
@@ -41,6 +44,8 @@ func installSinglePackage(outputLocation string) error {
 	}
 	return err
 }
+
+const localCranPackagesPath = localOutputDirectory + "/package_files/CRAN_PACKAGES"
 
 func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	err := os.MkdirAll(temporalLibPath, os.ModePerm)
@@ -51,13 +56,51 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		packages = append(packages, p.Package)
 	}
 	deps := getPackageDepsFromCrandbWithChunk(packages)
+	depsBioc := getPackageDepsFromBioconductor(packages)
+	for k, v := range depsBioc {
+		deps[k] = v
+	}
+
+	packagesLocation := make(map[string]struct{ PackageType, Location string })
+	for _, v := range *allDownloadInfo {
+		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
+	}
+
+	for pName, pInfo := range packagesLocation {
+		if pInfo.PackageType == "git" {
+			if _, err := os.Stat(pInfo.Location); !os.IsNotExist(err) {
+				packageDeps := getPackageDepsFromSinglePackageLocation(pInfo.Location, true)
+				deps[pName] = packageDeps
+			} else {
+				log.Errorf("Directory %s for package %s does not exist", pInfo.PackageType, pInfo.Location)
+			}
+		}
+	}
+
+	depsSet := mapset.NewSet[string]()
+	for k := range deps {
+		depsSet.Add(k)
+	}
+	allSet := mapset.NewSet[string]()
+	for _, v := range packages {
+		allSet.Add(v)
+	}
+	rest1 := allSet.Difference(depsSet)
+
+	rest2 := depsSet.Difference(allSet)
+	fmt.Println("all/deps:")
+	fmt.Println(rest1)
+	fmt.Println("deps/all:")
+	fmt.Println(rest2)
 
 	depsOrdered := tsort(deps)
 
 	for i := 0; i < len(depsOrdered); i++ {
-		v := depsOrdered[i]
-		log.Debug(v)
-		//installSinglePackage(v.OutputLocation)
+		//packageName := depsOrdered[i]
+		//log.Debug(packageName)
+		//p := packagesLocation[packageName]
+		//installSinglePackage(p.Location)
+
 	}
 
 	log.Info("Done")
