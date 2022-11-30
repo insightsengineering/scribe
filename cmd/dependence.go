@@ -164,40 +164,51 @@ func getPackageDepsFromCrandb(packages []string) map[string][]string {
 	return deps
 }
 
-func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]struct{}) map[string][]string {
+func getPakcageDepsFromRepositoryURL(repositoryUrl string, packages []string) map[string][]string {
+
+	return nil
+}
+
+func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages map[string]struct{}) map[string][]string {
+	deps := make(map[string][]string)
 	depFields := getDependenciesFields(false)
+	for _, linegroup := range strings.Split(packagesFileContent, "\n\n") {
+		firstLine := strings.Split(linegroup, "\n")[0]
+		packageName := strings.ReplaceAll(firstLine, "Package: ", "")
+		if _, ok := packages[packageName]; ok {
+			m := make(map[string]string)
+			err := yaml.Unmarshal([]byte(linegroup), &m)
+			if err != nil {
+				log.Fatalf("error: %v", err)
+			} else {
+				if len(m) > 1 {
+					packageDep := make([]string, 0)
+					for _, field := range depFields {
+						fieldLine := m[field]
+						for _, pversionConstraints := range strings.Split(fieldLine, ",") {
+							p := removePackageVersionConstraints(pversionConstraints)
+							if p != "" {
+								packageDep = append(packageDep, p)
+							}
+						}
+					}
+					if len(packageDep) == 0 {
+						packageDep = append(packageDep, "R")
+					}
+					deps[packageName] = packageDep
+				}
+			}
+
+		}
+	}
+	return deps
+}
+
+func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]struct{}) map[string][]string {
 	deps := make(map[string][]string)
 	if _, err := os.Stat(packagesFilePath); !os.IsNotExist(err) {
 		packagesContent, _ := ioutil.ReadFile(packagesFilePath)
-		for _, linegroup := range strings.Split(string(packagesContent), "\n\n") {
-			firstLine := strings.Split(linegroup, "\n")[0]
-			packageName := strings.ReplaceAll(firstLine, "Package: ", "")
-			if _, ok := packages[packageName]; ok {
-				m := make(map[string]string)
-				err := yaml.Unmarshal([]byte(linegroup), &m)
-				if err != nil {
-					log.Fatalf("error: %v", err)
-				} else {
-					if len(m) > 1 {
-						packageDep := make([]string, 0)
-						for _, field := range depFields {
-							fieldLine := m[field]
-							for _, pversionConstraints := range strings.Split(fieldLine, ",") {
-								p := removePackageVersionConstraints(pversionConstraints)
-								if p != "" {
-									packageDep = append(packageDep, p)
-								}
-							}
-						}
-						if len(packageDep) == 0 {
-							packageDep = append(packageDep, "R")
-						}
-						deps[packageName] = packageDep
-					}
-				}
-
-			}
-		}
+		deps = getPackageDepsFromPackagesFileContent(string(packagesContent), packages)
 
 	} else {
 		log.Warnf("File %s doesn't exists", packagesFilePath)
