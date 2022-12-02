@@ -34,6 +34,7 @@ type SystemInfo struct {
 	RVersion        string `json:"rVersion"`
 	Time            string `json:"time"`
 	EnvVariables    string `json:"envVariables"`
+	Hostname        string `json:"hostname"`
 }
 
 func parseEtcReleaseFile() string {
@@ -111,11 +112,18 @@ func getEnvironmentVariables(regex string) string {
 	return envVariables.String()
 }
 
+func getHostname() string {
+	out, err := exec.Command("hostname").CombinedOutput()
+	checkError(err)
+	return strings.TrimSuffix(string(out), "\n")
+}
+
 func getOsInformation(maskingVariableRegex string) {
 	var systemInfo SystemInfo
 	systemInfo.OperatingSystem = runtime.GOOS
 	systemInfo.Architecture = runtime.GOARCH
 	systemInfo.Time = time.Now().Format("2006-01-02 15:04:05")
+	systemInfo.Hostname = getHostname()
 	if systemInfo.OperatingSystem == "linux" {
 		systemInfo.KernelVersion = parseProcVersionFile()
 		systemInfo.PrettyName = parseEtcReleaseFile()

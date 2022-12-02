@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -34,11 +35,12 @@ func randString(n int) string {
 	return string(b)
 }
 
-// set some environment variables with random names and then make sure
+// Set some environment variables with random names and then make sure
 // they are masked properly i.e. not returned by the tested function
 // it doesn't matter what other environment variables are set in the
-// testing environment
+// testing environment.
 func Test_getEnvironmentVariables(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
 	envVar1 := randString(18)
 	envVar2 := randString(18)
 	envVar3 := randString(18)
