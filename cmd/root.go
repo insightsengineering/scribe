@@ -81,13 +81,16 @@ var rootCmd = &cobra.Command{
 	Version: scribeVersion,
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
+		// TODO parametrize
+		getOsInformation("GITHUB_PAT|GITLAB_PAT")
 		// TODO getting renv lock here is just temporary
 		// we'll have to figure out how to use that together with other components
-		var renvLock Renvlock
-		getRenvLock("renv.lock", &renvLock)
-		validateRenvLock(renvLock)
-		var allDownloadInfo []DownloadInfo
-		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+		// var renvLock Renvlock
+		// TODO parametrize renv.lock file name
+		// getRenvLock("renv.lock", &renvLock)
+		// validateRenvLock(renvLock)
+		// var allDownloadInfo []DownloadInfo
+		// downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 	},
 }
 
