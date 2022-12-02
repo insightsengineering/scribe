@@ -26,14 +26,14 @@ import (
 )
 
 type SystemInfo struct {
-	OperatingSystem string
-	Architecture    string
-	KernelVersion   string
-	PrettyName      string
-	SystemPackages  string
-	RVersion        string
-	Time            string
-	EnvVariables    string
+	OperatingSystem string `json:"operatingSystem"`
+	Architecture    string `json:"architecture"`
+	KernelVersion   string `json:"kernelVersion"`
+	PrettyName      string `json:"prettyName"`
+	SystemPackages  string `json:"systemPackages"`
+	RVersion        string `json:"rVersion"`
+	Time            string `json:"time"`
+	EnvVariables    string `json:"envVariables"`
 }
 
 func parseEtcReleaseFile() string {
