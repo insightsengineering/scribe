@@ -1,36 +1,83 @@
 {
-  "R": {
-    "Version": "",
-    "Repositories": [
-      {
-        "Name": "",
-        "URL": ""
-      }
-    ],
-    "Bioconductor": {
-        "Version": ""
-    }
-  },
-  "Packages": {
-    "SomePackage": {
-      "Package": "SomePackage",
-      "Version": "1.0.0",
-      "Source": "Repository",
-      "Repository": "",
-      "Hash": "",
-      "Requirements": []
+    "R": {
+        "Version": "4.1.1",
+        "Repositories": [
+            {
+                "Name": "CRAN",
+                "URL": "https://cloud.r-project.org"
+            }
+        ]
     },
-    "SomeOtherPackage": {
-      "Package": "SomeOtherPackage",
-      "Version": "2.0.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "",
-      "RemoteRepo": "",
-      "RemoteRef": "",
-      "RemoteSha": "",
-      "Hash": ""
+    "Bioconductor": {
+        "Version": "3.13"
+    },
+    "Packages": {
+        "SomePackage": {
+            "Package": "SomePackage",
+            "Version": "1.0.0",
+            "Source": "Repository",
+            "Repository": "CRAN",
+            "Requirements": []
+        },
+        "SomeBiocPackage": {
+            "Package": "SomeBiocPackage",
+            "Version": "1.0.1",
+            "Source": "Bioconductor",
+            "Requirements": []
+        },
+        "SomeOtherPackage": {
+            "Package": "SomeOtherPackage",
+            "Version": "",
+            "Source": "GitHub",
+            "RemoteType": "github",
+            "RemoteHost": "api.github.com",
+            "RemoteUsername": "RemoteUsername",
+            "RemoteRepo": "RemoteRepo",
+            "RemoteRef": "main",
+            "RemoteSha": "aaabbb"
+        },
+        "SomeOtherPackage2": {
+            "Package": "",
+            "Version": "2.0.0",
+            "Source": "GitLab",
+            "RemoteType": "gitlab",
+            "RemoteHost": "gitlab.com",
+            "RemoteUsername": "RemoteUsername",
+            "RemoteRepo": "RemoteRepo",
+            "RemoteRef": "main",
+            "RemoteSha": "aaabbb"
+        },
+        "SomeOtherPackage3": {
+            "Package": "SomeOtherPackage3",
+            "Version": "1.0.0",
+            "Source": "",
+            "Repository": "CRAN",
+            "Requirements": []
+        },
+        "SomeOtherPackage4": {
+            "Package": "SomeOtherPackage4",
+            "Version": "1.0.0",
+            "Source": "Repository",
+            "Repository": "",
+            "Requirements": []
+        },
+        "SomeOtherPackage5": {
+            "Package": "SomeOtherPackage5",
+            "Version": "1.0.0",
+            "Source": "Repository",
+            "Repository": "CRAN1",
+            "Requirements": []
+        },
+        "SomeOtherPackage6": {
+            "Package": "SomeOtherPackage6",
+            "Version": "2.0.0",
+            "Source": "GitHub",
+            "RemoteType": "github",
+            "RemoteHost": "api.github.com",
+            "RemoteUsername": "RemoteUsername",
+            "RemoteRepo": "RemoteRepo",
+            "RemoteRef": "",
+            "RemoteSha": ""
+        }
     }
-  }
 }

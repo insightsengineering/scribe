@@ -1,0 +1,30 @@
+Package: somePackage1
+Version: 1.0.0
+Depends: R (>= 2.15.0)
+License: GPL (>= 2)
+MD5sum: aaa333444555666777
+NeedsCompilation: no
+
+Package: somePackage2
+Version: 2.0.0
+Depends: R (>= 3.6.0)
+Imports: magrittr, dplyr
+License: GPL-3
+MD5sum: bbb222333444555666
+NeedsCompilation: no
+
+Package: somePackage3
+Version: 0.0.1
+Depends: R (>= 3.1.0)
+Imports: ggplot2 (>= 3.1.0), shiny (>= 1.3.1),
+Suggests: rmarkdown (>= 1.13), knitr (>= 1.22)
+License: GPL-3
+MD5sum: ccc000111222333444
+NeedsCompilation: no
+
+Package: somePackage4
+Version: 0.2
+Suggests: testthat (>= 3.0.0)
+License: GPL-3
+MD5sum: aaabbbcccdddeeefff
+NeedsCompilation: no

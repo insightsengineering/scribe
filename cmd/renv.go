@@ -18,15 +18,16 @@ package cmd
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
-var log = logrus.StandardLogger()
-
 type Renvlock struct {
-	R        Rversion
-	Packages map[string]Rpackage
+	R            Rversion
+	Bioconductor BioC
+	Packages     map[string]Rpackage
+}
+
+type BioC struct {
+	Version string
 }
 
 type Rversion struct {
@@ -56,59 +57,69 @@ type Rpackage struct {
 	RemoteSha      string `json:",omitempty"`
 }
 
-func GetRenvLock(filename string, renvLock *Renvlock) {
+func getRenvLock(filename string, renvLock *Renvlock) {
 	byteValue, err := os.ReadFile(filename)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 
 	err = json.Unmarshal(byteValue, &renvLock)
-	if err != nil {
-		log.Error(err)
-	}
+	checkError(err)
 }
 
-func WriteRenvLock(filename string, renvLock Renvlock) {
-	s, err := json.MarshalIndent(renvLock, "", "  ")
-	if err != nil {
-		log.Error(err)
+func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName string) string {
+	for _, v := range renvLockRepositories {
+		if v.Name == repositoryName {
+			return v.URL
+		}
 	}
-
-	err = os.WriteFile(filename, s, 0644) //#nosec
-	if err != nil {
-		log.Error(err)
-	}
+	// return default mirror if the repository is not defined in lock file
+	return defaultCranMirrorURL
 }
 
-func ValidateRenvLock(renvLock Renvlock) {
+// Returns number of warnings occurring during validation
+func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) int {
+	var numberOfWarnings int
+	switch {
+	case packageFields.Package == "":
+		log.Warn("Package ", packageName, " doesn't have the Package field set.")
+		numberOfWarnings++
+	case packageFields.Version == "":
+		log.Warn("Package ", packageName, " doesn't have the Version field set.")
+		numberOfWarnings++
+	case packageFields.Source == "":
+		log.Warn("Package ", packageName, " doesn't have the Source field set.")
+		numberOfWarnings++
+	}
+	if packageFields.Repository == "" {
+		switch {
+		case packageFields.Source == "Repository":
+			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
+			numberOfWarnings++
+		case packageFields.Source == GitHub &&
+			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" ||
+				packageFields.RemoteRepo == "" || packageFields.RemoteUsername == "" ||
+				packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
+			log.Warn("Package ", packageName, " with source ", packageFields.Source,
+				"doesn't have the required Remote details provided.")
+			numberOfWarnings++
+		}
+	} else if !stringInSlice(packageFields.Repository, repositories) {
+		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
+			" file for package ", packageName, ".\n")
+		numberOfWarnings++
+	}
+	return numberOfWarnings
+}
+
+// Returns number of warnings during validation of renv.lock file
+func validateRenvLock(renvLock Renvlock) int {
 	var repositories []string
+	var numberOfWarnings int
 	for _, v := range renvLock.R.Repositories {
 		repositories = append(repositories, v.Name)
 	}
 	for k, v := range renvLock.Packages {
-		switch {
-		case v.Package == "":
-			log.Warn("Package ", k, " doesn't have the Package field set.")
-		case v.Version == "":
-			log.Warn("Package ", k, " doesn't have the Version field set.")
-		case v.Source == "":
-			log.Warn("Package ", k, " doesn't have the Source field set.")
-		case v.Hash == "":
-			log.Warn("Package ", k, " doesn't have the Hash field set.")
-		}
-		if v.Repository == "" {
-			switch {
-			case v.Source == "Repository":
-				log.Warn("Package ", k, " doesn't have the Repository field set.")
-			case v.Source == "GitHub" &&
-				(v.RemoteType == "" || v.RemoteHost == "" || v.RemoteRepo == "" ||
-					v.RemoteUsername == "" || v.RemoteRef == "" || v.RemoteSha == ""):
-				log.Warn("Package ", k, " with source ", v.Source, " doesn't have the"+
-					" required Remote details provided.")
-			}
-		} else if !stringInSlice(v.Repository, repositories) {
-			log.Warn("Repository \"", v.Repository, "\" has not been defined in lock"+
-				" file for package ", k, ".\n")
-		}
+		newWarnings := validatePackageFields(k, v, repositories)
+		numberOfWarnings += newWarnings
 	}
+	return numberOfWarnings
 }
