@@ -1,22 +1,35 @@
 package cmd
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
-	"strings"
-
-	"math"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
+
+func getMapKeyDiff(originMap map[string]bool, mapskeysToRemove map[string][]string) map[string]bool {
+	newmap := make(map[string]bool)
+	for k, v := range originMap {
+		if mapskeysToRemove[k] == nil {
+			newmap[k] = v
+		}
+	}
+
+	return newmap
+}
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
 	jsonFile, _ := ioutil.ReadFile(descriptionFilePath)
@@ -91,27 +104,39 @@ func getPackageContent() string {
 }
 
 func removePackageVersionConstraints(packageVersion string) string {
-	return strings.Split(strings.TrimSpace(packageVersion), " ")[0]
+	noseprator := strings.Split(strings.TrimSpace(packageVersion), " ")[0]
+	bracket := strings.Split(noseprator, "(")[0]
+	return strings.Split(bracket, ">")[0]
+}
+
+func getPackageDepsFromDescriptionFileContent(descriptionFileContent string, includeSuggests bool) []string {
+	deps := make([]string, 0)
+	desc := parseDescription(descriptionFileContent)
+	fields := getDependenciesFields(includeSuggests)
+	for _, field := range fields {
+		fieldLine := desc[field]
+		for _, pversionConstraints := range strings.Split(fieldLine, ",") {
+			p := removePackageVersionConstraints(pversionConstraints)
+			if p != "" {
+				deps = append(deps, p)
+			}
+		}
+	}
+	if len(deps) == 0 {
+		deps = append(deps, "R")
+	}
+	return deps
 }
 
 func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggests bool) []string {
 	descFilePath := filepath.Join(repoLocation, "DESCRIPTION")
 	deps := make([]string, 0)
 	if _, err := os.Stat(descFilePath); !os.IsNotExist(err) {
-		desc := parseDescriptionFile(descFilePath)
-		fields := getDependenciesFields(includeSuggests)
-		for _, field := range fields {
-			fieldLine := desc[field]
-			for _, pversionConstraints := range strings.Split(fieldLine, ",") {
-				p := removePackageVersionConstraints(pversionConstraints)
-				if p != "" {
-					deps = append(deps, p)
-				}
-			}
-		}
-		if len(deps) == 0 {
-			deps = append(deps, "R")
-		}
+		descriptionFileData, _ := ioutil.ReadFile(descFilePath)
+		deps = getPackageDepsFromDescriptionFileContent(string(descriptionFileData), includeSuggests)
+	}
+	if len(deps) == 0 {
+		deps = append(deps, "R")
 	}
 	return deps
 }
@@ -124,10 +149,50 @@ func getDependenciesFields(includeSuggests bool) []string {
 	return res
 }
 
+func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
+	f, err := os.Open(tarGzFilePath)
+	if err != nil {
+		log.Error(err)
+	} else {
+		defer f.Close()
+		gzf, err := gzip.NewReader(f)
+		if err != nil {
+			log.Error(err)
+		} else {
+			tarReader := tar.NewReader(gzf)
+			for true {
+				header, err := tarReader.Next()
+				if err == io.EOF || err != nil {
+					fmt.Println(err)
+					break
+				}
+				name := header.Name
+				if name != "" && strings.HasSuffix(name, "DESCRIPTION") {
+					if header.Typeflag == tar.TypeReg {
+						data := make([]byte, header.Size)
+						_, err := tarReader.Read(data)
+						if err != nil {
+							log.Error(err)
+						}
+						return string(data)
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
+func getPackageDepsFromTarGz(tarGzFilePath string) []string {
+	descContent := getDescriptionFileContentFromTargz(tarGzFilePath)
+	return getPackageDepsFromDescriptionFileContent(descContent, false)
+}
+
 func getPackageDepsFromCrandbWithChunk(packages []string) map[string][]string {
 	chunkSize := 100
 	deps := make(map[string][]string)
 	for i := 0; i < (len(packages)/chunkSize)+1; i++ {
+		log.Debugf("Getting deps from Crandb service. Chunk #%d", i)
 		fromI := chunkSize * i
 		toI := int(math.Min(float64(chunkSize*(i+1)), float64(len(packages))))
 		packagesInChunk := packages[fromI:toI]
@@ -164,12 +229,34 @@ func getPackageDepsFromCrandb(packages []string) map[string][]string {
 	return deps
 }
 
-func getPakcageDepsFromRepositoryURL(repositoryUrl string, packages []string) map[string][]string {
+func getPackageDepsFromRepositoryURLs(repositoryUrls []string, packages map[string]bool) map[string][]string {
+	deps := make(map[string][]string)
+	for _, url := range repositoryUrls {
+		depsForUrl := getPackageDepsFromRepositoryURL(url, packages)
+		for k, v := range depsForUrl {
+			deps[k] = v
+		}
+	}
+	return deps
+}
+
+func getPackageDepsFromRepositoryURL(repositoryUrl string, packages map[string]bool) map[string][]string {
+	endPoint := "src/contrib/PACKAGES"
+	if !strings.HasSuffix(repositoryUrl, endPoint) {
+		repositoryUrl = repositoryUrl + "/" + endPoint
+	}
+	content, err := request(repositoryUrl)
+	if err != nil {
+		log.Error(err)
+	} else {
+		deps := getPackageDepsFromPackagesFileContent(content, packages)
+		return deps
+	}
 
 	return nil
 }
 
-func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages map[string]struct{}) map[string][]string {
+func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages map[string]bool) map[string][]string {
 	deps := make(map[string][]string)
 	depFields := getDependenciesFields(false)
 	for _, linegroup := range strings.Split(packagesFileContent, "\n\n") {
@@ -204,27 +291,26 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 	return deps
 }
 
-func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]struct{}) map[string][]string {
-	deps := make(map[string][]string)
-	if _, err := os.Stat(packagesFilePath); !os.IsNotExist(err) {
-		packagesContent, _ := ioutil.ReadFile(packagesFilePath)
-		deps = getPackageDepsFromPackagesFileContent(string(packagesContent), packages)
+func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]bool) map[string][]string {
+	packagesContent, _ := ioutil.ReadFile(packagesFilePath)
+	return getPackageDepsFromPackagesFileContent(string(packagesContent), packages)
 
-	} else {
-		log.Warnf("File %s doesn't exists", packagesFilePath)
-	}
-	return deps
 }
 
-func getPackageDepsFromBioconductor(packages []string) map[string][]string {
+func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersion string) map[string][]string {
 	deps := make(map[string][]string)
-	packagesSet := make(map[string]struct{}, 0)
-	for _, v := range packages {
-		packagesSet[v] = struct{}{}
-	}
+
 	for _, biocCategory := range bioconductorCategories {
 		packageFileLocation := localOutputDirectory + "/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_"))
-		depsBiocCategory := getPackageDepsFromPackagesFile(packageFileLocation, packagesSet)
+		depsBiocCategory := make(map[string][]string)
+		if _, err := os.Stat(packageFileLocation); !os.IsNotExist(err) {
+			depsBiocCategory = getPackageDepsFromPackagesFile(packageFileLocation, packages)
+		} else {
+			log.Warnf("File %s doesn't exists", packageFileLocation)
+			url := bioConductorURL + "/" + bioconductorVersion + "/" + biocCategory
+			depsBiocCategory = getPackageDepsFromRepositoryURL(url, packages)
+		}
+
 		for k := range depsBiocCategory {
 			deps[k] = depsBiocCategory[k]
 		}

@@ -9,6 +9,18 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+func Test_getMapKeyDiff(t *testing.T) {
+	original := map[string]bool{"a": true, "b": false, "c": true, "e": false}
+	mapsKeysToRemove := map[string][]string{"b": {}, "c": {}, "d": {}}
+
+	res := getMapKeyDiff(original, mapsKeysToRemove)
+
+	assert.NotEmpty(t, res)
+	assert.Equal(t, map[string]bool{"a": true, "e": false}, res)
+	assert.Equal(t, map[string]bool{"a": true, "b": false, "c": true, "e": false}, original)
+	assert.Equal(t, map[string][]string{"b": {}, "c": {}, "d": {}}, mapsKeysToRemove)
+}
+
 func Test_cleanDescription(t *testing.T) {
 	cleanedDescription := cleanDescription(descriptionContent)
 	assert.True(t, strings.Contains(cleanedDescription, "Imports"))
@@ -32,6 +44,10 @@ func Test_removePackageVersionConstraints(t *testing.T) {
 		{"", ""},
 		{"R", "R"},
 		{"R (>=4.0.3)", "R"},
+		{"R(>=4.0.3)", "R"},
+		{" R(>=4.0.3)", "R"},
+		{" R >=4.0.3", "R"},
+		{" R>=4.0.3", "R"},
 		{" R (  >=   4.0.3) ", "R"},
 	}
 	for _, c := range cases {
@@ -39,23 +55,40 @@ func Test_removePackageVersionConstraints(t *testing.T) {
 	}
 }
 
+func Test_getPackageDepsFromTarGz(t *testing.T) {
+	targz := "/tmp/scribe/downloaded_packages/package_archives/OrdinalLogisticBiplot_0.4.tar.gz"
+	deps := getPackageDepsFromTarGz(targz)
+	assert.NotEmpty(t, deps)
+}
+
+func Test_getPackageDepsFromRepositoryURLs(t *testing.T) {
+	deps := getPackageDepsFromRepositoryURLs([]string{"http://rkalvrexper.kau.roche.com:4242/roche-ghe@default/latest"},
+		map[string]bool{"ArtifactDB": true, "gp.auth": true})
+	assert.NotEmpty(t, deps)
+	assert.NotEmpty(t, deps["ArtifactDB"])
+	assert.NotEmpty(t, deps["gp.auth"])
+}
+
 func Test_getPackageDepsFromSinglePackageLocation(t *testing.T) {
-	repoLocation := "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.code"
+	//repoLocation := "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.code"
+	repoLocation := "/tmp/scribe/downloaded_packages/github/Bioconductor/BiocBaseUtils"
 	packDeps := getPackageDepsFromSinglePackageLocation(repoLocation, true)
 
 	assert.NotEmpty(t, packDeps)
+	assert.True(t, slices.Contains(packDeps, "R"))
+
 }
 
 func Test_getPackageDepsFromPackagesFile(t *testing.T) {
 	packagesFilePath := "/tmp/scribe/downloaded_packages/package_files/BIOC_PACKAGES_BIOC"
-	packDeps := getPackageDepsFromPackagesFile(packagesFilePath, map[string]struct{}{"Rgraphviz": {}, "S4Vectors": {}})
+	packDeps := getPackageDepsFromPackagesFile(packagesFilePath, map[string]bool{"Rgraphviz": true, "S4Vectors": true})
 	assert.NotNil(t, packDeps)
 	assert.NotEmpty(t, packDeps["Rgraphviz"])
 	assert.NotEmpty(t, packDeps["S4Vectors"])
 }
 
 func Test_getPackageDepsFromBioconductor(t *testing.T) {
-	deps := getPackageDepsFromBioconductor([]string{"Rgraphviz", "S4Vectors"})
+	deps := getPackageDepsFromBioconductor(map[string]bool{"Rgraphviz": true, "S4Vectors": true}, "3.16")
 	assert.NotEmpty(t, deps["Rgraphviz"])
 	assert.NotEmpty(t, deps["S4Vectors"])
 }

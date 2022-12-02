@@ -19,13 +19,14 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	mapset "github.com/deckarep/golang-set/v2"
 )
 
 const maxInstallRoutines = 40
 
-const temporalLibPath = "/tmp/scribe/installed_packages"
+const temporalLibPath = "/tmp/scribe/installed_packages" //:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
 
 type InstallInfo struct {
 	StatusCode     int    `json:"statusCode"`
@@ -35,9 +36,9 @@ type InstallInfo struct {
 
 func installSinglePackage(outputLocation string) error {
 	log.Debugf("Package location is %s", outputLocation)
-	cmd := "R CMD INSTALL --install-tests -l" + temporalLibPath + " " + outputLocation
+	cmd := "R CMD INSTALL -l " + temporalLibPath + " " + outputLocation
 	log.Debug(cmd)
-	result, err := execCommand(cmd, true, true)
+	result, err := execCommand(cmd, true, false)
 	log.Error(result)
 	if err != nil {
 		log.Error(err)
@@ -45,25 +46,41 @@ func installSinglePackage(outputLocation string) error {
 	return err
 }
 
-const localCranPackagesPath = localOutputDirectory + "/package_files/CRAN_PACKAGES"
+func mkLibPathDir() {
+	for _, libPath := range strings.Split(temporalLibPath, ":") {
+		if _, err := os.Stat(libPath); os.IsNotExist(err) {
+			err := os.MkdirAll(libPath, os.ModePerm)
+			checkError(err)
+		}
+	}
+}
 
 func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
-	err := os.MkdirAll(temporalLibPath, os.ModePerm)
-	checkError(err)
-
+	mkLibPathDir()
 	packages := make([]string, 0, len(renvLock.Packages))
+	packagesSet := make(map[string]bool)
 	for _, p := range renvLock.Packages {
 		packages = append(packages, p.Package)
-	}
-	deps := getPackageDepsFromCrandbWithChunk(packages)
-	depsBioc := getPackageDepsFromBioconductor(packages)
-	for k, v := range depsBioc {
-		deps[k] = v
+		packagesSet[p.Package] = true
 	}
 
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
 	for _, v := range *allDownloadInfo {
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
+	}
+
+	deps := getPackageDepsFromCrandbWithChunk(packages)
+	depsBioc := getPackageDepsFromBioconductor(packagesSet, renvLock.Bioconductor.Version)
+	for k, v := range depsBioc {
+		deps[k] = v
+	}
+	var reposUrls []string
+	for _, v := range renvLock.R.Repositories {
+		reposUrls = append(reposUrls, v.URL)
+	}
+	depsRepos := getPackageDepsFromRepositoryURLs(reposUrls, packagesSet)
+	for k, v := range depsRepos {
+		deps[k] = v
 	}
 
 	for pName, pInfo := range packagesLocation {
@@ -74,6 +91,15 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 			} else {
 				log.Errorf("Directory %s for package %s does not exist", pInfo.PackageType, pInfo.Location)
 			}
+		}
+	}
+
+	packagesNoDeps := getMapKeyDiff(packagesSet, deps)
+	for k := range packagesNoDeps {
+		info := packagesLocation[k]
+		if info.PackageType == "tar.gz" {
+			targzDeps := getPackageDepsFromTarGz(info.Location)
+			deps[k] = targzDeps
 		}
 	}
 
@@ -94,13 +120,15 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	fmt.Println(rest2)
 
 	depsOrdered := tsort(deps)
+	writeJSON("depsOrdered.json", depsOrdered)
+	writeJSON("deps.json", deps)
 
 	for i := 0; i < len(depsOrdered); i++ {
-		//packageName := depsOrdered[i]
-		//log.Debug(packageName)
-		//p := packagesLocation[packageName]
-		//installSinglePackage(p.Location)
-
+		packageName := depsOrdered[i]
+		fmt.Print(packageName + " ")
+		if val, ok := packagesLocation[packageName]; ok {
+			installSinglePackage(val.Location)
+		}
 	}
 
 	log.Info("Done")
