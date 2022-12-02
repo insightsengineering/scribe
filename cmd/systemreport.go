@@ -37,8 +37,8 @@ type SystemInfo struct {
 	Hostname        string `json:"hostname"`
 }
 
-func parseEtcReleaseFile() string {
-	etcRelease, err := os.Open("/etc/os-release")
+func parseEtcReleaseFile(path string) string {
+	etcRelease, err := os.Open(path)
 	checkError(err)
 	if err != nil {
 		return ""
@@ -118,21 +118,21 @@ func getHostname() string {
 	return strings.TrimSuffix(string(out), "\n")
 }
 
-func getOsInformation(maskingVariableRegex string) {
-	var systemInfo SystemInfo
+func getOsInformation(systemInfo *SystemInfo, maskingVariableRegex string) {
 	systemInfo.OperatingSystem = runtime.GOOS
 	systemInfo.Architecture = runtime.GOARCH
 	systemInfo.Time = time.Now().Format("2006-01-02 15:04:05")
 	systemInfo.Hostname = getHostname()
 	if systemInfo.OperatingSystem == "linux" {
 		systemInfo.KernelVersion = parseProcVersionFile()
-		systemInfo.PrettyName = parseEtcReleaseFile()
+		systemInfo.PrettyName = parseEtcReleaseFile("/etc/os-release")
 		systemInfo.SystemPackages = getSystemPackages(systemInfo.PrettyName)
 		systemInfo.RVersion = getSystemRVersion()
 		systemInfo.EnvVariables = getEnvironmentVariables(maskingVariableRegex)
 
 	} else if systemInfo.OperatingSystem == "windows" {
-
+		// TODO
 	}
-	writeJSON("systemInfo.json", systemInfo)
+	// TODO remove
+	writeJSON("systemInfo.json", *systemInfo)
 }

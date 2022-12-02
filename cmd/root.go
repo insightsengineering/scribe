@@ -82,7 +82,8 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
 		// TODO parametrize
-		getOsInformation("GITHUB_PAT|GITLAB_PAT")
+		var systemInfo SystemInfo
+		getOsInformation(&systemInfo, "GITHUB_PAT|GITLAB_PAT")
 		// TODO getting renv lock here is just temporary
 		// we'll have to figure out how to use that together with other components
 		// var renvLock Renvlock

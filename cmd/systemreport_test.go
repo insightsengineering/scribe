@@ -48,7 +48,12 @@ func Test_getEnvironmentVariables(t *testing.T) {
 	os.Setenv(envVar2, "whatever")
 	os.Setenv(envVar2, "whatever")
 	envVars := getEnvironmentVariables(fmt.Sprintf("%s|%s|%s", envVar1, envVar2, envVar3))
-	assert.Equal(t, strings.Contains(envVars, envVar1), false)
-	assert.Equal(t, strings.Contains(envVars, envVar2), false)
-	assert.Equal(t, strings.Contains(envVars, envVar2), false)
+	assert.False(t, strings.Contains(envVars, envVar1))
+	assert.False(t, strings.Contains(envVars, envVar2))
+	assert.False(t, strings.Contains(envVars, envVar2))
+}
+
+func Test_parseEtcReleaseFile(t *testing.T) {
+	prettyName := parseEtcReleaseFile("testdata/etc-os-release")
+	assert.Equal(t, prettyName, "Ubuntu 20.04.5 LTS")
 }
