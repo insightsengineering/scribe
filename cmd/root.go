@@ -59,7 +59,7 @@ func setLogLevel() {
 	case "error":
 		log.SetLevel(logrus.ErrorLevel)
 	default:
-		log.SetLevel(logrus.DebugLevel)
+		log.SetLevel(logrus.InfoLevel)
 	}
 	if interactive {
 		// Save the log to a file instead of outputting it to stdout.
@@ -112,9 +112,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scribe.yaml)")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "debug", "Logging level (trace, debug, info, warn, error)")
-	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false, "Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
+		"config file (default is $HOME/.scribe.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
+		"Logging level (trace, debug, info, warn, error)")
+	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
+		"Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
