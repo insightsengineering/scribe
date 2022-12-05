@@ -318,6 +318,52 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 	return deps
 }
 
+func getPackageDeps(
+	packages []string,
+	bioconductorVersion string,
+	allDownloadInfo *[]DownloadInfo,
+	reposUrls []string,
+	packagesLocation map[string]struct{ PackageType, Location string },
+) map[string][]string {
+
+	packagesSet := make(map[string]bool)
+	for _, p := range packages {
+		packagesSet[p] = true
+	}
+
+	deps := getPackageDepsFromCrandbWithChunk(packages)
+	depsBioc := getPackageDepsFromBioconductor(packagesSet, bioconductorVersion)
+	for k, v := range depsBioc {
+		deps[k] = v
+	}
+
+	depsRepos := getPackageDepsFromRepositoryURLs(reposUrls, packagesSet)
+	for k, v := range depsRepos {
+		deps[k] = v
+	}
+
+	for pName, pInfo := range packagesLocation {
+		if pInfo.PackageType == "git" {
+			if _, err := os.Stat(pInfo.Location); !os.IsNotExist(err) {
+				packageDeps := getPackageDepsFromSinglePackageLocation(pInfo.Location, true)
+				deps[pName] = packageDeps
+			} else {
+				log.Errorf("Directory %s for package %s does not exist", pInfo.PackageType, pInfo.Location)
+			}
+		}
+	}
+
+	packagesNoDeps := getMapKeyDiff(packagesSet, deps)
+	for k := range packagesNoDeps {
+		info := packagesLocation[k]
+		if info.PackageType == "tar.gz" {
+			targzDeps := getPackageDepsFromTarGz(info.Location)
+			deps[k] = targzDeps
+		}
+	}
+	return deps
+}
+
 func getCrandbUrl(packages []string) string {
 	acc := ""
 	for _, v := range packages {
@@ -369,11 +415,11 @@ func tsort(graph map[string][]string) (resultOrder []string) {
 		indegree[from] = len(tos)
 	}
 
-	for to, degree := range outdegree {
-		if degree == 0 {
-			resultOrder = append(resultOrder, to)
-		}
-	}
+	//for to, degree := range outdegree {
+	//	if degree == 0 {
+	//		resultOrder = append(resultOrder, to)
+	//	}
+	//}
 	sort.Strings(resultOrder)
 
 	stack := []string{}

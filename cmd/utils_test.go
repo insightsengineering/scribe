@@ -32,3 +32,16 @@ func Test_writeJSON(t *testing.T) {
 	numberOfBytes := writeJSON("testdata/test_output.json", renvLock)
 	assert.Greater(t, numberOfBytes, 0)
 }
+
+func Test_execCommand(t *testing.T) {
+	res, err := execCommand("R CMD", true, false, nil)
+	assert.NotEmpty(t, res)
+	assert.Nil(t, err)
+}
+
+func Test_execCommandWithEnvs(t *testing.T) {
+
+	res, err := execCommand(`R -s --vanilla -e ".libPaths()"`, true, false, []string{"R_LIBS=/usr/lib/R/library"})
+	assert.NotEmpty(t, res)
+	assert.Nil(t, err)
+}

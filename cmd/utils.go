@@ -65,7 +65,7 @@ func writeJSON(filename string, j interface{}) int {
 }
 
 // Execute a system command
-func execCommand(command string, showOutput bool, returnOutput bool) (string, error) {
+func execCommand(command string, showOutput bool, returnOutput bool, envs []string) (string, error) {
 	lastQuote := rune(0)
 	f := func(c rune) bool {
 		switch {
@@ -88,8 +88,16 @@ func execCommand(command string, showOutput bool, returnOutput bool) (string, er
 		part := preParts[i]
 		parts = append(parts, strings.Replace(part, "'", "", -1))
 	}
+
+	cmd := exec.Command(parts[0], parts[1:]...)
+
+	for _, env := range envs {
+		if env != "" {
+			cmd.Env = append(cmd.Env, env)
+		}
+	}
 	if returnOutput {
-		data, err := exec.Command(parts[0], parts[1:]...).Output()
+		data, err := cmd.Output()
 		if err != nil {
 			return "", err
 		}
@@ -97,8 +105,6 @@ func execCommand(command string, showOutput bool, returnOutput bool) (string, er
 	}
 
 	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd := exec.Command(parts[0], parts[1:]...)
-
 	stdoutIn, _ := cmd.StdoutPipe()
 	stderrIn, _ := cmd.StderrPipe()
 

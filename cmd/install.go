@@ -17,16 +17,24 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
-	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/schollz/progressbar/v3"
 )
 
 const maxInstallRoutines = 40
 
 const temporalLibPath = "/tmp/scribe/installed_packages" //:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+
+const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+
+const packageLogPath = "/tmp/scribe/installed_logs"
 
 type InstallInfo struct {
 	StatusCode     int    `json:"statusCode"`
@@ -34,11 +42,13 @@ type InstallInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
-func installSinglePackage(outputLocation string) error {
-	log.Debugf("Package location is %s", outputLocation)
-	cmd := "R CMD INSTALL -l " + temporalLibPath + " " + outputLocation
+func executeInstallation(outputLocation string, packageName string) error {
+	log.Tracef("Package location is %s", outputLocation)
+	mkLibPathDir(packageLogPath)
+	logFile := filepath.Join(packageLogPath, packageName+".out")
+	cmd := "R CMD INSTALL --install-tests  -l " + temporalLibPath + " " + outputLocation + " &> " + logFile
 	log.Debug(cmd)
-	result, err := execCommand(cmd, true, false)
+	result, err := execCommand(cmd, true, false, []string{"R_LIBS=" + rLibsPaths})
 	log.Error(result)
 	if err != nil {
 		log.Error(err)
@@ -46,22 +56,104 @@ func installSinglePackage(outputLocation string) error {
 	return err
 }
 
-func mkLibPathDir() {
+func installSinglePackage(
+	outputLocation string,
+	packageName string,
+	message chan InstallationInfo,
+	guard chan struct{},
+) {
+
+	err := executeInstallation(outputLocation, packageName)
+	installationSucceeded := err != nil
+	message <- InstallationInfo{packageName, installationSucceeded}
+	<-guard
+}
+
+func mkLibPathDir(temporalLibPath string) {
 	for _, libPath := range strings.Split(temporalLibPath, ":") {
 		if _, err := os.Stat(libPath); os.IsNotExist(err) {
 			err := os.MkdirAll(libPath, os.ModePerm)
 			checkError(err)
+			log.Tracef("Created dir %s", libPath)
 		}
 	}
 }
 
+type InstallationInfo struct {
+	PackageName           string `json:"packageName"`
+	InstallationSucceeded bool   `json:"installationSucceeded"`
+}
+
+func installResultReceiver(
+	message chan InstallationInfo,
+	successfulInstallation *int,
+	failedInstallation *int,
+	totalPackages int,
+	allInstallationInfo *[]InstallationInfo,
+	installWaiter chan struct{},
+) {
+
+	*successfulInstallation = 0
+	*failedInstallation = 0
+	idleSeconds := 0
+	var bar progressbar.ProgressBar
+	if interactive {
+		bar = *progressbar.Default(
+			int64(totalPackages),
+			"Installing...",
+		)
+	}
+	const maxIdleSeconds = 20
+
+	for {
+		select {
+		case msg := <-message:
+
+			if msg.InstallationSucceeded {
+				*successfulInstallation++
+			} else {
+				*failedInstallation++
+			}
+			idleSeconds = 0
+			if interactive {
+				err := bar.Add(1)
+				checkError(err)
+			}
+
+			*allInstallationInfo = append(*allInstallationInfo, msg)
+
+			if *successfulInstallation+*failedInstallation == totalPackages {
+				// As soon as we got statuses for all packages we want to return to main routine.
+				idleSeconds = maxIdleSeconds
+			}
+		default:
+			time.Sleep(time.Second)
+			idleSeconds++
+		}
+		// Last maxIdleWaits attempts at receiving status from package downloaders didn't yield any
+		// messages. Or all packages have been downloaded. Hence, we finish waiting for any other statuses.
+		if idleSeconds >= maxIdleSeconds {
+			break
+		}
+	}
+	// Signal to DownloadPackages function that all downloads have been completed.
+	installWaiter <- struct{}{}
+
+}
+
 func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
-	mkLibPathDir()
+	mkLibPathDir(temporalLibPath)
+
+	var installationInfo []InstallationInfo
+
 	packages := make([]string, 0, len(renvLock.Packages))
-	packagesSet := make(map[string]bool)
 	for _, p := range renvLock.Packages {
 		packages = append(packages, p.Package)
-		packagesSet[p.Package] = true
+	}
+
+	var reposUrls []string
+	for _, v := range renvLock.R.Repositories {
+		reposUrls = append(reposUrls, v.URL)
 	}
 
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
@@ -69,67 +161,55 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
 	}
 
-	deps := getPackageDepsFromCrandbWithChunk(packages)
-	depsBioc := getPackageDepsFromBioconductor(packagesSet, renvLock.Bioconductor.Version)
-	for k, v := range depsBioc {
-		deps[k] = v
-	}
-	var reposUrls []string
-	for _, v := range renvLock.R.Repositories {
-		reposUrls = append(reposUrls, v.URL)
-	}
-	depsRepos := getPackageDepsFromRepositoryURLs(reposUrls, packagesSet)
-	for k, v := range depsRepos {
-		deps[k] = v
+	var deps map[string][]string
+	var depsOrdered []string
+
+	readFile := "deps.json"
+	if _, err := os.Stat(readFile); err == nil {
+		log.Info("Reading", readFile)
+		jsonFile, _ := ioutil.ReadFile(readFile)
+		json.Unmarshal(jsonFile, &deps)
+	} else {
+		deps = getPackageDeps(packages, renvLock.Bioconductor.Version, allDownloadInfo, reposUrls, packagesLocation)
+		writeJSON(readFile, deps)
 	}
 
-	for pName, pInfo := range packagesLocation {
-		if pInfo.PackageType == "git" {
-			if _, err := os.Stat(pInfo.Location); !os.IsNotExist(err) {
-				packageDeps := getPackageDepsFromSinglePackageLocation(pInfo.Location, true)
-				deps[pName] = packageDeps
-			} else {
-				log.Errorf("Directory %s for package %s does not exist", pInfo.PackageType, pInfo.Location)
-			}
-		}
+	readFile = "depsOrdered.json"
+	if _, err := os.Stat(readFile); err == nil {
+		log.Info("Reading", readFile)
+		jsonFile, _ := ioutil.ReadFile(readFile)
+		json.Unmarshal(jsonFile, &depsOrdered)
+	} else {
+		depsOrdered = tsort(deps)
+		writeJSON(readFile, depsOrdered)
 	}
 
-	packagesNoDeps := getMapKeyDiff(packagesSet, deps)
-	for k := range packagesNoDeps {
-		info := packagesLocation[k]
-		if info.PackageType == "tar.gz" {
-			targzDeps := getPackageDepsFromTarGz(info.Location)
-			deps[k] = targzDeps
-		}
-	}
+	messages := make(chan InstallationInfo)
+	maxDownloadRoutines := 10
+	guard := make(chan struct{}, maxDownloadRoutines)
 
-	depsSet := mapset.NewSet[string]()
-	for k := range deps {
-		depsSet.Add(k)
-	}
-	allSet := mapset.NewSet[string]()
-	for _, v := range packages {
-		allSet.Add(v)
-	}
-	rest1 := allSet.Difference(depsSet)
+	var successfulDownloads, failedDownloads int
+	totalPackages := len(renvLock.Packages)
+	installWaiter := make(chan struct{})
 
-	rest2 := depsSet.Difference(allSet)
-	fmt.Println("all/deps:")
-	fmt.Println(rest1)
-	fmt.Println("deps/all:")
-	fmt.Println(rest2)
-
-	depsOrdered := tsort(deps)
-	writeJSON("depsOrdered.json", depsOrdered)
-	writeJSON("deps.json", deps)
+	go installResultReceiver(
+		messages,
+		&successfulDownloads,
+		&failedDownloads,
+		totalPackages,
+		&installationInfo,
+		installWaiter,
+	)
 
 	for i := 0; i < len(depsOrdered); i++ {
 		packageName := depsOrdered[i]
 		fmt.Print(packageName + " ")
 		if val, ok := packagesLocation[packageName]; ok {
-			installSinglePackage(val.Location)
+			guard <- struct{}{}
+			go installSinglePackage(val.Location, packageName, messages, guard)
 		}
 	}
+	<-installWaiter
 
-	log.Info("Done")
+	log.Info("Installation is done")
 }
