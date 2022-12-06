@@ -15,8 +15,6 @@ import (
 	"sort"
 	"strings"
 
-	mapset "github.com/deckarep/golang-set/v2"
-	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
 
@@ -383,77 +381,4 @@ func sortByCounter(counter map[string]int, nodes []string) []string {
 		return counter[nodes[i]] < counter[nodes[j]]
 	})
 	return nodes
-}
-
-func tsort(graph map[string][]string) (resultOrder []string) {
-
-	allNodesSet := mapset.NewSet[string]()
-	revGraph := map[string][]string{}
-	for from, tos := range graph {
-		allNodesSet.Add(from)
-		if len(tos) == 0 {
-			resultOrder = append(resultOrder, from)
-		} else {
-			for _, to := range tos {
-				allNodesSet.Add(to)
-				revGraph[to] = append(revGraph[to], from)
-			}
-		}
-	}
-
-	allNodes := allNodesSet.ToSlice()
-	indegree := make(map[string]int)
-	outdegree := make(map[string]int)
-	for _, n := range allNodes {
-		indegree[n] = 0
-		outdegree[n] = 0
-	}
-	for from, tos := range graph {
-		outdegree[from] = len(tos)
-	}
-	for from, tos := range revGraph {
-		indegree[from] = len(tos)
-	}
-
-	//for to, degree := range outdegree {
-	//	if degree == 0 {
-	//		resultOrder = append(resultOrder, to)
-	//	}
-	//}
-	sort.Strings(resultOrder)
-
-	stack := []string{}
-
-	var dfs func(node string, fvisited map[string]bool, fstack *[]string)
-	dfs = func(node string, fvisited map[string]bool, fstack *[]string) {
-		fvisited[node] = true
-		for _, to := range sortByCounter(outdegree, graph[node]) {
-			if fvisited[to] == false {
-				dfs(to, fvisited, &*fstack)
-			}
-		}
-		*fstack = append(*fstack, node)
-	}
-
-	visited := make(map[string]bool)
-	for _, node := range resultOrder {
-		visited[node] = true
-	}
-
-	allNodes = sortByCounter(outdegree, allNodes)
-
-	for _, node := range allNodes {
-		if visited[node] == false {
-			dfs(node, visited, &stack)
-		}
-
-	}
-
-	for i := 0; i < len(stack); i++ {
-		if !slices.Contains(resultOrder, stack[i]) {
-			resultOrder = append(resultOrder, stack[i])
-		}
-	}
-
-	return resultOrder
 }

@@ -6648,7 +6648,7 @@ Imports: Rcpp, data.table, BiocParallel, stats, ggplot2 (>= 2.2.0),
 LinkingTo: Rcpp, BH
 Suggests: testthat, knitr, rmarkdown, reactome.db, AnnotationDbi,
         parallel, org.Mm.eg.db, limma, GEOquery
-License: MIT + file LICENCE
+License: MIT + file LICENSE
 MD5sum: ec7032b1402576136e219873ca483fc0
 NeedsCompilation: yes
 
@@ -8846,7 +8846,7 @@ LinkingTo: Rcpp
 Suggests: HarmanData, BiocGenerics, BiocStyle, knitr, rmarkdown, RUnit,
         RColorBrewer, bladderbatch, limma, minfi, lumi, msmsEDA,
         affydata, minfiData, sva
-License: GPL-3 + file LICENCE
+License: GPL-3 + file LICENSE
 MD5sum: bfa36891d3e30b637e6f848661b79b08
 NeedsCompilation: yes
 
@@ -11852,7 +11852,7 @@ Suggests: broom.mixed (>= 0.2.4), cowplot (>= 1.0.0), devtools (>=
         2.0.1), ggplot2 (>= 3.1.0), ggpubr (>= 0.2.5), rmarkdown,
         seqinr (>= 3.4-5), survival (>= 2.43-3), testthat (>= 2.0.1),
         tidyr (>= 1.1.2)
-License: MIT + file LICENCE
+License: MIT + file LICENSE
 MD5sum: b6bf40d69c1dde3c8afd3292e164ff35
 NeedsCompilation: no
 
@@ -18162,7 +18162,7 @@ Imports: dplyr (>= 0.5.0), GenomeInfoDb (>= 1.13.4), ggplot2 (>=
         rtracklayer, rlang, scales (>= 0.4.1), S4Vectors (>= 0.12.2),
         stats, SummarizedExperiment (>= 1.4.0), tidyr (>= 0.6.1), utils
 Suggests: knitr, BiocStyle, rmarkdown, testthat, BiocManager
-License: MIT + file LICENCE
+License: MIT + file LICENSE
 MD5sum: ed8a64f4a0f611321e3dd1ccef035ea7
 NeedsCompilation: no
 

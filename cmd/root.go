@@ -97,6 +97,7 @@ var rootCmd = &cobra.Command{
 		} else {
 			log.Info("No", readFile)
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+			writeJSON(readFile, &allDownloadInfo)
 		}
 		InstallPackages(renvLock, &allDownloadInfo)
 	},

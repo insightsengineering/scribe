@@ -45,10 +45,17 @@ type InstallInfo struct {
 func executeInstallation(outputLocation string, packageName string) error {
 	log.Tracef("Package location is %s", outputLocation)
 	mkLibPathDir(packageLogPath)
-	logFile := filepath.Join(packageLogPath, packageName+".out")
-	cmd := "R CMD INSTALL --install-tests  -l " + temporalLibPath + " " + outputLocation + " &> " + logFile
+	logFilePath := filepath.Join(packageLogPath, packageName+".out")
+
+	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		log.Error(err)
+	}
+	defer logFile.Close()
+
+	cmd := "R CMD INSTALL --install-tests  -l " + temporalLibPath + " " + outputLocation
 	log.Debug(cmd)
-	result, err := execCommand(cmd, true, false, []string{"R_LIBS=" + rLibsPaths})
+	result, err := execCommand(cmd, true, false, []string{"R_LIBS=" + rLibsPaths}, logFile)
 	log.Error(result)
 	if err != nil {
 		log.Error(err)
