@@ -46,16 +46,31 @@ type InstallInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
-func visit(path string, di fs.DirEntry, err error) error {
-	fmt.Printf("Visited: %s\n", path)
-	return err
-}
-
 func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	res := make(map[string]string)
-	for _, libPath := range libPaths {
-		filepath.WalkDir(libPath, visit)
+
+	var descFilePaths []string
+	var visit = func(path string, di fs.DirEntry, err error) error {
+		descFilePath := filepath.Join(path, "DESCRIPTION")
+		if _, staterr := os.Stat(descFilePath); staterr == nil {
+			descFilePaths = append(descFilePaths, descFilePath)
+		}
+		return err
 	}
+
+	for _, libPath := range libPaths {
+		descFilePaths = make([]string, 0)
+		filepath.WalkDir(libPath, visit)
+		for _, descFilePath := range descFilePaths {
+			descItems := parseDescriptionFile(descFilePath)
+			packageName := descItems["Package"]
+			packageVersion := descItems["Version"]
+			if _, ok := res[packageName]; !ok {
+				res[packageName] = packageVersion
+			}
+		}
+	}
+
 	return res
 }
 
