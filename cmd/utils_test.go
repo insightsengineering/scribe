@@ -16,6 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,16 +39,41 @@ func Test_writeJSON(t *testing.T) {
 }
 
 func Test_execCommand(t *testing.T) {
-	res, err := execCommand("R CMD", true, false, nil, nil)
+	res, err := execCommand("R CMD", false, false, nil, nil)
 	assert.NotEmpty(t, res)
 	assert.Nil(t, err)
 }
 
 func Test_execCommandWithEnvs(t *testing.T) {
+	filePath := "Test_execCommandWithEnvs.log"
+	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
+		os.Remove(filePath)
+	}
 
-	res, err := execCommand(`R -s --vanilla -e ".libPaths()"`, true, false, []string{"R_LIBS=/usr/lib/R/library"}, nil)
+	logFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	assert.Nil(t, err)
+	defer logFile.Close()
+
+	res, err := execCommand(`R -s --vanilla -e ".libPaths()"`, false, false, []string{"R_LIBS=/usr/lib/R/library"}, logFile)
 	assert.NotEmpty(t, res)
 	assert.Nil(t, err)
+
+	content, err := ioutil.ReadFile(filePath)
+
+	fmt.Print(content)
+	assert.NotEmpty(t, content)
+	assert.Nil(t, err)
+
+}
+
+func Test_tsort_big(t *testing.T) {
+	var deps map[string][]string
+	jsonFile, _ := ioutil.ReadFile("testdata/deps.json")
+	json.Unmarshal(jsonFile, &deps)
+	ordered := tsort(deps)
+	assert.NotEmpty(t, deps)
+	assert.NotEmpty(t, ordered)
+
 }
 
 func Test_tsort(t *testing.T) {
@@ -228,7 +257,7 @@ func Test_tsort(t *testing.T) {
 				"7": {},
 				"8": {"5"},
 			},
-			[]string{"1", "7", "2", "4"},
+			[]string{"1", "7", "2", "3", "4", "5", "6", "8"},
 		},
 	}
 	for _, tc := range testcases {
@@ -239,4 +268,10 @@ func Test_tsort(t *testing.T) {
 			t.Fatalf("[%s]\nactual:  %v\nexpected:%v", tc.testName, order, tc.expectedOrder)
 		}
 	}
+}
+
+func Test_fillEnvFromSystem(t *testing.T) {
+	os.Setenv("LANG", "en_US.UTF-8")
+	envs := fillEnvFromSystem([]string{"LANG"})
+	assert.Equal(t, "LANG=en_US.UTF-8", envs[0])
 }

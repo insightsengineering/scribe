@@ -36,6 +36,9 @@ const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library
 
 const packageLogPath = "/tmp/scribe/installed_logs"
 
+// for LIB_DIR sys variable
+const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig/"
+
 type InstallInfo struct {
 	StatusCode     int    `json:"statusCode"`
 	Message        string `json:"message"`
@@ -47,18 +50,26 @@ func executeInstallation(outputLocation string, packageName string) error {
 	mkLibPathDir(packageLogPath)
 	logFilePath := filepath.Join(packageLogPath, packageName+".out")
 
-	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-	if err != nil {
-		log.Error(err)
-	}
+	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer logFile.Close()
+	if logFileErr != nil {
+		log.Errorf("outputLocation:%s packageName:%s err:%v", outputLocation, packageName, logFileErr)
+		return logFileErr
+	}
 
-	cmd := "R CMD INSTALL --install-tests  -l " + temporalLibPath + " " + outputLocation
+	cmd := "R CMD INSTALL --install-tests --configure-vars='LIB_DIR=" + libDirPath + "' -l " + temporalLibPath + " " + outputLocation
 	log.Debug(cmd)
-	result, err := execCommand(cmd, true, false, []string{"R_LIBS=" + rLibsPaths}, logFile)
-	log.Error(result)
+	_, err := execCommand(cmd, false, false,
+		[]string{
+			"R_LIBS=" + rLibsPaths,
+			"LANG=en_US.UTF-8",
+			"LD_LIBRARY_PATH=/usr/lib/R/lib:/usr/lib/gcc/x86_64-linux-gnu/7:/usr/lib/x86_64-linux-gnu:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/default-java/lib/server",
+			"R_INCLUDE_DIR=/usr/share/R/include",
+			"R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library",
+			"R_LIBS_USER=~/R/x86_64-pc-linux-gnu-library/3.4",
+		}, logFile)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("outputLocation:%s packageName:%s err:%v", outputLocation, packageName, err)
 	}
 	return err
 }

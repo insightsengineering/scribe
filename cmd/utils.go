@@ -68,6 +68,16 @@ func writeJSON(filename string, j interface{}) int {
 	return len(s)
 }
 
+func fillEnvFromSystem(envs []string) []string {
+	for i, env := range envs {
+		if env != "" && !strings.Contains(env, "=") {
+			value := os.Getenv(env)
+			envs[i] = env + "=" + value
+		}
+	}
+	return envs
+}
+
 // Execute a system command
 func execCommand(command string, showOutput bool, returnOutput bool, envs []string, file *os.File) (string, error) {
 	lastQuote := rune(0)
@@ -95,7 +105,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 
 	cmd := exec.Command(parts[0], parts[1:]...)
 
-	for _, env := range envs {
+	for _, env := range fillEnvFromSystem(envs) {
 		if env != "" {
 			cmd.Env = append(cmd.Env, env)
 		}
@@ -115,8 +125,8 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	var errStdout, errStderr error
 	var stdout, stderr io.Writer
 	if file != nil {
-		stdout = io.MultiWriter(os.Stdout, &stdoutBuf, file)
-		stderr = io.MultiWriter(os.Stderr, &stderrBuf, file)
+		stdout = io.MultiWriter(&stdoutBuf, file)
+		stderr = io.MultiWriter(&stderrBuf, file)
 	}
 	err := cmd.Start()
 	if err != nil {
