@@ -36,6 +36,7 @@ func Test_writeJSON(t *testing.T) {
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	numberOfBytes := writeJSON("testdata/test_output.json", renvLock)
 	assert.Greater(t, numberOfBytes, 0)
+	os.Remove("testdata/test_output.json")
 }
 
 func Test_execCommand(t *testing.T) {
@@ -66,7 +67,7 @@ func Test_execCommandWithEnvs(t *testing.T) {
 
 }
 
-func Test_tsort_big(t *testing.T) {
+func Test_tsort_many_packages(t *testing.T) {
 	var deps map[string][]string
 	jsonFile, _ := ioutil.ReadFile("testdata/deps.json")
 	json.Unmarshal(jsonFile, &deps)

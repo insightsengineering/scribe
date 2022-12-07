@@ -104,3 +104,5 @@ dist/
 downloadInfo**json
 deps*.json
 *.log
+*.env
+__debug_bin\

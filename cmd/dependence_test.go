@@ -55,9 +55,14 @@ func Test_removePackageVersionConstraints(t *testing.T) {
 }
 
 func Test_getPackageDepsFromTarGz(t *testing.T) {
-	targz := "testdata/OrdinalLogisticBiplot_0.4.tar.gz"
-	deps := getPackageDepsFromTarGz(targz)
-	assert.NotEmpty(t, deps)
+	cases := []struct{ targz string }{
+		{"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz"},
+		{"testdata/targz/curl_4.3.2.tar.gz"},
+	}
+	for _, v := range cases {
+		deps := getPackageDepsFromTarGz(v.targz)
+		assert.NotEmpty(t, deps)
+	}
 }
 
 func Test_getPackageDepsFromRepositoryURLs(t *testing.T) {

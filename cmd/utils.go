@@ -156,9 +156,9 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 		if err != nil {
 			if showOutput {
-				log.Println(errStr)
+				log.Println(errStr + outStr)
 			}
-			return "", err
+			return errStr + outStr, err
 		}
 		if showOutput {
 			log.Println(outStr)

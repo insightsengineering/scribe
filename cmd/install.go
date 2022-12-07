@@ -19,6 +19,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,7 +38,7 @@ const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library
 const packageLogPath = "/tmp/scribe/installed_logs"
 
 // for LIB_DIR sys variable
-const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig/"
+const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig" // /usr/lib/x86_64-linux-gnu/pkgconfig
 
 type InstallInfo struct {
 	StatusCode     int    `json:"statusCode"`
@@ -45,31 +46,47 @@ type InstallInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
+func visit(path string, di fs.DirEntry, err error) error {
+	fmt.Printf("Visited: %s\n", path)
+	return err
+}
+
+func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
+	res := make(map[string]string)
+	for _, libPath := range libPaths {
+		filepath.WalkDir(libPath, visit)
+	}
+	return res
+}
+
 func executeInstallation(outputLocation string, packageName string) error {
-	log.Tracef("Package location is %s", outputLocation)
+	log.Debugf("Package location is %s", outputLocation)
 	mkLibPathDir(packageLogPath)
 	logFilePath := filepath.Join(packageLogPath, packageName+".out")
 
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer logFile.Close()
 	if logFileErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s err:%v", outputLocation, packageName, logFileErr)
+		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, logFileErr, logFilePath)
 		return logFileErr
 	}
 
-	cmd := "R CMD INSTALL --install-tests --configure-vars='LIB_DIR=" + libDirPath + "' -l " + temporalLibPath + " " + outputLocation
+	//cmd := "R CMD INSTALL --install-tests --configure-vars='LIB_DIR=" + libDirPath + "' -l " + temporalLibPath + " " + outputLocation
+	cmd := "R CMD INSTALL -l " + temporalLibPath + " " + outputLocation
 	log.Debug(cmd)
-	_, err := execCommand(cmd, false, false,
+	output, err := execCommand(cmd, false, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
-			"LD_LIBRARY_PATH=/usr/lib/R/lib:/usr/lib/gcc/x86_64-linux-gnu/7:/usr/lib/x86_64-linux-gnu:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/default-java/lib/server",
-			"R_INCLUDE_DIR=/usr/share/R/include",
-			"R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library",
-			"R_LIBS_USER=~/R/x86_64-pc-linux-gnu-library/3.4",
+			"LD_LIBRARY_PATH",
+			"R_INCLUDE_DIR",
+			"R_LIBS_SITE",
+			"R_LIBS_USER",
+			"PKG_LIBS",
+			"PKG_CONFIG_PATH",
 		}, logFile)
 	if err != nil {
-		log.Errorf("outputLocation:%s packageName:%s err:%v", outputLocation, packageName, err)
+		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
 	}
 	return err
 }
@@ -81,10 +98,11 @@ func installSinglePackage(
 	guard chan struct{},
 ) {
 
-	err := executeInstallation(outputLocation, packageName)
-	installationSucceeded := err != nil
-	message <- InstallationInfo{packageName, installationSucceeded}
-	<-guard
+	executeInstallation(outputLocation, packageName)
+
+	//installationSucceeded := err != nil
+	//message <- InstallationInfo{packageName, installationSucceeded}
+	//<-guard
 }
 
 func mkLibPathDir(temporalLibPath string) {
@@ -148,7 +166,7 @@ func installResultReceiver(
 			time.Sleep(time.Second)
 			idleSeconds++
 		}
-		// Last maxIdleWaits attempts at receiving status from package downloaders didn't yield any
+		// Last maxIdleWaits attempts at receiving status from package downloader didn't yield any
 		// messages. Or all packages have been downloaded. Hence, we finish waiting for any other statuses.
 		if idleSeconds >= maxIdleSeconds {
 			break
@@ -224,7 +242,8 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		fmt.Print(packageName + " ")
 		if val, ok := packagesLocation[packageName]; ok {
 			guard <- struct{}{}
-			go installSinglePackage(val.Location, packageName, messages, guard)
+			//go
+			installSinglePackage(val.Location, packageName, messages, guard)
 		}
 	}
 	<-installWaiter
