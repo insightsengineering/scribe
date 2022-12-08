@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"bufio"
 	"os"
 	"os/exec"
 	"regexp"
@@ -35,56 +34,6 @@ type SystemInfo struct {
 	Time            string `json:"time"`
 	EnvVariables    string `json:"envVariables"`
 	Hostname        string `json:"hostname"`
-}
-
-func parseEtcReleaseFile(path string) string {
-	etcRelease, err := os.Open(path)
-	checkError(err)
-	if err != nil {
-		return ""
-	}
-	defer etcRelease.Close()
-
-	scanner := bufio.NewScanner(etcRelease)
-	var prettyName string
-	for scanner.Scan() {
-		newLine := scanner.Text()
-		if strings.HasPrefix(newLine, "PRETTY_NAME=") {
-			prettyName = strings.Split(newLine, "=")[1]
-			// Remove surrounding quotes
-			prettyName = prettyName[1 : len(prettyName)-1]
-		}
-	}
-	return prettyName
-}
-
-func parseProcVersionFile() string {
-	procVersion, err := os.Open("/proc/version")
-	checkError(err)
-	if err != nil {
-		return ""
-	}
-	scanner := bufio.NewScanner(procVersion)
-	for scanner.Scan() {
-		newLine := scanner.Text()
-		return newLine
-	}
-	return ""
-}
-
-func getSystemPackages(prettyName string) string {
-	if strings.Contains(prettyName, "Ubuntu") ||
-		strings.Contains(prettyName, "Debian") {
-		out, err := exec.Command("dpkg-query", "-l").CombinedOutput()
-		checkError(err)
-		return string(out)
-	} else if strings.Contains(prettyName, "Fedora") ||
-		strings.Contains(prettyName, "CentOS") {
-		out, err := exec.Command("yum", "list", "installed").CombinedOutput()
-		checkError(err)
-		return string(out)
-	}
-	return ""
 }
 
 func getSystemRVersion() string {
@@ -123,16 +72,9 @@ func getOsInformation(systemInfo *SystemInfo, maskingVariableRegex string) {
 	systemInfo.Architecture = runtime.GOARCH
 	systemInfo.Time = time.Now().Format("2006-01-02 15:04:05")
 	systemInfo.Hostname = getHostname()
-	if systemInfo.OperatingSystem == "linux" {
-		systemInfo.KernelVersion = parseProcVersionFile()
-		systemInfo.PrettyName = parseEtcReleaseFile("/etc/os-release")
-		systemInfo.SystemPackages = getSystemPackages(systemInfo.PrettyName)
-		systemInfo.RVersion = getSystemRVersion()
-		systemInfo.EnvVariables = getEnvironmentVariables(maskingVariableRegex)
-
-	} else if systemInfo.OperatingSystem == "windows" {
-		// TODO
-	}
+	systemInfo.EnvVariables = getEnvironmentVariables(maskingVariableRegex)
+	systemInfo.RVersion = getSystemRVersion()
+	getSystemDependentInfo(systemInfo)
 	// TODO remove
 	writeJSON("systemInfo.json", *systemInfo)
 }
