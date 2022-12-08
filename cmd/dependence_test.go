@@ -8,11 +8,11 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func Test_getMapKeyDiff(t *testing.T) {
+func Test_getMapKeyDiffOrEmpty(t *testing.T) {
 	original := map[string]bool{"a": true, "b": false, "c": true, "e": false}
 	mapsKeysToRemove := map[string][]string{"b": {}, "c": {}, "d": {}}
 
-	res := getMapKeyDiff(original, mapsKeysToRemove)
+	res := getMapKeyDiffOrEmpty(original, mapsKeysToRemove)
 
 	assert.NotEmpty(t, res)
 	assert.Equal(t, map[string]bool{"a": true, "e": false}, res)

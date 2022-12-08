@@ -86,12 +86,12 @@ func executeInstallation(outputLocation string, packageName string) error {
 	}
 
 	//cmd := "R CMD INSTALL --install-tests --configure-vars='LIB_DIR=" + libDirPath + "' -l " + temporalLibPath + " " + outputLocation
-	cmd := "R CMD INSTALL -l " + temporalLibPath + " " + outputLocation
+	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
 	log.Debug(cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
-			//"R_LIBS=" + rLibsPaths,
-			//"LANG=en_US.UTF-8",
+			"R_LIBS=" + rLibsPaths,
+			"LANG=en_US.UTF-8",
 			//"LD_LIBRARY_PATH",
 			//"R_INCLUDE_DIR",
 			//"R_LIBS_SITE",

@@ -16,10 +16,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func getMapKeyDiff(originMap map[string]bool, mapskeysToRemove map[string][]string) map[string]bool {
+func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string][]string) map[string]bool {
 	newmap := make(map[string]bool)
 	for k, v := range originMap {
-		if mapskeysToRemove[k] == nil {
+		if mapskeysToRemove[k] == nil || len(mapskeysToRemove[k]) == 0  {
 			newmap[k] = v
 		}
 	}
@@ -193,12 +193,12 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 	lastChunkNumber := len(packagesWithVersion) / chunkMaxSize
 	lastChunkSize := len(packagesWithVersion) % chunkMaxSize
 	for p, v := range packagesWithVersion {
-		log.Debugf("Getting deps from Crandb service. Chunk #%d", chunkCounter)
 
 		packagesWithVersionInChunk[p] = v
 		chunkSize++
 
 		if chunkSize >= chunkMaxSize || (lastChunkNumber == chunkCounter && lastChunkSize == chunkSize) {
+			log.Debugf("Getting deps from Crandb service. Chunk #%d. Packages: %d", chunkCounter, len(packagesWithVersionInChunk))
 			depsInChunk := getPackageDepsFromCrandb(packagesWithVersionInChunk)
 			for k, v := range depsInChunk {
 				deps[k] = v
@@ -361,7 +361,7 @@ func getPackageDeps(
 		}
 	}
 
-	packagesNoDeps := getMapKeyDiff(packagesSet, deps)
+	packagesNoDeps := getMapKeyDiffOrEmpty(packagesSet, deps)
 	for k := range packagesNoDeps {
 		info := packagesLocation[k]
 		if info.PackageType == "tar.gz" {
