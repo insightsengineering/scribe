@@ -39,8 +39,7 @@ type SystemInfo struct {
 func getSystemRVersion() string {
 	out, err := exec.Command("R", "--version").CombinedOutput()
 	checkError(err)
-	RVersion := strings.Split(string(out), "\n")[0]
-	return RVersion
+	return strings.Split(string(out), "\n")[0]
 }
 
 // if regex is not equal to empty string, only environment variables
@@ -75,6 +74,4 @@ func getOsInformation(systemInfo *SystemInfo, maskingVariableRegex string) {
 	systemInfo.EnvVariables = getEnvironmentVariables(maskingVariableRegex)
 	systemInfo.RVersion = getSystemRVersion()
 	getSystemDependentInfo(systemInfo)
-	// TODO remove
-	writeJSON("systemInfo.json", *systemInfo)
 }

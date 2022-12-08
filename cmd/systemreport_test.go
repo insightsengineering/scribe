@@ -36,9 +36,10 @@ func randString(n int) string {
 }
 
 // Set some environment variables with random names and then make sure
-// they are masked properly i.e. not returned by the tested function
-// it doesn't matter what other environment variables are set in the
-// testing environment.
+// they are masked properly i.e. not returned by the tested function.
+// It doesn't matter what other environment variables are set in the
+// testing environment, since the probability of setting an variable
+// that has already been set is extremely low.
 func Test_getEnvironmentVariables(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	envVar1 := randString(18)
