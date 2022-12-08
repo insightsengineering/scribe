@@ -41,13 +41,14 @@ func parseCheckOutput(stringToParse string, allCheckInfo *[]CheckInfo) {
 			previousCheckItem = checkItem
 			previousCheckItemType = checkItemType
 			trimmedNewLine := strings.TrimSpace(newLine)
-			if strings.HasSuffix(trimmedNewLine, "... NOTE") {
+			switch {
+			case strings.HasSuffix(trimmedNewLine, "... NOTE"):
 				checkItemType = "NOTE"
-			} else if strings.HasSuffix(trimmedNewLine, "... WARNING") {
+			case strings.HasSuffix(trimmedNewLine, "... WARNING"):
 				checkItemType = "WARNING"
-			} else if strings.HasSuffix(trimmedNewLine, "... ERROR") {
+			case strings.HasSuffix(trimmedNewLine, "... ERROR"):
 				checkItemType = "ERROR"
-			} else {
+			default:
 				checkItemType = ""
 			}
 			if previousCheckItemType != "" {
