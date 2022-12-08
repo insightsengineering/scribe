@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -199,8 +198,7 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 		packagesWithVersionInChunk[p] = v
 		chunkSize++
 
-		if chunkSize >= chunkMaxSize
-			|| (lastChunkNumber == chunkCounter && lastChunkSize == chunkSize) {
+		if chunkSize >= chunkMaxSize || (lastChunkNumber == chunkCounter && lastChunkSize == chunkSize) {
 			depsInChunk := getPackageDepsFromCrandb(packagesWithVersionInChunk)
 			for k, v := range depsInChunk {
 				deps[k] = v
@@ -210,12 +208,6 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 			chunkSize = 0
 			packagesWithVersionInChunk = make(map[string]string)
 		}
-	}
-	for i := 0; i < (len(packages)/chunkSize)+1; i++ {
-		fromI := chunkSize * i
-		toI := int(math.Min(float64(chunkSize*(i+1)), float64(len(packages))))
-		packagesInChunk := packages[fromI:toI]
-
 	}
 	return deps
 }
@@ -228,7 +220,7 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 	var m map[string]map[string]map[string]string
 	json.Unmarshal([]byte(depsJson), &m)
 	deps := make(map[string][]string)
-	for p, v := range packagesWithVersion {
+	for p := range packagesWithVersion {
 		if m[p] != nil {
 			for _, df := range depsFields {
 				if m[p][df] != nil {
@@ -347,7 +339,7 @@ func getPackageDeps(
 		packagesSet[p] = true
 	}
 
-	deps := getPackageDepsFromCrandbWithChunk(packages)
+	deps := getPackageDepsFromCrandbWithChunk(toEmptyMapString(packages))
 	depsBioc := getPackageDepsFromBioconductor(packagesSet, bioconductorVersion)
 	for k, v := range depsBioc {
 		deps[k] = v
@@ -382,14 +374,14 @@ func getPackageDeps(
 
 func getCrandbUrl(packagesWithVersion map[string]string) string {
 	acc := ""
-	for k, v := range packages {
+	for k, v := range packagesWithVersion {
 		if len(acc) > 0 {
 			acc += ","
 		}
 		if v != "" {
-			acc += "%22" + v + "%22"
-		}else {
-			acc += "%22" + v + "%22"
+			acc += "%22" + k + "-" + v + "%22"
+		} else {
+			acc += "%22" + k + "%22"
 		}
 	}
 	return "https://crandb.r-pkg.org/-/versions?keys=[" + acc + "]"
