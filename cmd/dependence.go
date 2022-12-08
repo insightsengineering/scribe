@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
@@ -46,7 +45,7 @@ func parseDescription(description string) map[string]string {
 
 func cleanDescription(description string) string {
 	lines := strings.Split(description, "\n")
-	filterFields := []string{"Package:", "Version:", "Depends:", "Imports:", "Suggests:"}
+	filterFields := []string{"Package:", "Version:", "Depends:", "Imports:", "Suggests:", "LinkingTo:"}
 	continuation := false
 	content := ""
 	for _, line := range lines {
@@ -120,9 +119,9 @@ func getPackageDepsFromDescriptionFileContent(descriptionFileContent string, inc
 			}
 		}
 	}
-	if len(deps) == 0 {
-		deps = append(deps, "R")
-	}
+	//if len(deps) == 0 {
+	//	deps = append(deps, "R")
+	//}
 	return deps
 }
 
@@ -133,14 +132,14 @@ func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggest
 		descriptionFileData, _ := ioutil.ReadFile(descFilePath)
 		deps = getPackageDepsFromDescriptionFileContent(string(descriptionFileData), includeSuggests)
 	}
-	if len(deps) == 0 {
-		deps = append(deps, "R")
-	}
+	//if len(deps) == 0 {
+	//	deps = append(deps, "R")
+	//}
 	return deps
 }
 
 func getDependenciesFields(includeSuggests bool) []string {
-	res := []string{"Depends", "Imports"}
+	res := []string{"Depends", "Imports", "LinkingTo"}
 	if includeSuggests {
 		res = append(res, "Suggests")
 	}
@@ -161,7 +160,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 			for true {
 				header, err := tarReader.Next()
 				if err == io.EOF || err != nil {
-					fmt.Println(err)
+					log.Error(err)
 					break
 				}
 				name := header.Name
@@ -186,31 +185,50 @@ func getPackageDepsFromTarGz(tarGzFilePath string) []string {
 	return getPackageDepsFromDescriptionFileContent(descContent, false)
 }
 
-func getPackageDepsFromCrandbWithChunk(packages []string) map[string][]string {
-	chunkSize := 100
+func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) map[string][]string {
+	chunkMaxSize := 100
 	deps := make(map[string][]string)
+	chunkCounter := 0
+	chunkSize := 0
+	packagesWithVersionInChunk := make(map[string]string)
+	lastChunkNumber := len(packagesWithVersion) / chunkMaxSize
+	lastChunkSize := len(packagesWithVersion) % chunkMaxSize
+	for p, v := range packagesWithVersion {
+		log.Debugf("Getting deps from Crandb service. Chunk #%d", chunkCounter)
+
+		packagesWithVersionInChunk[p] = v
+		chunkSize++
+
+		if chunkSize >= chunkMaxSize
+			|| (lastChunkNumber == chunkCounter && lastChunkSize == chunkSize) {
+			depsInChunk := getPackageDepsFromCrandb(packagesWithVersionInChunk)
+			for k, v := range depsInChunk {
+				deps[k] = v
+			}
+
+			chunkCounter++
+			chunkSize = 0
+			packagesWithVersionInChunk = make(map[string]string)
+		}
+	}
 	for i := 0; i < (len(packages)/chunkSize)+1; i++ {
-		log.Debugf("Getting deps from Crandb service. Chunk #%d", i)
 		fromI := chunkSize * i
 		toI := int(math.Min(float64(chunkSize*(i+1)), float64(len(packages))))
 		packagesInChunk := packages[fromI:toI]
-		depsInChunk := getPackageDepsFromCrandb(packagesInChunk)
-		for k, v := range depsInChunk {
-			deps[k] = v
-		}
+
 	}
 	return deps
 }
 
-func getPackageDepsFromCrandb(packages []string) map[string][]string {
+func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string][]string {
 	depsFields := getDependenciesFields(false)
-	url := getCrandbUrl(packages)
+	url := getCrandbUrl(packagesWithVersion)
 	log.Trace("Request for package deps from CranDB on URL: " + url)
 	depsJson, _ := request(url)
 	var m map[string]map[string]map[string]string
 	json.Unmarshal([]byte(depsJson), &m)
 	deps := make(map[string][]string)
-	for _, p := range packages {
+	for p, v := range packagesWithVersion {
 		if m[p] != nil {
 			for _, df := range depsFields {
 				if m[p][df] != nil {
@@ -219,9 +237,9 @@ func getPackageDepsFromCrandb(packages []string) map[string][]string {
 					}
 				}
 			}
-			if len(deps[p]) == 0 {
-				deps[p] = append(deps[p], "R")
-			}
+			// if len(deps[p]) == 0 {
+			// 	deps[p] = append(deps[p], "R")
+			// }
 		}
 	}
 	return deps
@@ -362,13 +380,17 @@ func getPackageDeps(
 	return deps
 }
 
-func getCrandbUrl(packages []string) string {
+func getCrandbUrl(packagesWithVersion map[string]string) string {
 	acc := ""
-	for _, v := range packages {
+	for k, v := range packages {
 		if len(acc) > 0 {
 			acc += ","
 		}
-		acc += "%22" + v + "%22"
+		if v != "" {
+			acc += "%22" + v + "%22"
+		}else {
+			acc += "%22" + v + "%22"
+		}
 	}
 	return "https://crandb.r-pkg.org/-/versions?keys=[" + acc + "]"
 }

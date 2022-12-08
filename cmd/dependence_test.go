@@ -20,6 +20,19 @@ func Test_getMapKeyDiff(t *testing.T) {
 	assert.Equal(t, map[string][]string{"b": {}, "c": {}, "d": {}}, mapsKeysToRemove)
 }
 
+func Test_parseDescriptionFile(t *testing.T) {
+	cases := []struct {filename, field, fieldValue string, extracted []string } {
+		{"testdata/DESCRIPTION/NominalLogisticBiplot.txt", "Depends", "R (>= 2.15.1),mirt,gmodels,MASS", []string{"R","mirt","gmodels","MASS"}},
+		{"RcppNumerical", "LinkingTo", "Rcpp, RcppEigen", []string{"Rcpp", "RcppEigen"}},
+	}
+	for _, c := range cases {
+		kw := parseDescriptionFile()
+		assert.Equal(t, c.fieldValue, kv[c.field])
+		pv := removePackageVersionConstraints(kv[c.field])
+		assert.Equal(t, c.extracted ,pv)
+	}
+}
+
 func Test_cleanDescription(t *testing.T) {
 	cleanedDescription := cleanDescription(descriptionContent)
 	assert.True(t, strings.Contains(cleanedDescription, "Imports"))
@@ -107,7 +120,7 @@ func Test_getPackageDepsFromCrandb(t *testing.T) {
 
 func Test_getPackageDepsFromCrandbWithChunk(t *testing.T) {
 	pkgs := []string{"childsds", "ini", "teal.logger", "withr", "BiocFileCache", "contrast", "spatial", "stringr"}
-	packDeps := getPackageDepsFromCrandbWithChunk(pkgs)
+	packDeps := getPackageDepsFromCrandbWithChunk(toEmptyMapString(pkgs))
 
 	assert.NotEmpty(t, packDeps)
 	assert.Contains(t, packDeps["childsds"], "tidyr")

@@ -239,3 +239,13 @@ func tsort(graph map[string][]string) (resultOrder []string) {
 
 	return resultOrder
 }
+
+
+
+func toEmptyMapString(slice []string) map[string]string {
+	rmap := make(map[string]string)
+	for _, s := range slice {
+		rmap[s]= ""
+	}
+	return rmap
+}

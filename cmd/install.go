@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -91,14 +90,14 @@ func executeInstallation(outputLocation string, packageName string) error {
 	log.Debug(cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
-			"LANG=en_US.UTF-8",
-			"LD_LIBRARY_PATH",
-			"R_INCLUDE_DIR",
-			"R_LIBS_SITE",
-			"R_LIBS_USER",
-			"PKG_LIBS",
-			"PKG_CONFIG_PATH",
+			//"R_LIBS=" + rLibsPaths,
+			//"LANG=en_US.UTF-8",
+			//"LD_LIBRARY_PATH",
+			//"R_INCLUDE_DIR",
+			//"R_LIBS_SITE",
+			//"R_LIBS_USER",
+			//"PKG_LIBS",
+			//"PKG_CONFIG_PATH",
 		}, logFile)
 	if err != nil {
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
@@ -236,7 +235,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	}
 
 	messages := make(chan InstallationInfo)
-	maxDownloadRoutines := 10
+	maxDownloadRoutines := 10000
 	guard := make(chan struct{}, maxDownloadRoutines)
 
 	var successfulDownloads, failedDownloads int
@@ -254,7 +253,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	for i := 0; i < len(depsOrdered); i++ {
 		packageName := depsOrdered[i]
-		fmt.Print(packageName + " ")
+		log.Debug(packageName + " ")
 		if val, ok := packagesLocation[packageName]; ok {
 			guard <- struct{}{}
 			//go
