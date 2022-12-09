@@ -37,6 +37,7 @@ func parseCheckOutput(stringToParse string, allCheckInfo *[]CheckInfo) {
 			log.Debug("Finished processing R CMD output.")
 		}
 		// new check item
+		// check items are delimited by a "* " string which occurs at the beginning of a line
 		if strings.HasPrefix(newLine, "* ") {
 			previousCheckItem = checkItem
 			previousCheckItemType = checkItemType
@@ -60,6 +61,7 @@ func parseCheckOutput(stringToParse string, allCheckInfo *[]CheckInfo) {
 			checkItem = ""
 			checkItem += newLine + "\n"
 		} else {
+			// append new line to the currently processed check item
 			checkItem += newLine + "\n"
 		}
 	}
