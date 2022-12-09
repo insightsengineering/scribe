@@ -75,7 +75,7 @@ func Test_getPackageDetails(t *testing.T) {
 	biocPackageInfo["workflows"]["someBiocPackage2"] = &PackageInfo{"2.0.1", "bbbcccddd"}
 	// someBiocPackage3 doesn't exist in any BioConductor category - therefore not added to packageInfo
 
-	action, packageURL, outputLocation, savedBandwidth := getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth := getPackageDetails(
 		"package1", "5.0.1", "https://cran.r-project.org", "SomeOtherCRAN",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -84,7 +84,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, outputLocation,
 		"/tmp/scribe/downloaded_packages/package_archives/package1_5.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"somePackage1", "1.0.0", "https://cloud.r-project.org", "CRAN",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -92,7 +92,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, packageURL, "https://cloud.r-project.org/src/contrib/somePackage1_1.0.0.tar.gz")
 	assert.Equal(t, outputLocation, "/tmp/scribe/somePackage1_1.0.0.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(1000))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"somePackage2", "2.0.0", "https://cloud.r-project.org", "CRAN",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -101,7 +101,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, outputLocation,
 		"/tmp/scribe/downloaded_packages/package_archives/somePackage2_2.0.0.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"somePackage3", "3.0.0", "https://cloud.r-project.org", "CRAN",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -111,7 +111,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, outputLocation,
 		"/tmp/scribe/downloaded_packages/package_archives/somePackage3_3.0.0.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"someBiocPackage1", "1.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -120,7 +120,7 @@ func Test_getPackageDetails(t *testing.T) {
 		"https://www.bioconductor.org/packages/3.13/data/experiment/src/contrib/someBiocPackage1_1.0.1.tar.gz")
 	assert.Equal(t, outputLocation, "/tmp/scribe/someBiocPackage_1.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(2000))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"someBiocPackage2", "2.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -130,7 +130,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, outputLocation,
 		"/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_2.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"someBiocPackage3", "3.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -140,7 +140,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, savedBandwidth, int64(0))
 
 	// git packages
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"gitHubPackage", "0.0.5", "https://github.com/insightsengineering/gitHubPackage", "GitHub",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -149,7 +149,7 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, outputLocation,
 		"/tmp/scribe/downloaded_packages/github/insightsengineering/gitHubPackage")
 	assert.Equal(t, savedBandwidth, int64(0))
-	action, packageURL, outputLocation, savedBandwidth = getPackageDetails(
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"gitLabPackage", "0.0.6", "https://gitlab.com/example/gitLabPackage", "GitLab",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
