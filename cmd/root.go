@@ -73,22 +73,6 @@ func setLogLevel() {
 	}
 }
 
-func getTempCheckOutput(filename string) string {
-	checkOutput, err := os.ReadFile(filename)
-	checkError(err)
-	return string(checkOutput)
-}
-
-func parseCheck() {
-	var allCheckInfo []CheckInfo
-	outputString := getTempCheckOutput("cmd/testdata/r_cmd_check.txt")
-	parseCheckOutput(outputString, &allCheckInfo)
-	for _, check := range allCheckInfo {
-		fmt.Println(check.CheckItemType)
-		fmt.Println(check.CheckItemContent)
-	}
-}
-
 var rootCmd = &cobra.Command{
 	Use:   "scribe",
 	Short: "System Compatibility Report for Install & Build Evaluation",
@@ -99,14 +83,14 @@ var rootCmd = &cobra.Command{
 	Version: scribeVersion,
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
-		parseCheck()
-		var systemInfo SystemInfo
-		getOsInformation(&systemInfo, maskedEnvVars)
-		var renvLock Renvlock
-		getRenvLock(renvLockFilename, &renvLock)
-		validateRenvLock(renvLock)
-		var allDownloadInfo []DownloadInfo
-		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+		checkPackages()
+		// var systemInfo SystemInfo
+		// getOsInformation(&systemInfo, maskedEnvVars)
+		// var renvLock Renvlock
+		// getRenvLock(renvLockFilename, &renvLock)
+		// validateRenvLock(renvLock)
+		// var allDownloadInfo []DownloadInfo
+		// downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 	},
 }
 

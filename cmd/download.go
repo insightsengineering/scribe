@@ -207,7 +207,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 	case repoURL == defaultCranMirrorURL:
 		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
 			"_" + packageVersion + ".tar.gz"
-		// Check if package is in current CRAN repository
+		// Check if package is in current CRAN repository.
 		var versionInCran string
 		packageInfo, ok := currentCranPackageInfo[packageName]
 		if ok {

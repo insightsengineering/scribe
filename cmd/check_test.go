@@ -23,18 +23,23 @@ import (
 )
 
 func Test_parseCheckOutput(t *testing.T) {
-	var allCheckInfo []CheckInfo
+	var allCheckInfo []ItemCheckInfo
 	checkOutput, err := os.ReadFile("testdata/r_cmd_check.txt")
 	checkError(err)
 	parseCheckOutput(string(checkOutput), &allCheckInfo)
 	assert.Equal(t, allCheckInfo[0].CheckItemType, "WARNING")
-	assert.Equal(t, allCheckInfo[0].CheckItemContent, "* checking Rd metadata ... WARNING\nSome warning 1\n  Some warning 2\n")
+	assert.Equal(t, allCheckInfo[0].CheckItemContent,
+		"* checking Rd metadata ... WARNING\nSome warning 1\n  Some warning 2\n")
 	assert.Equal(t, allCheckInfo[1].CheckItemType, "ERROR")
-	assert.Equal(t, allCheckInfo[1].CheckItemContent, "* checking Rd metadata ... ERROR\n\n\nSome error 7\n  Some error 8\n\n")
+	assert.Equal(t, allCheckInfo[1].CheckItemContent,
+		"* checking Rd metadata ... ERROR\n\n\nSome error 7\n  Some error 8\n\n")
 	assert.Equal(t, allCheckInfo[2].CheckItemType, "NOTE")
-	assert.Equal(t, allCheckInfo[2].CheckItemContent, "* checking Rd contents ... NOTE\n  Some note 3\nSome note 4\n\nSome note 5\n\n")
+	assert.Equal(t, allCheckInfo[2].CheckItemContent,
+		"* checking Rd contents ... NOTE\n  Some note 3\nSome note 4\n\nSome note 5\n\n")
 	assert.Equal(t, allCheckInfo[3].CheckItemType, "ERROR")
-	assert.Equal(t, allCheckInfo[3].CheckItemContent, "* checking for unstated dependencies in ‘tests’ ... ERROR\nSome error 1\n  Some error 2\n\nSome error 3\n")
+	assert.Equal(t, allCheckInfo[3].CheckItemContent,
+		"* checking for unstated dependencies in ‘tests’ ... ERROR\nSome error 1\n  Some error 2\n\nSome error 3\n")
 	assert.Equal(t, allCheckInfo[4].CheckItemType, "WARNING")
-	assert.Equal(t, allCheckInfo[4].CheckItemContent, "* checking for unstated dependencies in ‘tests’ ... WARNING\n    Some error 4\n  Some error 5\nSome error 6\n")
+	assert.Equal(t, allCheckInfo[4].CheckItemContent,
+		"* checking for unstated dependencies in ‘tests’ ... WARNING\n    Some error 4\n  Some error 5\nSome error 6\n")
 }
