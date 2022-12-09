@@ -92,6 +92,24 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, packageURL, "https://cloud.r-project.org/src/contrib/somePackage1_1.0.0.tar.gz")
 	assert.Equal(t, outputLocation, "/tmp/scribe/somePackage1_1.0.0.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(1000))
+
+	// In this test we want somePackage2 in version 1.9.0 but CRAN only has version 2.0.0.
+	// That's why we expect fallback version 2.0.0.
+	var fallbackPackageURL string
+	var fallbackOutputLocation string
+	action, packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, savedBandwidth = getPackageDetails(
+		"somePackage2", "1.9.0", "https://cloud.r-project.org", "CRAN",
+		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
+	)
+	assert.Equal(t, action, "download")
+	assert.Equal(t, packageURL, "https://cloud.r-project.org/src/contrib/Archive/somePackage2/somePackage2_1.9.0.tar.gz")
+	assert.Equal(t, fallbackPackageURL, "https://cloud.r-project.org/src/contrib/somePackage2_2.0.0.tar.gz")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/somePackage2_1.9.0.tar.gz")
+	assert.Equal(t, fallbackOutputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/somePackage2_2.0.0.tar.gz")
+	assert.Equal(t, savedBandwidth, int64(0))
+
 	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"somePackage2", "2.0.0", "https://cloud.r-project.org", "CRAN",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
