@@ -200,11 +200,12 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 
 // Returns:
 // * information how the package should be accessed:
-//   * "download" means the package should be downloaded as a tar.gz file from CRAN, Bioconductor or some other repo
-//   * "cache" means the package is available in local cache because it has been previously downloaded
-//   * "github" means the package should be cloned as a GitHub repository
-//   * "gitlab" means the package should be cloned as a GitLab repository
-//   * "notfound_bioc" means the package couldn't be found in Bioconductor
+//   - "download" means the package should be downloaded as a tar.gz file from CRAN, Bioconductor or some other repo
+//   - "cache" means the package is available in local cache because it has been previously downloaded
+//   - "github" means the package should be cloned as a GitHub repository
+//   - "gitlab" means the package should be cloned as a GitLab repository
+//   - "notfound_bioc" means the package couldn't be found in Bioconductor
+//
 // * URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
 // * fallback URL - in case package can't be found in CRAN, it is downloaded in the newest available CRAN version
 // * location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
