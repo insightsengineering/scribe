@@ -28,6 +28,8 @@ var cfgFile string
 var scribeVersion string
 var logLevel string
 var interactive bool
+var maskedEnvVars string
+var renvLockFilename string
 
 var log = logrus.New()
 
@@ -98,13 +100,13 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
 		parseCheck()
-		// TODO getting renv lock here is just temporary
-		// we'll have to figure out how to use that together with other components
-		// var renvLock Renvlock
-		// getRenvLock("renv.lock", &renvLock)
-		// validateRenvLock(renvLock)
-		// var allDownloadInfo []DownloadInfo
-		// downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+		var systemInfo SystemInfo
+		getOsInformation(&systemInfo, maskedEnvVars)
+		var renvLock Renvlock
+		getRenvLock(renvLockFilename, &renvLock)
+		validateRenvLock(renvLock)
+		var allDownloadInfo []DownloadInfo
+		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 	},
 }
 
@@ -124,6 +126,10 @@ func init() {
 		"Logging level (trace, debug, info, warn, error)")
 	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
 		"Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
+	rootCmd.PersistentFlags().StringVar(&maskedEnvVars, "maskedEnvVars", "",
+		"Regular expression for which environment variables should be masked in system information report")
+	rootCmd.PersistentFlags().StringVar(&renvLockFilename, "renvLockFilename", "renv.lock",
+		"Path to renv.lock file to be processed")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
