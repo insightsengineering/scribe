@@ -267,8 +267,27 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			log.Debug("Retrieving package ", packageName, " from BioConductor.")
 			return download, packageURL, outputLocation, 0
 		}
-		// Package not found in any of Bioconductor categories.
+		// Package not found in current Bioconductor.
+		// Try to retrieve it from Bioconductor archive.
+		log.Debug(
+			"Attempting to retrieve ", packageName, " version ", packageVersion,
+			" from Bioconductor Archive.",
+		)
+		// Check once again in which Bioconductor category the package may be available in the archive.
+		for _, biocCategory := range bioconductorCategories {
+			_, ok := biocPackageInfo[biocCategory][packageName]
+			if ok {
+				log.Debug(
+					"BioConductor category ", biocCategory, " has package ", packageName, ".",
+				)
+				packageURL = biocUrls[biocCategory] + "/Archive/" + packageName + "/" + packageName +
+					"_" + packageVersion + ".tar.gz"
+				return download, packageURL, outputLocation, 0
+			}
+		}
+		// Package still not found in any Bioconductor category.
 		return "notfound_bioc", "", "", 0
+
 	case packageSource == GitHub:
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" +
