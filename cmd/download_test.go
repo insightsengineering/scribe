@@ -148,6 +148,20 @@ func Test_getPackageDetails(t *testing.T) {
 	assert.Equal(t, outputLocation,
 		"/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_2.0.1.tar.gz")
 	assert.Equal(t, savedBandwidth, int64(0))
+
+	// The package in requested version is not available in Bioconductor current but
+	// it should be attempted to download it from Bioconductor Archive.
+	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
+		"someBiocPackage2", "1.9.1", "https://www.bioconductor.org/packages", "Bioconductor",
+		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
+	)
+	assert.Equal(t, action, "download")
+	assert.Equal(t, packageURL,
+		"https://www.bioconductor.org/packages/3.13/workflows/src/contrib/Archive/someBiocPackage2/someBiocPackage2_1.9.1.tar.gz")
+	assert.Equal(t, outputLocation,
+		"/tmp/scribe/downloaded_packages/package_archives/someBiocPackage2_1.9.1.tar.gz")
+	assert.Equal(t, savedBandwidth, int64(0))
+
 	action, packageURL, _, outputLocation, _, savedBandwidth = getPackageDetails(
 		"someBiocPackage3", "3.0.1", "https://www.bioconductor.org/packages", "Bioconductor",
 		packageInfo, biocPackageInfo, biocUrls, localArchiveChecksums,
