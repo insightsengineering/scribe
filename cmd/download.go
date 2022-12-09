@@ -250,11 +250,21 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 					" version ", biocPackageInfo.Version, ".",
 				)
 				if biocPackageInfo.Version == packageVersion {
+					log.Debug("Retrieving package ", packageName, " from BioConductor current.")
 					packageURL = biocUrls[biocCategory] + "/" + packageName +
 						"_" + packageVersion + ".tar.gz"
 					packageChecksum = biocPackageInfo.Checksum
-					break
+				} else {
+					// Package not found in current Bioconductor.
+					// Try to retrieve it from Bioconductor archive.
+					log.Debug(
+						"Attempting to retrieve ", packageName, " version ", packageVersion,
+						" from Bioconductor Archive.",
+					)
+					packageURL = biocUrls[biocCategory] + "/Archive/" + packageName + "/" + packageName +
+						"_" + packageVersion + ".tar.gz"
 				}
+				break
 			}
 		}
 		if packageURL != "" {
@@ -264,26 +274,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 				return cache, packageURL, localCachedFile.Path, localCachedFile.Length
 			}
 			// Package not cached locally.
-			log.Debug("Retrieving package ", packageName, " from BioConductor.")
 			return download, packageURL, outputLocation, 0
-		}
-		// Package not found in current Bioconductor.
-		// Try to retrieve it from Bioconductor archive.
-		log.Debug(
-			"Attempting to retrieve ", packageName, " version ", packageVersion,
-			" from Bioconductor Archive.",
-		)
-		// Check once again in which Bioconductor category the package may be available in the archive.
-		for _, biocCategory := range bioconductorCategories {
-			_, ok := biocPackageInfo[biocCategory][packageName]
-			if ok {
-				log.Debug(
-					"BioConductor category ", biocCategory, " has package ", packageName, ".",
-				)
-				packageURL = biocUrls[biocCategory] + "/Archive/" + packageName + "/" + packageName +
-					"_" + packageVersion + ".tar.gz"
-				return download, packageURL, outputLocation, 0
-			}
 		}
 		// Package still not found in any Bioconductor category.
 		return "notfound_bioc", "", "", 0
