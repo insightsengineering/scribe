@@ -92,6 +92,7 @@ func executeInstallation(outputLocation string, packageName string) error {
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
+			"STRINGI_DISABLE_PKG_CONFIG=1",
 			//"LD_LIBRARY_PATH",
 			//"R_INCLUDE_DIR",
 			//"R_LIBS_SITE",

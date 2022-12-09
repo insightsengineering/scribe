@@ -104,6 +104,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	}
 
 	cmd := exec.Command(parts[0], parts[1:]...)
+	cmd.Env = os.Environ()
 
 	for _, env := range fillEnvFromSystem(envs) {
 		if env != "" {
