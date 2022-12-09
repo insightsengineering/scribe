@@ -198,10 +198,23 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0
 }
 
+// Returns:
+// * information how the package should be accessed:
+//   - "download" means the package should be downloaded as a tar.gz file from CRAN, Bioconductor or some other repo
+//   - "cache" means the package is available in local cache because it has been previously downloaded
+//   - "github" means the package should be cloned as a GitHub repository
+//   - "gitlab" means the package should be cloned as a GitLab repository
+//   - "notfound_bioc" means the package couldn't be found in Bioconductor
+//
+// * URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
+// * fallback URL - in case package can't be found in CRAN, it is downloaded in the newest available CRAN version
+// * location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
+// * fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
+// * number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
 func getPackageDetails(packageName string, packageVersion string, repoURL string,
 	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
-	localArchiveChecksums map[string]*CacheInfo) (string, string, string, int64) {
+	localArchiveChecksums map[string]*CacheInfo) (string, string, string, string, string, int64) {
 	var packageURL string
 	switch {
 	case repoURL == defaultCranMirrorURL:
@@ -223,11 +236,11 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
 			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 			if ok {
-				return cache, packageURL, localCachedFile.Path, localCachedFile.Length
+				return cache, packageURL, "", localCachedFile.Path, "", localCachedFile.Length
 			}
 			// Package not cached locally.
 			log.Debug("Retrieving package ", packageName, " from CRAN current.")
-			return download, packageURL, outputLocation, 0
+			return download, packageURL, "", outputLocation, "", 0
 		}
 		// If CRAN current doesn't have the package version, look for the package in Archive.
 		log.Debug(
@@ -236,7 +249,12 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		)
 		packageURL = repoURL + "/src/contrib/Archive/" + packageName +
 			"/" + packageName + "_" + packageVersion + ".tar.gz"
-		return download, packageURL, outputLocation, 0
+		// In case the requested package version cannot be found neither in current CRAN or CRAN archive,
+		// we'll try to download the version from current CRAN as fallback.
+		fallbackPackageURL := repoURL + "/src/contrib/" + packageName + "_" + versionInCran + ".tar.gz"
+		fallbackOutputLocation := localOutputDirectory + "/package_archives/" + packageName +
+			"_" + versionInCran + ".tar.gz"
+		return download, packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, 0
 
 	case repoURL == bioConductorURL:
 		var packageChecksum string
@@ -271,20 +289,20 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			// Check if package is cached locally.
 			localCachedFile, ok := localArchiveChecksums[packageChecksum]
 			if ok {
-				return cache, packageURL, localCachedFile.Path, localCachedFile.Length
+				return cache, packageURL, "", localCachedFile.Path, "", localCachedFile.Length
 			}
 			// Package not cached locally.
-			return download, packageURL, outputLocation, 0
+			return download, packageURL, "", outputLocation, "", 0
 		}
-		// Package still not found in any Bioconductor category.
-		return "notfound_bioc", "", "", 0
+		// Package not found in any Bioconductor category.
+		return "notfound_bioc", "", "", "", "", 0
 
 	case packageSource == GitHub:
 		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
 		gitDirectory := localOutputDirectory + "/github" +
 			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
-		return "github", repoURL, gitDirectory, 0
+		return "github", repoURL, "", gitDirectory, "", 0
 
 	case packageSource == "GitLab":
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
@@ -296,18 +314,20 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			"/" + remoteUser + "/" + remoteRepo
 		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ",
 			remoteHost, " to directory ", gitDirectory)
-		return "gitlab", repoURL, gitDirectory, 0
+		return "gitlab", repoURL, "", gitDirectory, "", 0
 
 	default:
 		// Repositories other than CRAN or BioConductor
 		packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
 		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
 			"_" + packageVersion + ".tar.gz"
-		return download, packageURL, outputLocation, 0
+		return download, packageURL, "", outputLocation, "", 0
 	}
 }
 
 // Function executed in parallel goroutines.
+// First, it determines in what way to retrieve the package.
+// Then, it performs appropriate action based on what's been determined.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
 	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
@@ -318,7 +338,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	messages chan DownloadInfo, guard chan struct{}) {
 
 	// Determine whether to download the package as tar.gz file, or from git repository.
-	action, packageURL, outputLocation, savedBandwidth := getPackageDetails(
+	action, packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, savedBandwidth := getPackageDetails(
 		packageName, packageVersion, repoURL, packageSource, currentCranPackageInfo,
 		biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
@@ -337,7 +357,22 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	case download:
 		statusCode, contentLength := downloadFileFunction(packageURL, outputLocation)
 		if statusCode != http.StatusOK {
-			outputLocation = ""
+			// Download may fail in case the requested package version cannot be found
+			// neither in current CRAN nor in CRAN archive. In that case, we try
+			// to download the newest package version from CRAN current.
+			if fallbackPackageURL != "" && fallbackOutputLocation != "" {
+				statusCode, contentLength = downloadFileFunction(fallbackPackageURL, fallbackOutputLocation)
+				packageURL = fallbackPackageURL
+				if statusCode == http.StatusOK {
+					outputLocation = fallbackOutputLocation
+					log.Warn("Package ", packageName, " downloaded from ", fallbackPackageURL,
+						" because requested version ", packageVersion, " is not available.")
+				} else {
+					outputLocation = ""
+				}
+			} else {
+				outputLocation = ""
+			}
 		}
 		var packageType string
 		if strings.HasPrefix(packageURL, bioConductorURL) {
