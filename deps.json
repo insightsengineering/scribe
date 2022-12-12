@@ -1,0 +1,8627 @@
+{
+  "AER": [
+    "R",
+    "car",
+    "lmtest",
+    "sandwich",
+    "survival",
+    "zoo",
+    "stats",
+    "Formula"
+  ],
+  "Amelia": [
+    "R",
+    "Rcpp",
+    "foreign",
+    "utils",
+    "grDevices",
+    "graphics",
+    "methods",
+    "stats",
+    "rlang",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "AnnotationDbi": [
+    "R",
+    "methods",
+    "utils",
+    "stats4",
+    "BiocGenerics",
+    "Biobase",
+    "IRanges",
+    "DBI",
+    "RSQLite",
+    "S4Vectors",
+    "stats",
+    "KEGGREST"
+  ],
+  "BB": [
+    "R",
+    "stats",
+    "quadprog"
+  ],
+  "BBmisc": [
+    "checkmate",
+    "data.table",
+    "methods",
+    "stats",
+    "utils"
+  ],
+  "BH": [
+    "R"
+  ],
+  "BMA": [
+    "survival",
+    "leaps",
+    "robustbase",
+    "inline",
+    "rrcov",
+    "methods"
+  ],
+  "Biobase": [
+    "R",
+    "BiocGenerics",
+    "utils",
+    "methods"
+  ],
+  "BiocBaseUtils": [
+    "R",
+    "methods",
+    "utils",
+    "knitr",
+    "rmarkdown",
+    "BiocStyle",
+    "tinytest"
+  ],
+  "BiocFileCache": [
+    "R",
+    "dbplyr",
+    "methods",
+    "stats",
+    "utils",
+    "dplyr",
+    "RSQLite",
+    "DBI",
+    "rappdirs",
+    "filelock",
+    "curl",
+    "httr"
+  ],
+  "BiocGenerics": [
+    "R",
+    "methods",
+    "utils",
+    "graphics",
+    "stats",
+    "parallel",
+    "methods",
+    "utils",
+    "graphics",
+    "stats",
+    "parallel"
+  ],
+  "BiocManager": [
+    "utils"
+  ],
+  "BiocParallel": [
+    "methods",
+    "stats",
+    "utils",
+    "futile.logger",
+    "parallel",
+    "snow",
+    "BH"
+  ],
+  "BiocStyle": [
+    "bookdown",
+    "knitr",
+    "rmarkdown",
+    "stats",
+    "utils",
+    "yaml",
+    "BiocManager"
+  ],
+  "BiocVersion": [
+    "R"
+  ],
+  "Biostrings": [
+    "R",
+    "methods",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "XVector",
+    "GenomeInfoDb",
+    "methods",
+    "utils",
+    "grDevices",
+    "graphics",
+    "stats",
+    "crayon",
+    "S4Vectors",
+    "IRanges",
+    "XVector"
+  ],
+  "BradleyTerry2": [
+    "R",
+    "brglm",
+    "gtools",
+    "lme4",
+    "qvcalc",
+    "stats"
+  ],
+  "Brobdingnag": [
+    "R",
+    "methods",
+    "Matrix"
+  ],
+  "CDSE": [
+    "httr",
+    "jsonlite",
+    "shiny",
+    "shinyjs",
+    "miniUI",
+    "clisymbols",
+    "crayon",
+    "dplyr",
+    "stringr",
+    "yaml",
+    "rlist",
+    "progress",
+    "stats",
+    "utils",
+    "methods",
+    "readr",
+    "tools",
+    "reshape2",
+    "data.table",
+    "RCurl",
+    "assertthat",
+    "haven",
+    "readxl",
+    "jose",
+    "memoise",
+    "DT",
+    "compare",
+    "R6",
+    "commonmark",
+    "xml2",
+    "fastmap"
+  ],
+  "CTP": [
+    "clinfun",
+    "diagram",
+    "stats",
+    "emmeans",
+    "dplyr",
+    "magrittr",
+    "MASS",
+    "survival",
+    "shape",
+    "Gmisc",
+    "grid"
+  ],
+  "CVST": [
+    "kernlab",
+    "Matrix"
+  ],
+  "Cairo": [
+    "R",
+    "grDevices",
+    "graphics"
+  ],
+  "CePa": [
+    "R",
+    "igraph",
+    "stats",
+    "graphics",
+    "methods",
+    "grDevices",
+    "parallel",
+    "Rgraphviz",
+    "graph"
+  ],
+  "CodeDepends": [
+    "methods",
+    "codetools",
+    "graph",
+    "XML",
+    "utils"
+  ],
+  "CommonJavaJars": [
+    "R"
+  ],
+  "CompQuadForm": [
+    "R"
+  ],
+  "ComplexHeatmap": [
+    "R",
+    "methods",
+    "grid",
+    "graphics",
+    "stats",
+    "grDevices",
+    "circlize",
+    "GetoptLong",
+    "colorspace",
+    "clue",
+    "RColorBrewer",
+    "GlobalOptions",
+    "png",
+    "Cairo",
+    "digest",
+    "IRanges",
+    "matrixStats",
+    "foreach",
+    "doParallel"
+  ],
+  "DAAG": [
+    "R",
+    "lattice",
+    "latticeExtra",
+    "methods",
+    "Rdpack"
+  ],
+  "DBI": [
+    "methods",
+    "R"
+  ],
+  "DBItest": [
+    "R",
+    "blob",
+    "callr",
+    "DBI",
+    "desc",
+    "hms",
+    "lubridate",
+    "methods",
+    "palmerpenguins",
+    "R6",
+    "rlang",
+    "testthat",
+    "utils",
+    "withr",
+    "vctrs"
+  ],
+  "DESeq2": [
+    "S4Vectors",
+    "IRanges",
+    "GenomicRanges",
+    "SummarizedExperiment",
+    "BiocGenerics",
+    "Biobase",
+    "BiocParallel",
+    "genefilter",
+    "methods",
+    "stats4",
+    "locfit",
+    "geneplotter",
+    "ggplot2",
+    "Rcpp",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "DEoptimR": [
+    "stats"
+  ],
+  "DRR": [
+    "kernlab",
+    "CVST",
+    "Matrix",
+    "stats",
+    "methods"
+  ],
+  "DStree": [
+    "rpart",
+    "pec",
+    "Ecdat",
+    "rpart.plot",
+    "survival",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "DT": [
+    "htmltools",
+    "htmlwidgets",
+    "jsonlite",
+    "magrittr",
+    "crosstalk",
+    "jquerylib",
+    "promises"
+  ],
+  "DataCombine": [
+    "R",
+    "data.table",
+    "dplyr"
+  ],
+  "DelayedArray": [
+    "R",
+    "methods",
+    "stats4",
+    "Matrix",
+    "BiocGenerics",
+    "MatrixGenerics",
+    "S4Vectors",
+    "IRanges",
+    "stats",
+    "S4Vectors"
+  ],
+  "Deriv": [
+    "methods"
+  ],
+  "DescTools": [
+    "base",
+    "stats",
+    "R",
+    "graphics",
+    "grDevices",
+    "methods",
+    "MASS",
+    "utils",
+    "boot",
+    "mvtnorm",
+    "expm",
+    "Rcpp",
+    "rstudioapi",
+    "Exact",
+    "gld",
+    "data.table",
+    "readxl",
+    "httr",
+    "Rcpp",
+    "BH"
+  ],
+  "DiagrammeR": [
+    "R",
+    "dplyr",
+    "downloader",
+    "glue",
+    "htmltools",
+    "htmlwidgets",
+    "igraph",
+    "influenceR",
+    "magrittr",
+    "purrr",
+    "RColorBrewer",
+    "readr",
+    "rlang",
+    "rstudioapi",
+    "scales",
+    "stringr",
+    "tibble",
+    "tidyr",
+    "viridis",
+    "visNetwork"
+  ],
+  "DiagrammeRsvg": [
+    "V8"
+  ],
+  "DoseFinding": [
+    "lattice",
+    "mvtnorm",
+    "R"
+  ],
+  "Ecdat": [
+    "R",
+    "Ecfun"
+  ],
+  "Ecfun": [
+    "R",
+    "fda",
+    "tis",
+    "jpeg",
+    "MASS",
+    "TeachingDemos",
+    "stringi",
+    "methods",
+    "xml2",
+    "BMA",
+    "mvtnorm",
+    "rvest"
+  ],
+  "EnvStats": [
+    "R",
+    "MASS",
+    "ggplot2",
+    "nortest"
+  ],
+  "Epi": [
+    "R",
+    "utils",
+    "cmprsk",
+    "etm",
+    "splines",
+    "MASS",
+    "survival",
+    "plyr",
+    "dplyr",
+    "Matrix",
+    "numDeriv",
+    "data.table",
+    "zoo",
+    "mgcv",
+    "magrittr"
+  ],
+  "Exact": [
+    "R",
+    "graphics",
+    "stats",
+    "utils",
+    "rootSolve"
+  ],
+  "ExactCIdiff": [
+    "R"
+  ],
+  "FNN": [
+    "R"
+  ],
+  "FactoMineR": [
+    "R",
+    "car",
+    "cluster",
+    "DT",
+    "ellipse",
+    "emmeans",
+    "flashClust",
+    "graphics",
+    "grDevices",
+    "lattice",
+    "leaps",
+    "MASS",
+    "multcompView",
+    "scatterplot3d",
+    "stats",
+    "utils",
+    "ggplot2",
+    "ggrepel"
+  ],
+  "Formula": [
+    "R",
+    "stats"
+  ],
+  "GGally": [
+    "R",
+    "ggplot2",
+    "dplyr",
+    "forcats",
+    "grDevices",
+    "grid",
+    "gtable",
+    "lifecycle",
+    "plyr",
+    "progress",
+    "RColorBrewer",
+    "reshape",
+    "rlang",
+    "scales",
+    "tidyr",
+    "utils"
+  ],
+  "GPArotation": [
+    "R",
+    "stats"
+  ],
+  "GRANCore": [
+    "R",
+    "switchr",
+    "methods"
+  ],
+  "GSA": [
+    "R"
+  ],
+  "GenSA": [
+    "R"
+  ],
+  "GeneNet": [
+    "R",
+    "corpcor",
+    "longitudinal",
+    "fdrtool",
+    "stats",
+    "grDevices"
+  ],
+  "GenomeInfoDb": [
+    "R",
+    "methods",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "stats",
+    "stats4",
+    "utils",
+    "RCurl",
+    "GenomeInfoDbData"
+  ],
+  "GenomeInfoDbData": [
+    "R"
+  ],
+  "GenomicRanges": [
+    "R",
+    "methods",
+    "stats4",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "GenomeInfoDb",
+    "utils",
+    "stats",
+    "XVector",
+    "S4Vectors",
+    "IRanges"
+  ],
+  "GetoptLong": [
+    "R",
+    "rjson",
+    "GlobalOptions",
+    "methods",
+    "crayon"
+  ],
+  "GlobalOptions": [
+    "R",
+    "methods",
+    "utils"
+  ],
+  "Gmisc": [
+    "R",
+    "Rcpp",
+    "htmlTable",
+    "abind",
+    "checkmate",
+    "forestplot",
+    "Hmisc",
+    "glue",
+    "grid",
+    "grDevices",
+    "graphics",
+    "knitr",
+    "lattice",
+    "lubridate",
+    "magrittr",
+    "methods",
+    "rlang",
+    "rmarkdown",
+    "stringr",
+    "stats",
+    "XML",
+    "yaml",
+    "utils",
+    "Rcpp"
+  ],
+  "Gviz": [
+    "R",
+    "methods",
+    "S4Vectors",
+    "IRanges",
+    "GenomicRanges",
+    "grid",
+    "XVector",
+    "rtracklayer",
+    "lattice",
+    "RColorBrewer",
+    "biomaRt",
+    "AnnotationDbi",
+    "Biobase",
+    "GenomicFeatures",
+    "ensembldb",
+    "BSgenome",
+    "Biostrings",
+    "biovizBase",
+    "Rsamtools",
+    "latticeExtra",
+    "matrixStats",
+    "GenomicAlignments",
+    "GenomeInfoDb",
+    "BiocGenerics",
+    "digest",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils"
+  ],
+  "HDInterval": [
+    "R"
+  ],
+  "HistData": [
+    "R"
+  ],
+  "Hmisc": [
+    "lattice",
+    "survival",
+    "Formula",
+    "ggplot2",
+    "methods",
+    "latticeExtra",
+    "cluster",
+    "rpart",
+    "nnet",
+    "foreign",
+    "gtable",
+    "grid",
+    "gridExtra",
+    "data.table",
+    "htmlTable",
+    "viridis",
+    "htmltools",
+    "base64enc"
+  ],
+  "ICS": [
+    "R",
+    "methods",
+    "mvtnorm",
+    "survey",
+    "graphics"
+  ],
+  "ICSNP": [
+    "R",
+    "mvtnorm",
+    "ICS"
+  ],
+  "IRanges": [
+    "R",
+    "methods",
+    "utils",
+    "stats",
+    "BiocGenerics",
+    "S4Vectors",
+    "stats4",
+    "S4Vectors"
+  ],
+  "IRdisplay": [
+    "R",
+    "methods",
+    "repr"
+  ],
+  "ISOcodes": [
+    "R"
+  ],
+  "Iso": [
+    "R"
+  ],
+  "JavaGD": [
+    "R",
+    "rJava",
+    "grDevices",
+    "graphics"
+  ],
+  "KEGGREST": [
+    "R",
+    "methods",
+    "httr",
+    "png",
+    "Biostrings"
+  ],
+  "KFAS": [
+    "R",
+    "stats"
+  ],
+  "KMsurv": [
+    "R"
+  ],
+  "KernSmooth": [
+    "R",
+    "stats"
+  ],
+  "LDAvis": [
+    "R",
+    "proxy",
+    "RJSONIO",
+    "parallel"
+  ],
+  "Lahman": [
+    "R",
+    "dplyr"
+  ],
+  "LaplacesDemon": [
+    "R",
+    "parallel",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "LearnBayes": [
+    "R"
+  ],
+  "MALDIquant": [
+    "R",
+    "methods",
+    "parallel"
+  ],
+  "MASS": [
+    "R",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils",
+    "methods"
+  ],
+  "MCMCpack": [
+    "R",
+    "coda",
+    "MASS",
+    "stats",
+    "graphics",
+    "grDevices",
+    "lattice",
+    "methods",
+    "utils",
+    "mcmc",
+    "quantreg"
+  ],
+  "MEMSS": [
+    "R",
+    "lme4"
+  ],
+  "MESS": [
+    "R",
+    "MASS",
+    "Matrix",
+    "Rcpp",
+    "geepack",
+    "geeM",
+    "ggplot2",
+    "ggformula",
+    "glmnet",
+    "kinship2",
+    "methods",
+    "mvtnorm",
+    "parallel",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "MSwM": [
+    "methods",
+    "graphics",
+    "parallel",
+    "nlme"
+  ],
+  "MatchIt": [
+    "R",
+    "backports",
+    "Rcpp",
+    "Rcpp",
+    "RcppProgress"
+  ],
+  "Matching": [
+    "R",
+    "MASS",
+    "graphics",
+    "grDevices",
+    "stats"
+  ],
+  "Matrix": [
+    "R",
+    "methods",
+    "graphics",
+    "grid",
+    "lattice",
+    "stats",
+    "utils"
+  ],
+  "MatrixGenerics": [
+    "matrixStats",
+    "methods"
+  ],
+  "MatrixModels": [
+    "R",
+    "stats",
+    "methods",
+    "Matrix"
+  ],
+  "Mediana": [
+    "doParallel",
+    "doRNG",
+    "foreach",
+    "MASS",
+    "mvtnorm",
+    "stats",
+    "survival",
+    "utils"
+  ],
+  "ModelMetrics": [
+    "R",
+    "Rcpp",
+    "data.table",
+    "Rcpp"
+  ],
+  "MultiAssayExperiment": [
+    "R",
+    "SummarizedExperiment",
+    "methods",
+    "GenomicRanges",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "Biobase",
+    "stats",
+    "tidyr",
+    "utils"
+  ],
+  "NLP": [
+    "R",
+    "utils"
+  ],
+  "NMF": [
+    "R",
+    "methods",
+    "utils",
+    "registry",
+    "rngtools",
+    "cluster",
+    "graphics",
+    "stats",
+    "stringr",
+    "digest",
+    "grid",
+    "grDevices",
+    "gridBase",
+    "colorspace",
+    "RColorBrewer",
+    "foreach",
+    "doParallel",
+    "ggplot2",
+    "reshape2",
+    "Biobase",
+    "codetools",
+    "BiocManager"
+  ],
+  "NominalLogisticBiplot": ["mirt", "gmodels"],
+  "NonCompart": [
+    "R"
+  ],
+  "OAIHarvester": [
+    "utils",
+    "curl",
+    "xml2"
+  ],
+  "OptimalCutpoints": [
+    "stats",
+    "graphics"
+  ],
+  "OrdinalLogisticBiplot": ["NominalLogisticBiplot", "gmodels"],
+  "PKI": [
+    "R",
+    "base64enc"
+  ],
+  "PearsonDS": [
+    "R"
+  ],
+  "PerformanceAnalytics": [
+    "R",
+    "xts",
+    "methods",
+    "quadprog",
+    "zoo"
+  ],
+  "PowerTOST": [
+    "mvtnorm",
+    "stats",
+    "utils",
+    "graphics",
+    "grDevices",
+    "cubature",
+    "TeachingDemos"
+  ],
+  "PreciseSums": [
+    "R"
+  ],
+  "PropCIs": [
+    "R"
+  ],
+  "Publish": [
+    "prodlim",
+    "survival",
+    "data.table",
+    "lava",
+    "multcomp"
+  ],
+  "R.cache": [
+    "R",
+    "utils",
+    "R.methodsS3",
+    "R.oo",
+    "R.utils",
+    "digest"
+  ],
+  "R.devices": [
+    "R",
+    "grDevices",
+    "R.methodsS3",
+    "R.oo",
+    "R.utils",
+    "base64enc"
+  ],
+  "R.huge": [
+    "R",
+    "R.methodsS3",
+    "R.oo",
+    "R.utils"
+  ],
+  "R.methodsS3": [
+    "R",
+    "utils"
+  ],
+  "R.oo": [
+    "R",
+    "R.methodsS3",
+    "methods",
+    "utils"
+  ],
+  "R.rsp": [
+    "R",
+    "methods",
+    "stats",
+    "tools",
+    "utils",
+    "R.methodsS3",
+    "R.oo",
+    "R.utils",
+    "R.cache",
+    "digest"
+  ],
+  "R.utils": [
+    "R",
+    "R.oo",
+    "methods",
+    "utils",
+    "tools",
+    "R.methodsS3"
+  ],
+  "R2HTML": [
+    "R",
+    "stats",
+    "graphics",
+    "utils",
+    "grDevices",
+    "methods"
+  ],
+  "R2admb": [
+    "R",
+    "coda",
+    "lattice"
+  ],
+  "R6": [
+    "R"
+  ],
+  "RANN": [
+    "R"
+  ],
+  "RApiDatetime": [
+    "R"
+  ],
+  "RApiSerialize": [
+    "R"
+  ],
+  "RBGL": [
+    "graph",
+    "methods",
+    "methods",
+    "BH"
+  ],
+  "RBesT": [
+    "R",
+    "methods",
+    "Rcpp",
+    "RcppParallel",
+    "rstan",
+    "rstantools",
+    "assertthat",
+    "mvtnorm",
+    "Formula",
+    "checkmate",
+    "bayesplot",
+    "ggplot2",
+    "dplyr",
+    "stats",
+    "utils",
+    "matrixStats",
+    "BH",
+    "Rcpp",
+    "RcppEigen",
+    "RcppParallel",
+    "rstan",
+    "StanHeaders"
+  ],
+  "RCircos": [
+    "R"
+  ],
+  "RColorBrewer": [
+    "R"
+  ],
+  "RCurl": [
+    "R",
+    "methods",
+    "bitops"
+  ],
+  "RGtk2": [
+    "R",
+    "methods"
+  ],
+  "RJDBC": [
+    "methods",
+    "DBI",
+    "rJava",
+    "R"
+  ],
+  "RJSONIO": [
+    "methods"
+  ],
+  "RMariaDB": [
+    "R",
+    "bit64",
+    "blob",
+    "DBI",
+    "hms",
+    "lubridate",
+    "methods",
+    "Rcpp",
+    "rlang",
+    "plogr",
+    "Rcpp"
+  ],
+  "RMySQL": [
+    "R",
+    "DBI",
+    "methods"
+  ],
+  "ROAuth": [
+    "R",
+    "RCurl",
+    "digest",
+    "methods"
+  ],
+  "ROCR": [
+    "R",
+    "methods",
+    "graphics",
+    "grDevices",
+    "gplots",
+    "stats"
+  ],
+  "RODBC": [
+    "R",
+    "stats"
+  ],
+  "ROracle": [
+    "methods",
+    "DBI",
+    "utils"
+  ],
+  "RPostgres": [
+    "R",
+    "bit64",
+    "blob",
+    "DBI",
+    "hms",
+    "lubridate",
+    "methods",
+    "Rcpp",
+    "withr",
+    "plogr",
+    "Rcpp"
+  ],
+  "RPresto": [
+    "R",
+    "methods",
+    "DBI",
+    "httr",
+    "openssl",
+    "jsonlite",
+    "stringi",
+    "stats",
+    "utils",
+    "purrr",
+    "dplyr",
+    "dbplyr",
+    "tibble",
+    "bit64",
+    "rlang",
+    "lifecycle",
+    "lubridate",
+    "progress"
+  ],
+  "RSQLite": [
+    "R",
+    "bit64",
+    "blob",
+    "DBI",
+    "memoise",
+    "methods",
+    "pkgconfig",
+    "Rcpp",
+    "plogr",
+    "Rcpp"
+  ],
+  "RSclient": [
+    "R"
+  ],
+  "RSpectra": [
+    "R",
+    "Matrix",
+    "Rcpp",
+    "Rcpp",
+    "RcppEigen"
+  ],
+  "RUnit": [
+    "R",
+    "utils",
+    "methods",
+    "graphics"
+  ],
+  "RWeka": [
+    "R",
+    "RWekajars",
+    "rJava",
+    "graphics",
+    "stats",
+    "utils",
+    "grid"
+  ],
+  "RWekajars": [
+    "rJava"
+  ],
+  "Rcgmin": [
+    "optextras"
+  ],
+  "Rcpp": [
+    "methods",
+    "utils"
+  ],
+  "RcppArmadillo": [
+    "R",
+    "Rcpp",
+    "stats",
+    "utils",
+    "methods",
+    "Rcpp"
+  ],
+  "RcppEigen": [
+    "R",
+    "Matrix",
+    "Rcpp",
+    "stats",
+    "utils",
+    "Rcpp"
+  ],
+  "RcppNumerical": [
+    "Rcpp",
+    "Rcpp",
+    "RcppEigen"
+  ],
+  "RcppParallel": [
+    "R"
+  ],
+  "RcppProgress": [
+    "R"
+  ],
+  "RcppRoll": [
+    "R",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "Rdpack": [
+    "R",
+    "methods",
+    "tools",
+    "utils",
+    "rbibutils"
+  ],
+  "Rglpk": [
+    "slam"
+  ],
+  "RgoogleMaps": [
+    "R",
+    "graphics",
+    "stats",
+    "utils",
+    "grDevices",
+    "methods",
+    "png",
+    "sp"
+  ],
+  "Rgraphviz": [
+    "R",
+    "methods",
+    "utils",
+    "graph",
+    "grid",
+    "stats4",
+    "graphics",
+    "grDevices"
+  ],
+  "RhpcBLASctl": [
+    "R"
+  ],
+  "Rmpfr": [
+    "gmp",
+    "R",
+    "stats",
+    "utils",
+    "methods"
+  ],
+  "RocheTemplates": [
+    "magrittr",
+    "RCurl",
+    "tibble",
+    "stringr",
+    "devtools"
+  ],
+  "RocheTeradata": [
+    "R",
+    "magrittr",
+    "rJava",
+    "tibble",
+    "odbc",
+    "RJDBC",
+    "DBI",
+    "testthat",
+    "dplyr"
+  ],
+  "Rook": [
+    "R",
+    "utils",
+    "tools",
+    "methods",
+    "brew"
+  ],
+  "Rserve": [
+    "R"
+  ],
+  "Rsolnp": [
+    "R",
+    "truncnorm",
+    "parallel",
+    "stats"
+  ],
+  "Rtsne": [
+    "Rcpp",
+    "stats",
+    "Rcpp"
+  ],
+  "Rttf2pt1": [
+    "R"
+  ],
+  "Rvmmin": [
+    "optextras"
+  ],
+  "RxODE": [
+    "R",
+    "PreciseSums",
+    "Rcpp",
+    "assertthat",
+    "backports",
+    "checkmate",
+    "cli",
+    "dparser",
+    "ggplot2",
+    "inline",
+    "lotri",
+    "magrittr",
+    "memoise",
+    "methods",
+    "rex",
+    "qs",
+    "sys",
+    "tools",
+    "utils",
+    "dparser",
+    "PreciseSums",
+    "RcppEigen",
+    "RcppArmadillo",
+    "sitmo",
+    "StanHeaders",
+    "BH"
+  ],
+  "S4Vectors": [
+    "R",
+    "methods",
+    "utils",
+    "stats",
+    "stats4",
+    "BiocGenerics"
+  ],
+  "SASxport": ["Hmisc", "stringi"],
+  "SQUAREM": [
+    "R"
+  ],
+  "SingleCellExperiment": [
+    "SummarizedExperiment",
+    "methods",
+    "utils",
+    "stats",
+    "S4Vectors",
+    "BiocGenerics",
+    "GenomicRanges",
+    "DelayedArray"
+  ],
+  "SnowballC": [
+    "R"
+  ],
+  "SparseM": [
+    "R",
+    "methods",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "StanHeaders": [
+    "R",
+    "RcppParallel",
+    "RcppEigen",
+    "RcppParallel"
+  ],
+  "SummarizedExperiment": [
+    "R",
+    "methods",
+    "MatrixGenerics",
+    "GenomicRanges",
+    "Biobase",
+    "utils",
+    "stats",
+    "tools",
+    "Matrix",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "GenomeInfoDb",
+    "DelayedArray"
+  ],
+  "SuppDists": [
+    "R"
+  ],
+  "Surrogate": [
+    "MASS",
+    "lattice",
+    "latticeExtra",
+    "survival",
+    "nlme",
+    "lme4",
+    "msm",
+    "logistf",
+    "rms",
+    "parallel",
+    "ks",
+    "extraDistr",
+    "pbapply",
+    "copula",
+    "flexsurv",
+    "kdecopula",
+    "mvtnorm",
+    "rvinecopulib",
+    "dplyr"
+  ],
+  "TH.data": [
+    "R",
+    "survival",
+    "MASS"
+  ],
+  "TMB": [
+    "R",
+    "graphics",
+    "methods",
+    "stats",
+    "utils",
+    "Matrix",
+    "Matrix"
+  ],
+  "TTR": [
+    "xts",
+    "zoo",
+    "curl",
+    "xts"
+  ],
+  "TeachingDemos": [
+    "R"
+  ],
+  "UpSetR": [
+    "R",
+    "ggplot2",
+    "gridExtra",
+    "plyr",
+    "utils",
+    "stats",
+    "methods",
+    "grDevices",
+    "scales"
+  ],
+  "UsingR": [
+    "R",
+    "MASS",
+    "HistData",
+    "Hmisc"
+  ],
+  "V8": [
+    "Rcpp",
+    "jsonlite",
+    "curl",
+    "utils",
+    "Rcpp"
+  ],
+  "VGAM": [
+    "R",
+    "methods",
+    "stats",
+    "stats4",
+    "splines"
+  ],
+  "VIM": [
+    "R",
+    "colorspace",
+    "grid",
+    "car",
+    "grDevices",
+    "magrittr",
+    "robustbase",
+    "stats",
+    "sp",
+    "vcd",
+    "MASS",
+    "nnet",
+    "e1071",
+    "methods",
+    "Rcpp",
+    "utils",
+    "graphics",
+    "laeken",
+    "ranger",
+    "data.table",
+    "Rcpp"
+  ],
+  "XML": [
+    "R",
+    "methods",
+    "utils"
+  ],
+  "XVector": [
+    "R",
+    "methods",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "methods",
+    "utils",
+    "tools",
+    "zlibbioc",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "S4Vectors",
+    "IRanges"
+  ],
+  "abind": [
+    "R",
+    "methods",
+    "utils"
+  ],
+  "acepack": [
+    "R"
+  ],
+  "actuar": [
+    "R",
+    "stats",
+    "graphics",
+    "expint",
+    "expint"
+  ],
+  "ade4": [
+    "R",
+    "graphics",
+    "grDevices",
+    "methods",
+    "stats",
+    "utils",
+    "MASS",
+    "pixmap",
+    "sp"
+  ],
+  "affy": [
+    "R",
+    "BiocGenerics",
+    "Biobase",
+    "affyio",
+    "BiocManager",
+    "graphics",
+    "grDevices",
+    "methods",
+    "preprocessCore",
+    "stats",
+    "utils",
+    "zlibbioc",
+    "preprocessCore"
+  ],
+  "affyio": [
+    "R",
+    "zlibbioc",
+    "methods"
+  ],
+  "akima": [
+    "R",
+    "sp"
+  ],
+  "annotate": [
+    "R",
+    "AnnotationDbi",
+    "XML",
+    "Biobase",
+    "DBI",
+    "xtable",
+    "graphics",
+    "utils",
+    "stats",
+    "methods",
+    "BiocGenerics",
+    "httr"
+  ],
+  "anytime": [
+    "R",
+    "Rcpp",
+    "Rcpp",
+    "BH"
+  ],
+  "ape": [
+    "R",
+    "nlme",
+    "lattice",
+    "graphics",
+    "methods",
+    "stats",
+    "tools",
+    "utils",
+    "parallel",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "aplpack": [
+    "R"
+  ],
+  "argparse": [
+    "R",
+    "R6",
+    "findpython",
+    "jsonlite"
+  ],
+  "arm": [
+    "R",
+    "MASS",
+    "Matrix",
+    "stats",
+    "lme4",
+    "abind",
+    "coda",
+    "graphics",
+    "grDevices",
+    "methods",
+    "nlme",
+    "utils"
+  ],
+  "arrayhelpers": [
+    "methods",
+    "utils",
+    "svUnit"
+  ],
+  "arules": [
+    "R",
+    "Matrix",
+    "stats",
+    "methods",
+    "generics",
+    "graphics",
+    "utils"
+  ],
+  "ash": [
+    "R"
+  ],
+  "askpass": [
+    "sys"
+  ],
+  "assertthat": [
+    "tools"
+  ],
+  "astsa": [
+    "R"
+  ],
+  "backports": [
+    "R"
+  ],
+  "base64": [
+    "openssl"
+  ],
+  "base64enc": [
+    "R"
+  ],
+  "bayesplot": [
+    "R",
+    "dplyr",
+    "ggplot2",
+    "ggridges",
+    "glue",
+    "posterior",
+    "reshape2",
+    "rlang",
+    "stats",
+    "tibble",
+    "tidyselect",
+    "utils"
+  ],
+  "bbmle": [
+    "R",
+    "stats4",
+    "stats",
+    "numDeriv",
+    "lattice",
+    "MASS",
+    "methods",
+    "bdsmatrix",
+    "Matrix",
+    "mvtnorm"
+  ],
+  "bdsmatrix": [
+    "methods",
+    "R"
+  ],
+  "beanplot": [
+    "R"
+  ],
+  "beeswarm": [
+    "stats",
+    "graphics",
+    "grDevices",
+    "utils"
+  ],
+  "benchmarkme": [
+    "R",
+    "benchmarkmeData",
+    "compiler",
+    "doParallel",
+    "dplyr",
+    "foreach",
+    "graphics",
+    "httr",
+    "Matrix",
+    "methods",
+    "parallel",
+    "stringr",
+    "tibble",
+    "utils"
+  ],
+  "benchmarkmeData": [
+    "R",
+    "dplyr",
+    "graphics",
+    "tibble",
+    "utils"
+  ],
+  "betareg": [
+    "R",
+    "graphics",
+    "grDevices",
+    "methods",
+    "stats",
+    "flexmix",
+    "Formula",
+    "lmtest",
+    "modeltools",
+    "sandwich"
+  ],
+  "bibtex": [
+    "R",
+    "backports",
+    "utils"
+  ],
+  "binGroup": [
+    "graphics",
+    "partitions",
+    "Rdpack",
+    "stats",
+    "utils"
+  ],
+  "bindata": [
+    "e1071",
+    "mvtnorm"
+  ],
+  "bindr": [
+    "R"
+  ],
+  "bindrcpp": [
+    "bindr",
+    "Rcpp",
+    "plogr",
+    "Rcpp"
+  ],
+  "binom": [
+    "R"
+  ],
+  "biomaRt": [
+    "methods",
+    "utils",
+    "XML",
+    "AnnotationDbi",
+    "progress",
+    "stringr",
+    "httr",
+    "digest",
+    "BiocFileCache",
+    "rappdirs",
+    "xml2"
+  ],
+  "bit": [
+    "R"
+  ],
+  "bit64": [
+    "R",
+    "bit",
+    "utils",
+    "methods",
+    "stats"
+  ],
+  "bitops": [
+    "R"
+  ],
+  "blastula": [
+    "R",
+    "base64enc",
+    "commonmark",
+    "curl",
+    "digest",
+    "dplyr",
+    "fs",
+    "getPass",
+    "here",
+    "htmltools",
+    "httr",
+    "jsonlite",
+    "magrittr",
+    "mime",
+    "rlang",
+    "rmarkdown",
+    "stringr",
+    "uuid"
+  ],
+  "blob": [
+    "methods",
+    "rlang",
+    "vctrs"
+  ],
+  "bookdown": [
+    "htmltools",
+    "knitr",
+    "rmarkdown",
+    "jquerylib",
+    "xfun",
+    "tinytex",
+    "yaml"
+  ],
+  "boot": [
+    "R",
+    "graphics",
+    "stats"
+  ],
+  "bpp": [
+    "mvtnorm",
+    "R"
+  ],
+  "brew": [
+    "R"
+  ],
+  "brglm": [
+    "R",
+    "profileModel"
+  ],
+  "bridgesampling": [
+    "R",
+    "mvtnorm",
+    "Matrix",
+    "Brobdingnag",
+    "stringr",
+    "coda",
+    "parallel",
+    "scales",
+    "utils",
+    "methods"
+  ],
+  "brio": [
+    "R"
+  ],
+  "broom": [
+    "R",
+    "backports",
+    "dplyr",
+    "ellipsis",
+    "generics",
+    "glue",
+    "purrr",
+    "rlang",
+    "stringr",
+    "tibble",
+    "tidyr",
+    "ggplot2"
+  ],
+  "bslib": [
+    "R",
+    "grDevices",
+    "htmltools",
+    "jsonlite",
+    "sass",
+    "jquerylib",
+    "rlang",
+    "cachem",
+    "memoise"
+  ],
+  "ca": [
+    "R"
+  ],
+  "caTools": [
+    "R",
+    "bitops"
+  ],
+  "cachem": [
+    "rlang",
+    "fastmap"
+  ],
+  "cairoDevice": [
+    "R",
+    "grDevices"
+  ],
+  "callr": [
+    "R",
+    "processx",
+    "R6",
+    "utils"
+  ],
+  "car": [
+    "R",
+    "carData",
+    "abind",
+    "MASS",
+    "mgcv",
+    "nnet",
+    "pbkrtest",
+    "quantreg",
+    "grDevices",
+    "utils",
+    "stats",
+    "graphics",
+    "lme4",
+    "nlme",
+    "scales"
+  ],
+  "carData": [
+    "R"
+  ],
+  "caret": [
+    "ggplot2",
+    "lattice",
+    "R",
+    "e1071",
+    "foreach",
+    "grDevices",
+    "methods",
+    "ModelMetrics",
+    "nlme",
+    "plyr",
+    "pROC",
+    "recipes",
+    "reshape2",
+    "stats",
+    "stats4",
+    "utils",
+    "withr"
+  ],
+  "cba": [
+    "R",
+    "grid",
+    "proxy",
+    "stats",
+    "graphics",
+    "grDevices",
+    "methods"
+  ],
+  "cellranger": [
+    "R",
+    "rematch",
+    "tibble"
+  ],
+  "changepoint": [
+    "R",
+    "methods",
+    "stats",
+    "zoo"
+  ],
+  "checkmate": [
+    "R",
+    "backports",
+    "utils"
+  ],
+  "childsds": [
+    "R",
+    "gamlss",
+    "gamlss.dist",
+    "dplyr",
+    "magrittr",
+    "methods",
+    "tidyr",
+    "boot",
+    "class",
+    "tibble",
+    "reshape2",
+    "purrr",
+    "purrrlyr",
+    "utils",
+    "VGAM"
+  ],
+  "chron": [
+    "R",
+    "graphics",
+    "stats"
+  ],
+  "circlize": [
+    "R",
+    "graphics",
+    "GlobalOptions",
+    "shape",
+    "grDevices",
+    "utils",
+    "stats",
+    "colorspace",
+    "methods",
+    "grid"
+  ],
+  "class": [
+    "R",
+    "stats",
+    "utils",
+    "MASS"
+  ],
+  "classInt": [
+    "R",
+    "grDevices",
+    "stats",
+    "graphics",
+    "e1071",
+    "class",
+    "KernSmooth"
+  ],
+  "cli": [
+    "R",
+    "utils"
+  ],
+  "clinfun": [
+    "R",
+    "graphics",
+    "stats",
+    "mvtnorm"
+  ],
+  "clipr": [
+    "utils"
+  ],
+  "clisymbols": [
+    "R"
+  ],
+  "clue": [
+    "R",
+    "stats",
+    "cluster",
+    "graphics",
+    "methods"
+  ],
+  "cluster": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils"
+  ],
+  "cmprsk": [
+    "R",
+    "survival"
+  ],
+  "coda": [
+    "R",
+    "lattice"
+  ],
+  "codetools": [
+    "R"
+  ],
+  "coin": [
+    "R",
+    "survival",
+    "methods",
+    "parallel",
+    "stats",
+    "stats4",
+    "utils",
+    "libcoin",
+    "matrixStats",
+    "modeltools",
+    "mvtnorm",
+    "multcomp",
+    "libcoin"
+  ],
+  "colorfulVennPlot": [],
+  "colorspace": [
+    "R",
+    "methods",
+    "graphics",
+    "grDevices",
+    "stats"
+  ],
+  "colourpicker": [
+    "R",
+    "ggplot2",
+    "htmltools",
+    "htmlwidgets",
+    "jsonlite",
+    "miniUI",
+    "shiny",
+    "shinyjs",
+    "utils"
+  ],
+  "commonmark": [
+    "R"
+  ],
+  "compare": [
+    "R"
+  ],
+  "config": [
+    "yaml"
+  ],
+  "connectapi": [
+    "config",
+    "dplyr",
+    "fs",
+    "glue",
+    "httr",
+    "lifecycle",
+    "magrittr",
+    "progress",
+    "purrr",
+    "R6",
+    "rlang",
+    "tibble",
+    "uuid",
+    "vctrs",
+    "yaml",
+    "bit64",
+    "jsonlite",
+    "crayon",
+    "flexdashboard",
+    "ggplot2",
+    "gridExtra",
+    "htmltools",
+    "knitr",
+    "lubridate",
+    "processx",
+    "rmarkdown",
+    "rprojroot",
+    "spelling",
+    "testthat",
+    "rsconnect",
+    "webshot2",
+    "covr",
+    "mockery",
+    "devtools"
+  ],
+  "conquer": [
+    "R",
+    "Rcpp",
+    "Matrix",
+    "matrixStats",
+    "stats",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "contrast": [
+    "R",
+    "nlme",
+    "sandwich",
+    "rms"
+  ],
+  "corpcor": [
+    "R",
+    "stats"
+  ],
+  "corrplot": [
+    "R"
+  ],
+  "countrycode": [
+    "R"
+  ],
+  "covr": [
+    "R",
+    "methods",
+    "digest",
+    "stats",
+    "utils",
+    "jsonlite",
+    "rex",
+    "httr",
+    "crayon",
+    "withr",
+    "yaml"
+  ],
+  "cowplot": [
+    "R",
+    "ggplot2",
+    "grid",
+    "gtable",
+    "grDevices",
+    "methods",
+    "rlang",
+    "scales"
+  ],
+  "cpp11": [
+    "R"
+  ],
+  "crayon": [
+    "grDevices",
+    "methods",
+    "utils"
+  ],
+  "credentials": [
+    "openssl",
+    "sys",
+    "curl",
+    "jsonlite",
+    "askpass"
+  ],
+  "crmPack": [
+    "R",
+    "ggplot2",
+    "graphics",
+    "methods",
+    "grid",
+    "gridExtra",
+    "GenSA",
+    "mvtnorm",
+    "parallel",
+    "rjags",
+    "utils",
+    "tools",
+    "MASS"
+  ],
+  "cronR": [
+    "digest"
+  ],
+  "crosstalk": [
+    "htmltools",
+    "jsonlite",
+    "lazyeval",
+    "R6"
+  ],
+  "crul": [
+    "curl",
+    "R6",
+    "urltools",
+    "httpcode",
+    "jsonlite",
+    "mime"
+  ],
+  "cshapes": [
+    "sf",
+    "rmapshaper",
+    "sp"
+  ],
+  "cubature": [
+    "Rcpp",
+    "Rcpp"
+  ],
+  "curl": [
+    "R"
+  ],
+  "cwhmisc": [
+    "R",
+    "lattice",
+    "grid"
+  ],
+  "cyclocomp": [
+    "callr",
+    "crayon",
+    "desc",
+    "remotes",
+    "withr"
+  ],
+  "d3r": [
+    "dplyr",
+    "htmltools",
+    "rlang",
+    "tidyr"
+  ],
+  "dagitty": [
+    "R",
+    "V8",
+    "jsonlite",
+    "boot",
+    "MASS",
+    "methods",
+    "grDevices",
+    "stats",
+    "utils",
+    "graphics"
+  ],
+  "data.table": [
+    "R",
+    "methods"
+  ],
+  "data.tree": [
+    "R",
+    "R6",
+    "stringi",
+    "methods"
+  ],
+  "dbplyr": [
+    "R",
+    "assertthat",
+    "blob",
+    "cli",
+    "DBI",
+    "dplyr",
+    "glue",
+    "lifecycle",
+    "magrittr",
+    "methods",
+    "pillar",
+    "purrr",
+    "R6",
+    "rlang",
+    "tibble",
+    "tidyselect",
+    "utils",
+    "vctrs",
+    "withr"
+  ],
+  "dcurver": [
+    "Rcpp",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "ddalpha": [
+    "R",
+    "stats",
+    "utils",
+    "graphics",
+    "grDevices",
+    "MASS",
+    "class",
+    "robustbase",
+    "sfsmisc",
+    "geometry",
+    "Rcpp",
+    "BH",
+    "Rcpp"
+  ],
+  "deSolve": [
+    "R",
+    "methods",
+    "graphics",
+    "grDevices",
+    "stats"
+  ],
+  "debugme": [
+    "crayon",
+    "grDevices"
+  ],
+  "deldir": [
+    "R",
+    "graphics",
+    "grDevices"
+  ],
+  "dendextend": [
+    "R",
+    "utils",
+    "stats",
+    "datasets",
+    "magrittr",
+    "ggplot2",
+    "viridis"
+  ],
+  "desc": [
+    "R",
+    "cli",
+    "R6",
+    "rprojroot",
+    "utils"
+  ],
+  "descr": [
+    "xtable",
+    "utils",
+    "grDevices",
+    "graphics",
+    "stats"
+  ],
+  "devEMF": [
+    "R"
+  ],
+  "devtools": [
+    "R",
+    "usethis",
+    "cli",
+    "desc",
+    "ellipsis",
+    "fs",
+    "lifecycle",
+    "memoise",
+    "miniUI",
+    "pkgbuild",
+    "pkgdown",
+    "pkgload",
+    "profvis",
+    "rcmdcheck",
+    "remotes",
+    "rlang",
+    "roxygen2",
+    "rversions",
+    "sessioninfo",
+    "stats",
+    "testthat",
+    "tools",
+    "urlchecker",
+    "utils",
+    "withr"
+  ],
+  "dfoptim": [
+    "R"
+  ],
+  "diagram": [
+    "R",
+    "shape",
+    "stats",
+    "graphics"
+  ],
+  "dichromat": [
+    "R",
+    "stats"
+  ],
+  "diffobj": [
+    "R",
+    "crayon",
+    "tools",
+    "methods",
+    "utils",
+    "stats"
+  ],
+  "diffr": [
+    "R",
+    "htmlwidgets"
+  ],
+  "digest": [
+    "R",
+    "utils"
+  ],
+  "dimRed": [
+    "R",
+    "DRR",
+    "magrittr",
+    "methods"
+  ],
+  "diptest": [
+    "graphics",
+    "stats"
+  ],
+  "directlabels": [
+    "grid",
+    "quadprog"
+  ],
+  "distr": [
+    "R",
+    "methods",
+    "graphics",
+    "startupmsg",
+    "sfsmisc",
+    "stats",
+    "grDevices",
+    "utils",
+    "MASS"
+  ],
+  "distributional": [
+    "vctrs",
+    "rlang",
+    "generics",
+    "stats",
+    "numDeriv",
+    "ggplot2",
+    "scales",
+    "farver",
+    "digest",
+    "utils",
+    "lifecycle"
+  ],
+  "dlm": [
+    "stats",
+    "utils",
+    "methods",
+    "grDevices",
+    "graphics"
+  ],
+  "doMC": [
+    "R",
+    "foreach",
+    "iterators",
+    "parallel",
+    "utils"
+  ],
+  "doParallel": [
+    "R",
+    "foreach",
+    "iterators",
+    "parallel",
+    "utils"
+  ],
+  "doRNG": [
+    "R",
+    "foreach",
+    "rngtools",
+    "stats",
+    "utils",
+    "iterators"
+  ],
+  "dotCall64": [
+    "R"
+  ],
+  "downlit": [
+    "R",
+    "brio",
+    "desc",
+    "digest",
+    "evaluate",
+    "fansi",
+    "memoise",
+    "rlang",
+    "vctrs",
+    "withr",
+    "yaml"
+  ],
+  "downloader": [
+    "utils",
+    "digest"
+  ],
+  "dparser": [
+    "R",
+    "digest",
+    "methods"
+  ],
+  "dplyr": [
+    "R",
+    "generics",
+    "glue",
+    "lifecycle",
+    "magrittr",
+    "methods",
+    "R6",
+    "rlang",
+    "tibble",
+    "tidyselect",
+    "utils",
+    "vctrs",
+    "pillar"
+  ],
+  "drat": [
+    "R",
+    "utils"
+  ],
+  "drc": [
+    "R",
+    "MASS",
+    "stats",
+    "car",
+    "gtools",
+    "multcomp",
+    "plotrix",
+    "scales"
+  ],
+  "dsassembly": [
+    "MultiAssayExperiment",
+    "SummarizedExperiment",
+    "methods",
+    "utils",
+    "ArtifactDB",
+    "S4Vectors",
+    "BiocGenerics",
+    "GenomicRanges",
+    "IRanges",
+    "GenomeInfoDb",
+    "DelayedArray",
+    "ShadowArray",
+    "HDF5Array",
+    "rhdf5",
+    "httr",
+    "metacommons",
+    "SingleCellExperiment",
+    "genomitory",
+    "gp.cache",
+    "gp.auth",
+    "jsonlite"
+  ],
+  "dtplyr": [
+    "R",
+    "crayon",
+    "data.table",
+    "dplyr",
+    "ellipsis",
+    "glue",
+    "lifecycle",
+    "rlang",
+    "tibble",
+    "tidyselect",
+    "vctrs"
+  ],
+  "dummies": [
+    "utils"
+  ],
+  "dygraphs": [
+    "R",
+    "magrittr",
+    "htmlwidgets",
+    "htmltools",
+    "zoo",
+    "xts"
+  ],
+  "dynCorr": [
+    "lpridge",
+    "R",
+    "stats"
+  ],
+  "dynlm": [
+    "R",
+    "zoo",
+    "stats",
+    "car",
+    "lmtest"
+  ],
+  "e1071": [
+    "graphics",
+    "grDevices",
+    "class",
+    "stats",
+    "methods",
+    "utils",
+    "proxy"
+  ],
+  "earth": [
+    "R",
+    "Formula",
+    "plotmo",
+    "TeachingDemos"
+  ],
+  "edgeR": [
+    "R",
+    "limma",
+    "methods",
+    "graphics",
+    "stats",
+    "utils",
+    "locfit",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "effects": [
+    "R",
+    "carData",
+    "lme4",
+    "nnet",
+    "lattice",
+    "grid",
+    "colorspace",
+    "graphics",
+    "grDevices",
+    "stats",
+    "survey",
+    "utils",
+    "estimability",
+    "insight"
+  ],
+  "eha": [
+    "R",
+    "stats",
+    "graphics",
+    "survival"
+  ],
+  "elasticnet": [
+    "R",
+    "lars"
+  ],
+  "ellipse": [
+    "R",
+    "graphics",
+    "stats"
+  ],
+  "ellipsis": [
+    "R",
+    "rlang"
+  ],
+  "emmeans": [
+    "R",
+    "estimability",
+    "graphics",
+    "methods",
+    "numDeriv",
+    "stats",
+    "utils",
+    "mvtnorm"
+  ],
+  "estimability": [
+    "stats"
+  ],
+  "etm": [
+    "R",
+    "survival",
+    "lattice",
+    "data.table",
+    "Rcpp",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "eulerr": [
+    "R",
+    "GenSA",
+    "graphics",
+    "grDevices",
+    "grid",
+    "polyclip",
+    "polylabelr",
+    "Rcpp",
+    "stats",
+    "utils",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "evaluate": [
+    "R",
+    "methods"
+  ],
+  "evd": [
+    "stats",
+    "grDevices",
+    "graphics"
+  ],
+  "eventTrack": [
+    "survival",
+    "muhaz",
+    "R"
+  ],
+  "exactRankTests": [
+    "R",
+    "stats",
+    "utils"
+  ],
+  "expint": [
+    "R"
+  ],
+  "expm": [
+    "Matrix",
+    "methods"
+  ],
+  "extraDistr": [
+    "R",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "extrafont": [
+    "R",
+    "extrafontdb",
+    "grDevices",
+    "utils",
+    "Rttf2pt1"
+  ],
+  "extrafontdb": [
+    "R"
+  ],
+  "factoextra": [
+    "R",
+    "ggplot2",
+    "abind",
+    "cluster",
+    "dendextend",
+    "FactoMineR",
+    "ggpubr",
+    "grid",
+    "stats",
+    "reshape2",
+    "ggrepel",
+    "tidyr"
+  ],
+  "fail": [
+    "stats",
+    "utils",
+    "BBmisc",
+    "checkmate"
+  ],
+  "fansi": [
+    "R",
+    "grDevices",
+    "utils"
+  ],
+  "farver": [
+    "R"
+  ],
+  "fastGHQuad": [
+    "Rcpp",
+    "Rcpp"
+  ],
+  "fastICA": [
+    "R"
+  ],
+  "fastcluster": [
+    "R"
+  ],
+  "fastdigest": [
+    "R"
+  ],
+  "fastmap": [
+    "R"
+  ],
+  "fastmatch": [
+    "R"
+  ],
+  "fda": [
+    "R",
+    "splines",
+    "fds",
+    "deSolve"
+  ],
+  "fdrtool": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats"
+  ],
+  "fds": [
+    "R",
+    "rainbow",
+    "RCurl"
+  ],
+  "feather": [
+    "Rcpp",
+    "tibble",
+    "hms",
+    "Rcpp"
+  ],
+  "fgsea": [
+    "R",
+    "Rcpp",
+    "data.table",
+    "BiocParallel",
+    "stats",
+    "ggplot2",
+    "gridExtra",
+    "grid",
+    "fastmatch",
+    "Matrix",
+    "utils",
+    "Rcpp",
+    "BH"
+  ],
+  "fields": [
+    "R",
+    "methods",
+    "spam",
+    "viridis",
+    "maps"
+  ],
+  "filelock": [
+    "R"
+  ],
+  "findpython": [
+    "R"
+  ],
+  "fit.models": [
+    "lattice",
+    "stats"
+  ],
+  "fitdistrplus": [
+    "R",
+    "MASS",
+    "grDevices",
+    "survival",
+    "methods",
+    "stats"
+  ],
+  "flashClust": [
+    "R"
+  ],
+  "flexdashboard": [
+    "R",
+    "grDevices",
+    "tools",
+    "utils",
+    "jsonlite",
+    "htmltools",
+    "knitr",
+    "htmlwidgets",
+    "rmarkdown",
+    "shiny",
+    "scales",
+    "sass",
+    "bslib"
+  ],
+  "flexmix": [
+    "R",
+    "lattice",
+    "graphics",
+    "grid",
+    "grDevices",
+    "methods",
+    "modeltools",
+    "nnet",
+    "stats",
+    "stats4",
+    "utils"
+  ],
+  "flexsurv": [
+    "survival",
+    "R",
+    "assertthat",
+    "deSolve",
+    "generics",
+    "magrittr",
+    "mstate",
+    "Matrix",
+    "muhaz",
+    "mvtnorm",
+    "numDeriv",
+    "quadprog",
+    "Rcpp",
+    "rlang",
+    "rstpm2",
+    "purrr",
+    "statmod",
+    "tibble",
+    "tidyr",
+    "dplyr",
+    "tidyselect",
+    "ggplot2",
+    "Rcpp"
+  ],
+  "flextable": [
+    "stats",
+    "utils",
+    "grDevices",
+    "graphics",
+    "officer",
+    "rmarkdown",
+    "knitr",
+    "htmltools",
+    "xml2",
+    "data.table",
+    "uuid",
+    "gdtools",
+    "rlang",
+    "base64enc",
+    "grid"
+  ],
+  "flock": [
+    "Rcpp",
+    "methods",
+    "Rcpp"
+  ],
+  "flux": [
+    "R",
+    "caTools"
+  ],
+  "fmsb": [
+    "R"
+  ],
+  "fontBitstreamVera": [
+    "R"
+  ],
+  "fontLiberation": [
+    "R"
+  ],
+  "fontawesome": [
+    "R",
+    "rlang",
+    "htmltools"
+  ],
+  "fontquiver": [
+    "R",
+    "fontBitstreamVera",
+    "fontLiberation"
+  ],
+  "forcats": [
+    "R",
+    "cli",
+    "ellipsis",
+    "glue",
+    "lifecycle",
+    "magrittr",
+    "rlang",
+    "tibble",
+    "withr"
+  ],
+  "foreach": [
+    "R",
+    "codetools",
+    "utils",
+    "iterators"
+  ],
+  "forecast": [
+    "R",
+    "colorspace",
+    "fracdiff",
+    "generics",
+    "ggplot2",
+    "graphics",
+    "lmtest",
+    "magrittr",
+    "nnet",
+    "parallel",
+    "Rcpp",
+    "stats",
+    "timeDate",
+    "tseries",
+    "urca",
+    "zoo",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "foreign": [
+    "R",
+    "methods",
+    "utils",
+    "stats"
+  ],
+  "forestmodel": [
+    "R",
+    "ggplot2",
+    "dplyr",
+    "broom",
+    "rlang",
+    "tibble"
+  ],
+  "forestplot": [
+    "R",
+    "grid",
+    "checkmate",
+    "abind"
+  ],
+  "forge": [
+    "R",
+    "rlang",
+    "magrittr"
+  ],
+  "formatR": [
+    "R"
+  ],
+  "formattable": [
+    "R",
+    "methods",
+    "htmltools",
+    "htmlwidgets",
+    "knitr",
+    "rmarkdown"
+  ],
+  "formatters": [
+    "methods",
+    "R",
+    "grid",
+    "htmltools",
+    "dplyr",
+    "gt",
+    "huxtable",
+    "knitr",
+    "r2rtf",
+    "rmarkdown",
+    "testthat"
+  ],
+  "formula.tools": [
+    "R",
+    "operator.tools",
+    "utils",
+    "methods"
+  ],
+  "fpc": [
+    "R",
+    "MASS",
+    "cluster",
+    "mclust",
+    "flexmix",
+    "prabclus",
+    "class",
+    "diptest",
+    "robustbase",
+    "kernlab",
+    "grDevices",
+    "graphics",
+    "methods",
+    "stats",
+    "utils",
+    "parallel"
+  ],
+  "fracdiff": [
+    "stats"
+  ],
+  "fs": [
+    "R",
+    "methods"
+  ],
+  "futile.logger": [
+    "R",
+    "utils",
+    "lambda.r",
+    "futile.options"
+  ],
+  "futile.options": [
+    "R"
+  ],
+  "future": [
+    "digest",
+    "globals",
+    "listenv",
+    "parallel",
+    "parallelly",
+    "tools",
+    "utils"
+  ],
+  "future.apply": [
+    "R",
+    "future",
+    "globals",
+    "parallel",
+    "utils"
+  ],
+  "gam": [
+    "R",
+    "stats",
+    "splines",
+    "foreach",
+    "methods"
+  ],
+  "gamlss": [
+    "R",
+    "graphics",
+    "stats",
+    "splines",
+    "utils",
+    "grDevices",
+    "gamlss.data",
+    "gamlss.dist",
+    "nlme",
+    "parallel",
+    "MASS",
+    "survival",
+    "methods"
+  ],
+  "gamlss.data": [
+    "R"
+  ],
+  "gamlss.dist": [
+    "R",
+    "MASS",
+    "graphics",
+    "stats",
+    "methods",
+    "grDevices"
+  ],
+  "gapminder": [
+    "R",
+    "tibble"
+  ],
+  "gargle": [
+    "R",
+    "cli",
+    "fs",
+    "glue",
+    "httr",
+    "jsonlite",
+    "rappdirs",
+    "rlang",
+    "rstudioapi",
+    "stats",
+    "utils",
+    "withr"
+  ],
+  "gbRd": [
+    "tools"
+  ],
+  "gbm": [
+    "R",
+    "lattice",
+    "parallel",
+    "survival"
+  ],
+  "gdata": [
+    "R",
+    "gtools",
+    "stats",
+    "methods",
+    "utils"
+  ],
+  "gdbalmighty": [
+    "assertthat",
+    "gdbjsondata",
+    "gdblog",
+    "jose",
+    "httr",
+    "kcloak"
+  ],
+  "gdbauth": [
+    "R6",
+    "gdblog",
+    "gdbjsondata",
+    "gdbalmighty",
+    "crayon",
+    "rjson",
+    "kcloak",
+    "glue",
+    "digest",
+    "sodium",
+    "rappdirs",
+    "assertthat"
+  ],
+  "gdbjsondata": [
+    "rjson",
+    "assertthat",
+    "methods",
+    "Matrix"
+  ],
+  "gdblog": [
+    "methods",
+    "stats"
+  ],
+  "gdtools": [
+    "Rcpp",
+    "systemfonts",
+    "Rcpp"
+  ],
+  "gee": [
+    "stats"
+  ],
+  "geeM": [
+    "Matrix",
+    "stats",
+    "methods"
+  ],
+  "geeasy": [
+    "geepack",
+    "stats",
+    "ggplot2",
+    "geeM",
+    "lme4",
+    "methods",
+    "Matrix",
+    "MESS"
+  ],
+  "geepack": [
+    "R",
+    "methods",
+    "MASS",
+    "broom",
+    "magrittr"
+  ],
+  "gemtc": [
+    "coda",
+    "igraph",
+    "meta",
+    "plyr",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils",
+    "grid",
+    "rjags",
+    "truncnorm",
+    "Rglpk",
+    "forcats"
+  ],
+  "genefilter": [
+    "BiocGenerics",
+    "AnnotationDbi",
+    "annotate",
+    "Biobase",
+    "graphics",
+    "methods",
+    "stats",
+    "survival",
+    "grDevices"
+  ],
+  "geneplotter": [
+    "R",
+    "methods",
+    "Biobase",
+    "BiocGenerics",
+    "lattice",
+    "annotate",
+    "AnnotationDbi",
+    "graphics",
+    "grDevices",
+    "grid",
+    "RColorBrewer",
+    "stats",
+    "utils"
+  ],
+  "generics": [
+    "R",
+    "methods"
+  ],
+  "geojson": [
+    "methods",
+    "sp",
+    "jsonlite",
+    "protolite",
+    "jqr",
+    "magrittr",
+    "lazyeval"
+  ],
+  "geojsonio": [
+    "R",
+    "crul",
+    "geojson",
+    "geojsonsf",
+    "jqr",
+    "jsonlite",
+    "lifecycle",
+    "magrittr",
+    "maptools",
+    "methods",
+    "readr",
+    "rgeos",
+    "sf",
+    "sp",
+    "V8"
+  ],
+  "geojsonlint": [
+    "R",
+    "crul",
+    "jsonlite",
+    "jsonvalidate",
+    "V8"
+  ],
+  "geojsonsf": [
+    "R",
+    "Rcpp",
+    "geometries",
+    "jsonify",
+    "rapidjsonr",
+    "Rcpp",
+    "sfheaders"
+  ],
+  "geometries": [
+    "Rcpp",
+    "Rcpp"
+  ],
+  "geometry": [
+    "R",
+    "magic",
+    "Rcpp",
+    "lpSolve",
+    "linprog",
+    "Rcpp",
+    "RcppProgress"
+  ],
+  "geosphere": [
+    "R",
+    "Rcpp",
+    "sp",
+    "Rcpp"
+  ],
+  "gert": [
+    "askpass",
+    "credentials",
+    "openssl",
+    "rstudioapi",
+    "sys",
+    "zip"
+  ],
+  "getPass": [
+    "R",
+    "utils",
+    "rstudioapi"
+  ],
+  "getopt": [
+    "stats"
+  ],
+  "ggExtra": [
+    "R",
+    "colourpicker",
+    "ggplot2",
+    "grDevices",
+    "grid",
+    "gtable",
+    "miniUI",
+    "scales",
+    "shiny",
+    "shinyjs",
+    "utils",
+    "R6"
+  ],
+  "gganimate": [
+    "ggplot2",
+    "stringi",
+    "tweenr",
+    "grid",
+    "rlang",
+    "glue",
+    "progress",
+    "scales",
+    "grDevices",
+    "utils"
+  ],
+  "ggbeeswarm": [
+    "R",
+    "ggplot2",
+    "beeswarm",
+    "vipor"
+  ],
+  "ggdendro": [
+    "MASS",
+    "ggplot2"
+  ],
+  "ggdist": [
+    "R",
+    "tidyselect",
+    "dplyr",
+    "ggplot2",
+    "rlang",
+    "scales",
+    "grid",
+    "HDInterval",
+    "tibble",
+    "vctrs",
+    "withr",
+    "distributional",
+    "numDeriv",
+    "glue"
+  ],
+  "ggfittext": [
+    "R",
+    "grid",
+    "stringi",
+    "ggplot2",
+    "shades"
+  ],
+  "ggforce": [
+    "ggplot2",
+    "R",
+    "Rcpp",
+    "grid",
+    "scales",
+    "MASS",
+    "tweenr",
+    "gtable",
+    "rlang",
+    "polyclip",
+    "stats",
+    "grDevices",
+    "tidyselect",
+    "withr",
+    "utils",
+    "lifecycle",
+    "cli",
+    "vctrs",
+    "systemfonts",
+    "Rcpp",
+    "RcppEigen"
+  ],
+  "ggformula": [
+    "R",
+    "ggplot2",
+    "ggstance",
+    "scales",
+    "ggridges",
+    "mosaicCore",
+    "rlang",
+    "magrittr",
+    "tibble",
+    "stringr",
+    "ggforce",
+    "grid",
+    "labelled"
+  ],
+  "ggfortify": [
+    "methods",
+    "ggplot2",
+    "dplyr",
+    "tidyr",
+    "gridExtra",
+    "grid",
+    "scales",
+    "stringr",
+    "tibble"
+  ],
+  "ggiraph": [
+    "grid",
+    "ggplot2",
+    "htmlwidgets",
+    "stats",
+    "htmltools",
+    "Rcpp",
+    "systemfonts",
+    "purrr",
+    "rlang",
+    "uuid",
+    "vctrs",
+    "Rcpp",
+    "systemfonts"
+  ],
+  "ggm": [
+    "R",
+    "igraph",
+    "methods",
+    "graph"
+  ],
+  "ggmap": [
+    "R",
+    "ggplot2",
+    "RgoogleMaps",
+    "png",
+    "plyr",
+    "jpeg",
+    "digest",
+    "scales",
+    "dplyr",
+    "bitops",
+    "grid",
+    "glue",
+    "httr",
+    "stringr",
+    "purrr",
+    "magrittr",
+    "tibble",
+    "tidyr",
+    "rlang",
+    "cli"
+  ],
+  "ggmcmc": [
+    "R",
+    "dplyr",
+    "tidyr",
+    "ggplot2",
+    "GGally"
+  ],
+  "ggmosaic": [
+    "ggplot2",
+    "R",
+    "productplots",
+    "dplyr",
+    "plotly",
+    "purrr",
+    "rlang",
+    "tidyr",
+    "ggrepel",
+    "scales"
+  ],
+  "ggnewscale": [
+    "ggplot2"
+  ],
+  "ggplot2": [
+    "R",
+    "cli",
+    "glue",
+    "grDevices",
+    "grid",
+    "gtable",
+    "isoband",
+    "lifecycle",
+    "MASS",
+    "mgcv",
+    "rlang",
+    "scales",
+    "stats",
+    "tibble",
+    "vctrs",
+    "withr"
+  ],
+  "ggplot2.utils": [
+    "ggplot2",
+    "R",
+    "EnvStats",
+    "GGally",
+    "ggpp"
+  ],
+  "ggplot2movies": [
+    "R"
+  ],
+  "ggpmisc": [
+    "R",
+    "ggpp",
+    "grid",
+    "stats",
+    "ggplot2",
+    "scales",
+    "rlang",
+    "generics",
+    "MASS",
+    "confintr",
+    "polynom",
+    "quantreg",
+    "lmodel2",
+    "splus2R",
+    "tibble",
+    "plyr",
+    "dplyr",
+    "lubridate"
+  ],
+  "ggpp": [
+    "R",
+    "ggplot2",
+    "stats",
+    "grid",
+    "grDevices",
+    "rlang",
+    "magrittr",
+    "glue",
+    "gridExtra",
+    "scales",
+    "tibble",
+    "dplyr",
+    "xts",
+    "zoo",
+    "MASS",
+    "polynom",
+    "lubridate",
+    "stringr"
+  ],
+  "ggpubr": [
+    "R",
+    "ggplot2",
+    "ggrepel",
+    "grid",
+    "ggsci",
+    "stats",
+    "utils",
+    "tidyr",
+    "purrr",
+    "dplyr",
+    "cowplot",
+    "ggsignif",
+    "scales",
+    "gridExtra",
+    "glue",
+    "polynom",
+    "rlang",
+    "rstatix",
+    "tibble",
+    "magrittr"
+  ],
+  "ggraph": [
+    "R",
+    "ggplot2",
+    "Rcpp",
+    "dplyr",
+    "ggforce",
+    "grid",
+    "igraph",
+    "scales",
+    "MASS",
+    "digest",
+    "gtable",
+    "ggrepel",
+    "utils",
+    "stats",
+    "viridis",
+    "rlang",
+    "tidygraph",
+    "graphlayouts",
+    "withr",
+    "cli",
+    "vctrs",
+    "lifecycle",
+    "Rcpp"
+  ],
+  "ggrepel": [
+    "R",
+    "ggplot2",
+    "grid",
+    "Rcpp",
+    "rlang",
+    "scales",
+    "Rcpp"
+  ],
+  "ggridges": [
+    "R",
+    "ggplot2",
+    "grid",
+    "scales",
+    "withr"
+  ],
+  "ggsci": [
+    "R",
+    "grDevices",
+    "scales",
+    "ggplot2"
+  ],
+  "ggsignif": [
+    "ggplot2"
+  ],
+  "ggstance": [
+    "R",
+    "cli",
+    "ggplot2",
+    "plyr",
+    "rlang",
+    "withr"
+  ],
+  "ggtext": [
+    "R",
+    "ggplot2",
+    "grid",
+    "gridtext",
+    "rlang",
+    "scales"
+  ],
+  "ggthemes": [
+    "R",
+    "ggplot2",
+    "graphics",
+    "grid",
+    "methods",
+    "purrr",
+    "scales",
+    "stringr",
+    "tibble"
+  ],
+  "ggvis": [
+    "R",
+    "assertthat",
+    "jsonlite",
+    "shiny",
+    "magrittr",
+    "dplyr",
+    "rlang",
+    "htmltools",
+    "methods"
+  ],
+  "gh": [
+    "R",
+    "cli",
+    "gitcreds",
+    "httr",
+    "ini",
+    "jsonlite"
+  ],
+  "gistr": [
+    "jsonlite",
+    "crul",
+    "httr",
+    "magrittr",
+    "assertthat",
+    "knitr",
+    "rmarkdown",
+    "dplyr"
+  ],
+  "git2r": [
+    "R",
+    "graphics",
+    "utils"
+  ],
+  "gitcreds": [
+    "R"
+  ],
+  "glasso": [
+    "R"
+  ],
+  "gld": [
+    "stats",
+    "graphics",
+    "e1071",
+    "lmom"
+  ],
+  "glmmTMB": [
+    "R",
+    "methods",
+    "TMB",
+    "lme4",
+    "Matrix",
+    "nlme",
+    "numDeriv",
+    "TMB",
+    "RcppEigen"
+  ],
+  "glmnet": [
+    "R",
+    "Matrix",
+    "methods",
+    "utils",
+    "foreach",
+    "shape",
+    "survival",
+    "Rcpp",
+    "RcppEigen",
+    "Rcpp"
+  ],
+  "globals": [
+    "R",
+    "codetools"
+  ],
+  "glue": [
+    "R",
+    "methods"
+  ],
+  "gmodels": [
+    "R",
+    "MASS",
+    "gdata"
+  ],
+  "gmp": [
+    "R",
+    "methods"
+  ],
+  "gnm": [
+    "R",
+    "graphics",
+    "grDevices",
+    "MASS",
+    "Matrix",
+    "methods",
+    "nnet",
+    "qvcalc",
+    "relimp",
+    "stats",
+    "utils"
+  ],
+  "goftest": [
+    "R",
+    "stats"
+  ],
+  "googleVis": [
+    "R",
+    "methods",
+    "jsonlite",
+    "utils"
+  ],
+  "googledrive": [
+    "R",
+    "cli",
+    "gargle",
+    "glue",
+    "httr",
+    "jsonlite",
+    "lifecycle",
+    "magrittr",
+    "pillar",
+    "purrr",
+    "rlang",
+    "tibble",
+    "utils",
+    "uuid",
+    "vctrs",
+    "withr"
+  ],
+  "googlesheets4": [
+    "R",
+    "cellranger",
+    "cli",
+    "curl",
+    "gargle",
+    "glue",
+    "googledrive",
+    "httr",
+    "ids",
+    "magrittr",
+    "methods",
+    "purrr",
+    "rematch2",
+    "rlang",
+    "tibble",
+    "utils",
+    "vctrs"
+  ],
+  "goshawk": [
+    "dplyr",
+    "R",
+    "checkmate",
+    "cowplot",
+    "ggnewscale",
+    "ggplot2",
+    "grDevices",
+    "grid",
+    "magrittr",
+    "mcr",
+    "rlang",
+    "stringr"
+  ],
+  "gower": [
+    "R"
+  ],
+  "gplots": [
+    "R",
+    "gtools",
+    "stats",
+    "caTools",
+    "KernSmooth",
+    "methods"
+  ],
+  "grImport": [
+    "R",
+    "methods",
+    "grDevices",
+    "graphics",
+    "grid",
+    "XML"
+  ],
+  "graph": [
+    "R",
+    "methods",
+    "BiocGenerics",
+    "stats",
+    "stats4",
+    "utils"
+  ],
+  "graphlayouts": [
+    "R",
+    "igraph",
+    "Rcpp",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "graphql": [
+    "Rcpp",
+    "jsonlite",
+    "Rcpp"
+  ],
+  "gridBase": [
+    "R",
+    "graphics",
+    "grid"
+  ],
+  "gridExtra": [
+    "gtable",
+    "grid",
+    "grDevices",
+    "graphics",
+    "utils"
+  ],
+  "gridGraphics": [
+    "grid",
+    "graphics",
+    "grDevices"
+  ],
+  "gridSVG": [
+    "grDevices",
+    "graphics",
+    "utils",
+    "methods",
+    "grid",
+    "jsonlite",
+    "XML"
+  ],
+  "gridtext": [
+    "R",
+    "curl",
+    "grid",
+    "grDevices",
+    "markdown",
+    "rlang",
+    "Rcpp",
+    "png",
+    "jpeg",
+    "stringr",
+    "xml2",
+    "Rcpp"
+  ],
+  "gsDesign": [
+    "R",
+    "dplyr",
+    "ggplot2",
+    "graphics",
+    "magrittr",
+    "methods",
+    "rlang",
+    "stats",
+    "tidyr",
+    "tools",
+    "xtable"
+  ],
+  "gsmoothr": [
+    "R",
+    "methods"
+  ],
+  "gss": [
+    "R",
+    "stats"
+  ],
+  "gstat": [
+    "R",
+    "utils",
+    "stats",
+    "graphics",
+    "methods",
+    "lattice",
+    "sp",
+    "zoo",
+    "sf",
+    "sftime",
+    "spacetime",
+    "stars",
+    "FNN"
+  ],
+  "gsubfn": [
+    "proto"
+  ],
+  "gt": [
+    "R",
+    "base64enc",
+    "bigD",
+    "bitops",
+    "cli",
+    "commonmark",
+    "dplyr",
+    "fs",
+    "ggplot2",
+    "glue",
+    "htmltools",
+    "juicyjuice",
+    "magrittr",
+    "rlang",
+    "sass",
+    "scales",
+    "tibble",
+    "tidyselect"
+  ],
+  "gtable": [
+    "R",
+    "grid"
+  ],
+  "gtools": [
+    "methods",
+    "stats",
+    "utils"
+  ],
+  "haven": [
+    "R",
+    "cli",
+    "forcats",
+    "hms",
+    "lifecycle",
+    "methods",
+    "readr",
+    "rlang",
+    "tibble",
+    "tidyselect",
+    "vctrs",
+    "cpp11"
+  ],
+  "hdrcde": [
+    "R",
+    "locfit",
+    "ash",
+    "ks",
+    "KernSmooth",
+    "ggplot2",
+    "RColorBrewer"
+  ],
+  "here": [
+    "rprojroot"
+  ],
+  "hermes": [
+    "ggfortify",
+    "R",
+    "SummarizedExperiment",
+    "assertthat",
+    "Biobase",
+    "BiocGenerics",
+    "biomaRt",
+    "checkmate",
+    "circlize",
+    "ComplexHeatmap",
+    "DESeq2",
+    "dplyr",
+    "edgeR",
+    "EnvStats",
+    "forcats",
+    "GenomicRanges",
+    "ggplot2",
+    "ggrepel",
+    "IRanges",
+    "lifecycle",
+    "limma",
+    "magrittr",
+    "matrixStats",
+    "methods",
+    "MultiAssayExperiment",
+    "purrr",
+    "R6",
+    "Rdpack",
+    "rlang",
+    "S4Vectors",
+    "stats",
+    "tidyr",
+    "utils"
+  ],
+  "hermes.roche": [
+    "hermes",
+    "R",
+    "GenomicRanges",
+    "lifecycle",
+    "methods",
+    "S4Vectors"
+  ],
+  "hexbin": [
+    "R",
+    "methods",
+    "lattice",
+    "grid",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils"
+  ],
+  "hflights": [
+    "R"
+  ],
+  "highcharter": [
+    "R",
+    "htmlwidgets",
+    "magrittr",
+    "purrr",
+    "rlist",
+    "assertthat",
+    "zoo",
+    "dplyr",
+    "tibble",
+    "stringr",
+    "broom",
+    "xts",
+    "quantmod",
+    "tidyr",
+    "htmltools",
+    "jsonlite",
+    "igraph",
+    "lubridate",
+    "yaml",
+    "rlang",
+    "rjson"
+  ],
+  "highlight": [
+    "R",
+    "grDevices",
+    "tools"
+  ],
+  "highr": [
+    "R",
+    "xfun"
+  ],
+  "histry": [
+    "methods",
+    "fastdigest",
+    "evaluate",
+    "roprov",
+    "CodeDepends"
+  ],
+  "hms": [
+    "ellipsis",
+    "lifecycle",
+    "methods",
+    "pkgconfig",
+    "rlang",
+    "vctrs"
+  ],
+  "htmlTable": [
+    "stringr",
+    "knitr",
+    "magrittr",
+    "methods",
+    "checkmate",
+    "htmlwidgets",
+    "htmltools",
+    "rstudioapi"
+  ],
+  "htmltools": [
+    "R",
+    "utils",
+    "digest",
+    "grDevices",
+    "base64enc",
+    "rlang",
+    "fastmap",
+    "ellipsis"
+  ],
+  "htmlwidgets": [
+    "grDevices",
+    "htmltools",
+    "jsonlite",
+    "yaml"
+  ],
+  "httpcode": [
+    "R"
+  ],
+  "httpuv": [
+    "R",
+    "Rcpp",
+    "utils",
+    "R6",
+    "promises",
+    "later",
+    "Rcpp",
+    "later"
+  ],
+  "httr": [
+    "R",
+    "curl",
+    "jsonlite",
+    "mime",
+    "openssl",
+    "R6"
+  ],
+  "huge": [
+    "R",
+    "Matrix",
+    "igraph",
+    "MASS",
+    "grDevices",
+    "graphics",
+    "methods",
+    "stats",
+    "utils",
+    "Rcpp",
+    "Rcpp",
+    "RcppEigen"
+  ],
+  "hunspell": [
+    "R",
+    "Rcpp",
+    "digest",
+    "Rcpp"
+  ],
+  "huxtable": [
+    "R",
+    "assertthat",
+    "commonmark",
+    "fansi",
+    "generics",
+    "glue",
+    "htmltools",
+    "memoise",
+    "R6",
+    "rlang",
+    "stats",
+    "stringi",
+    "stringr",
+    "tidyselect",
+    "utils",
+    "xml2"
+  ],
+  "ibdreg": [
+    "R",
+    "methods",
+    "stats",
+    "tools",
+    "graphics",
+    "utils"
+  ],
+  "icd.data": [
+    "R",
+    "utils"
+  ],
+  "ids": [
+    "openssl",
+    "uuid"
+  ],
+  "igis": [
+    "GenomicRanges",
+    "EnsemblRest",
+    "Biostrings",
+    "DBI",
+    "GenomeInfoDb",
+    "rtracklayer",
+    "BiocGenerics",
+    "biomaRt",
+    "GenomicFeatures",
+    "IRanges",
+    "methods",
+    "rjson",
+    "RMySQL",
+    "S4Vectors",
+    "utils",
+    "XML"
+  ],
+  "igraph": [
+    "methods",
+    "graphics",
+    "grDevices",
+    "magrittr",
+    "Matrix",
+    "pkgconfig",
+    "rlang",
+    "stats",
+    "utils"
+  ],
+  "influenceR": [
+    "R",
+    "igraph",
+    "Matrix",
+    "methods",
+    "utils"
+  ],
+  "ini": [
+    "R"
+  ],
+  "inline": [
+    "methods"
+  ],
+  "insight": [
+    "R",
+    "methods",
+    "stats",
+    "utils"
+  ],
+  "intervals": [
+    "R",
+    "utils",
+    "graphics",
+    "methods"
+  ],
+  "inum": [
+    "R",
+    "stats",
+    "libcoin"
+  ],
+  "ipred": [
+    "R",
+    "rpart",
+    "MASS",
+    "survival",
+    "nnet",
+    "class",
+    "prodlim"
+  ],
+  "irlba": [
+    "R",
+    "Matrix",
+    "stats",
+    "methods",
+    "Matrix"
+  ],
+  "isoband": [
+    "grid",
+    "utils"
+  ],
+  "iterators": [
+    "R",
+    "utils"
+  ],
+  "itertools": [
+    "R",
+    "iterators",
+    "parallel"
+  ],
+  "jagsUI": [
+    "R",
+    "rjags",
+    "coda",
+    "parallel",
+    "stats",
+    "grDevices",
+    "graphics",
+    "utils"
+  ],
+  "jomo": [
+    "stats",
+    "lme4",
+    "survival",
+    "MASS",
+    "ordinal",
+    "tibble"
+  ],
+  "jpeg": [
+    "R"
+  ],
+  "jqr": [
+    "R",
+    "magrittr",
+    "lazyeval"
+  ],
+  "jquerylib": [
+    "htmltools"
+  ],
+  "jsonify": [
+    "R",
+    "Rcpp",
+    "rapidjsonr",
+    "Rcpp"
+  ],
+  "jsonlite": [
+    "methods"
+  ],
+  "jsonvalidate": [
+    "V8"
+  ],
+  "kableExtra": [
+    "R",
+    "knitr",
+    "magrittr",
+    "stringr",
+    "xml2",
+    "rvest",
+    "rmarkdown",
+    "scales",
+    "viridisLite",
+    "stats",
+    "grDevices",
+    "htmltools",
+    "rstudioapi",
+    "glue",
+    "tools",
+    "webshot",
+    "digest",
+    "graphics",
+    "svglite"
+  ],
+  "keras": [
+    "R",
+    "generics",
+    "reticulate",
+    "tensorflow",
+    "tfruns",
+    "magrittr",
+    "zeallot",
+    "glue",
+    "methods",
+    "R6",
+    "ellipsis",
+    "rlang"
+  ],
+  "kernlab": [
+    "R",
+    "methods",
+    "stats",
+    "grDevices",
+    "graphics"
+  ],
+  "keyring": [
+    "assertthat",
+    "askpass",
+    "openssl",
+    "R6",
+    "utils",
+    "sodium",
+    "yaml",
+    "filelock",
+    "rappdirs",
+    "tools"
+  ],
+  "kinship2": [
+    "R",
+    "Matrix",
+    "quadprog",
+    "graphics",
+    "stats",
+    "methods",
+    "knitr"
+  ],
+  "km.ci": [
+    "R",
+    "stats",
+    "survival"
+  ],
+  "knitr": [
+    "R",
+    "evaluate",
+    "highr",
+    "methods",
+    "stringr",
+    "yaml",
+    "xfun",
+    "tools"
+  ],
+  "knitrBootstrap": [
+    "R",
+    "knitr",
+    "rmarkdown",
+    "markdown"
+  ],
+  "ks": [
+    "R",
+    "FNN",
+    "kernlab",
+    "KernSmooth",
+    "Matrix",
+    "mclust",
+    "mgcv",
+    "multicool",
+    "mvtnorm",
+    "plot3D",
+    "pracma"
+  ],
+  "labeling": [
+    "stats",
+    "graphics"
+  ],
+  "labelled": [
+    "R",
+    "haven",
+    "dplyr",
+    "lifecycle",
+    "rlang",
+    "vctrs",
+    "stringr",
+    "tidyr"
+  ],
+  "laeken": [
+    "R",
+    "boot",
+    "MASS"
+  ],
+  "lambda.r": [
+    "R",
+    "formatR"
+  ],
+  "lars": [
+    "R"
+  ],
+  "later": [
+    "Rcpp",
+    "rlang",
+    "Rcpp"
+  ],
+  "lattice": [
+    "R",
+    "grid",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "latticeExtra": [
+    "R",
+    "lattice",
+    "grid",
+    "stats",
+    "utils",
+    "grDevices",
+    "png",
+    "jpeg",
+    "RColorBrewer",
+    "interp",
+    "MASS"
+  ],
+  "lava": [
+    "R",
+    "future.apply",
+    "grDevices",
+    "graphics",
+    "methods",
+    "numDeriv",
+    "progressr",
+    "stats",
+    "survival",
+    "SQUAREM",
+    "utils"
+  ],
+  "lazyeval": [
+    "R"
+  ],
+  "lbfgs": [
+    "Rcpp",
+    "methods",
+    "Rcpp"
+  ],
+  "lbfgsb3c": [
+    "R",
+    "Rcpp",
+    "numDeriv",
+    "methods",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "lda": [
+    "R"
+  ],
+  "leaps": [
+    "R"
+  ],
+  "libcoin": [
+    "R",
+    "stats",
+    "mvtnorm",
+    "mvtnorm"
+  ],
+  "lifecycle": [
+    "R",
+    "cli",
+    "glue",
+    "rlang"
+  ],
+  "limma": [
+    "R",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils",
+    "methods"
+  ],
+  "linprog": [
+    "R",
+    "lpSolve"
+  ],
+  "lintr": [
+    "R",
+    "backports",
+    "codetools",
+    "crayon",
+    "cyclocomp",
+    "digest",
+    "glue",
+    "jsonlite",
+    "knitr",
+    "rex",
+    "stats",
+    "utils",
+    "xml2",
+    "xmlparsedata"
+  ],
+  "listenv": [
+    "R"
+  ],
+  "listviewer": [
+    "htmltools",
+    "htmlwidgets",
+    "shiny"
+  ],
+  "lme4": [
+    "R",
+    "Matrix",
+    "methods",
+    "stats",
+    "graphics",
+    "grid",
+    "splines",
+    "utils",
+    "parallel",
+    "MASS",
+    "lattice",
+    "boot",
+    "nlme",
+    "minqa",
+    "nloptr",
+    "Rcpp",
+    "RcppEigen"
+  ],
+  "lmerTest": [
+    "R",
+    "lme4",
+    "stats",
+    "methods",
+    "numDeriv",
+    "MASS",
+    "ggplot2"
+  ],
+  "lmom": [
+    "R",
+    "stats",
+    "graphics"
+  ],
+  "lmtest": [
+    "R",
+    "stats",
+    "zoo",
+    "graphics"
+  ],
+  "lobstr": [
+    "R",
+    "crayon",
+    "methods",
+    "prettyunits",
+    "rlang",
+    "cpp11"
+  ],
+  "locfit": [
+    "R",
+    "lattice"
+  ],
+  "log4r": [
+    "R"
+  ],
+  "logger": [
+    "utils"
+  ],
+  "logging": [
+    "R",
+    "methods"
+  ],
+  "logistf": [
+    "R",
+    "mice",
+    "mgcv",
+    "formula.tools"
+  ],
+  "longitudinal": [
+    "R",
+    "corpcor",
+    "graphics",
+    "grDevices",
+    "stats"
+  ],
+  "loo": [
+    "R",
+    "checkmate",
+    "matrixStats",
+    "parallel",
+    "stats"
+  ],
+  "lotri": [
+    "R",
+    "crayon",
+    "methods",
+    "stats",
+    "utils"
+  ],
+  "lpSolve": [
+    "R"
+  ],
+  "lpridge": [
+    "R"
+  ],
+  "lsei": [
+    "R"
+  ],
+  "lsmeans": [
+    "emmeans",
+    "methods",
+    "R"
+  ],
+  "lubridate": [
+    "methods",
+    "timechange",
+    "R",
+    "generics"
+  ],
+  "maditr": [
+    "R",
+    "data.table",
+    "magrittr"
+  ],
+  "magic": [
+    "R",
+    "abind"
+  ],
+  "magick": [
+    "Rcpp",
+    "magrittr",
+    "curl",
+    "Rcpp"
+  ],
+  "magrittr": [
+    "R"
+  ],
+  "mail": [
+    "R"
+  ],
+  "manipulate": [
+    "R"
+  ],
+  "manipulateWidget": [
+    "R",
+    "shiny",
+    "miniUI",
+    "htmltools",
+    "htmlwidgets",
+    "knitr",
+    "methods",
+    "tools",
+    "base64enc",
+    "grDevices",
+    "codetools",
+    "webshot",
+    "shinyjs"
+  ],
+  "mapdata": [
+    "R",
+    "maps"
+  ],
+  "mapproj": [
+    "R",
+    "maps",
+    "stats",
+    "graphics"
+  ],
+  "maps": [
+    "R",
+    "graphics",
+    "utils"
+  ],
+  "maptools": [
+    "R",
+    "sp",
+    "foreign",
+    "methods",
+    "grid",
+    "lattice",
+    "stats",
+    "utils",
+    "grDevices"
+  ],
+  "markdown": [
+    "R",
+    "utils",
+    "commonmark",
+    "xfun",
+    "mime"
+  ],
+  "mathjaxr": [
+    "R"
+  ],
+  "matrixStats": [
+    "R"
+  ],
+  "matrixcalc": [
+    "R"
+  ],
+  "maxLik": [
+    "R",
+    "miscTools",
+    "methods",
+    "sandwich",
+    "generics"
+  ],
+  "maxstat": [
+    "R",
+    "exactRankTests",
+    "mvtnorm",
+    "stats",
+    "graphics"
+  ],
+  "mclust": [
+    "R",
+    "stats",
+    "utils",
+    "graphics",
+    "grDevices"
+  ],
+  "mcmc": [
+    "R",
+    "stats"
+  ],
+  "mcr": [
+    "R",
+    "parallel",
+    "robslopes",
+    "stats",
+    "graphics",
+    "grDevices",
+    "methods"
+  ],
+  "mda": [
+    "R",
+    "stats",
+    "class"
+  ],
+  "memoise": [
+    "rlang",
+    "cachem"
+  ],
+  "meta": [
+    "R",
+    "metafor",
+    "grid",
+    "lme4",
+    "CompQuadForm",
+    "xml2"
+  ],
+  "metafor": [
+    "R",
+    "methods",
+    "Matrix",
+    "metadat",
+    "stats",
+    "utils",
+    "graphics",
+    "grDevices",
+    "nlme",
+    "mathjaxr",
+    "pbapply"
+  ],
+  "mets": [
+    "R",
+    "timereg",
+    "lava",
+    "mvtnorm",
+    "numDeriv",
+    "compiler",
+    "Rcpp",
+    "splines",
+    "survival",
+    "Rcpp",
+    "RcppArmadillo",
+    "mvtnorm"
+  ],
+  "mgcv": [
+    "R",
+    "nlme",
+    "methods",
+    "stats",
+    "graphics",
+    "Matrix",
+    "splines",
+    "utils"
+  ],
+  "mice": [
+    "R",
+    "broom",
+    "dplyr",
+    "generics",
+    "graphics",
+    "grDevices",
+    "lattice",
+    "methods",
+    "Rcpp",
+    "rlang",
+    "stats",
+    "tidyr",
+    "utils",
+    "cpp11",
+    "Rcpp"
+  ],
+  "microbenchmark": [
+    "graphics",
+    "stats"
+  ],
+  "mime": [
+    "tools"
+  ],
+  "miniCRAN": [
+    "graphics",
+    "httr",
+    "methods",
+    "stats",
+    "tools",
+    "utils",
+    "igraph",
+    "assertthat"
+  ],
+  "miniUI": [
+    "shiny",
+    "htmltools",
+    "utils"
+  ],
+  "minqa": [
+    "Rcpp",
+    "Rcpp"
+  ],
+  "mirt": [
+    "stats",
+    "R",
+    "stats4",
+    "lattice",
+    "methods",
+    "GPArotation",
+    "gridExtra",
+    "Matrix",
+    "Rcpp",
+    "mgcv",
+    "vegan",
+    "Deriv",
+    "splines",
+    "pbapply",
+    "dcurver",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "misc3d": [
+    "grDevices",
+    "graphics",
+    "stats",
+    "tcltk"
+  ],
+  "miscTools": [
+    "R",
+    "digest"
+  ],
+  "mitml": [
+    "pan",
+    "jomo",
+    "haven",
+    "grDevices",
+    "graphics",
+    "stats",
+    "methods",
+    "utils"
+  ],
+  "mitools": [
+    "DBI",
+    "methods",
+    "stats"
+  ],
+  "mixtools": [
+    "R",
+    "kernlab",
+    "MASS",
+    "plotly",
+    "scales",
+    "segmented",
+    "stats",
+    "survival"
+  ],
+  "mlbench": [
+    "R"
+  ],
+  "mlxR": [
+    "R",
+    "ggplot2",
+    "tools",
+    "methods",
+    "graphics",
+    "grDevices",
+    "utils",
+    "stats"
+  ],
+  "mmrm": [
+    "R",
+    "checkmate",
+    "lifecycle",
+    "methods",
+    "nlme",
+    "numDeriv",
+    "parallel",
+    "Rdpack",
+    "stats",
+    "stringr",
+    "TMB",
+    "RcppEigen",
+    "testthat",
+    "TMB",
+    "emmeans",
+    "estimability",
+    "knitr",
+    "parallelly",
+    "rmarkdown",
+    "testthat",
+    "xml2"
+  ],
+  "mnormt": [
+    "R"
+  ],
+  "mockery": [
+    "testthat"
+  ],
+  "modelr": [
+    "R",
+    "broom",
+    "magrittr",
+    "purrr",
+    "rlang",
+    "tibble",
+    "tidyr",
+    "tidyselect",
+    "vctrs"
+  ],
+  "modeltools": [
+    "stats",
+    "stats4",
+    "methods"
+  ],
+  "mondate": [
+    "utils",
+    "methods",
+    "R"
+  ],
+  "mongolite": [
+    "jsonlite",
+    "openssl",
+    "mime"
+  ],
+  "mosaicCore": [
+    "R",
+    "stats",
+    "dplyr",
+    "rlang",
+    "tidyr",
+    "MASS"
+  ],
+  "mrgsolve": [
+    "R",
+    "methods",
+    "Rcpp",
+    "dplyr",
+    "magrittr",
+    "tibble",
+    "rlang",
+    "tidyselect",
+    "lifecycle",
+    "glue",
+    "Rcpp",
+    "RcppArmadillo",
+    "BH"
+  ],
+  "msm": [
+    "survival",
+    "mvtnorm",
+    "expm"
+  ],
+  "mstate": [
+    "survival",
+    "rlang",
+    "data.table",
+    "lattice",
+    "RColorBrewer",
+    "viridisLite"
+  ],
+  "muhaz": [
+    "R",
+    "survival"
+  ],
+  "multcomp": [
+    "stats",
+    "graphics",
+    "mvtnorm",
+    "survival",
+    "TH.data",
+    "sandwich",
+    "codetools"
+  ],
+  "multgee": [
+    "R",
+    "gnm",
+    "stats",
+    "utils",
+    "VGAM",
+    "Rcpp",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "multicool": [
+    "methods",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "multtest": [
+    "R",
+    "methods",
+    "BiocGenerics",
+    "Biobase",
+    "survival",
+    "MASS",
+    "stats4"
+  ],
+  "munsell": [
+    "colorspace",
+    "methods"
+  ],
+  "mvnfast": [
+    "Rcpp",
+    "Rcpp",
+    "RcppArmadillo",
+    "BH"
+  ],
+  "mvtnorm": [
+    "R",
+    "stats",
+    "methods"
+  ],
+  "n1qn1": [
+    "R",
+    "Rcpp",
+    "RcppArmadillo",
+    "Rcpp"
+  ],
+  "nestcolor": [
+    "R",
+    "checkmate",
+    "ggplot2",
+    "lifecycle",
+    "knitr",
+    "rmarkdown",
+    "testthat"
+  ],
+  "netmeta": [
+    "R",
+    "meta",
+    "magic",
+    "MASS",
+    "ggplot2",
+    "metafor"
+  ],
+  "network": [
+    "R",
+    "utils",
+    "tibble",
+    "magrittr",
+    "statnet.common",
+    "stats"
+  ],
+  "networkD3": [
+    "R",
+    "htmlwidgets",
+    "igraph",
+    "magrittr"
+  ],
+  "nleqslv": [
+    "R"
+  ],
+  "nlme": [
+    "R",
+    "graphics",
+    "stats",
+    "utils",
+    "lattice"
+  ],
+  "nloptr": [
+    "testthat"
+  ],
+  "nnet": [
+    "R",
+    "stats",
+    "utils"
+  ],
+  "nomnoml": [
+    "R",
+    "htmlwidgets",
+    "png",
+    "webshot",
+    "lifecycle",
+    "rlang"
+  ],
+  "nor1mix": [
+    "stats",
+    "graphics"
+  ],
+  "nortest": [
+    "stats"
+  ],
+  "npsurv": [
+    "lsei",
+    "methods"
+  ],
+  "numDeriv": [
+    "R"
+  ],
+  "nycflights13": [
+    "R",
+    "tibble"
+  ],
+  "odbc": [
+    "R",
+    "bit64",
+    "blob",
+    "DBI",
+    "hms",
+    "methods",
+    "rlang",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "officer": [
+    "R6",
+    "grDevices",
+    "stats",
+    "graphics",
+    "utils",
+    "zip",
+    "uuid",
+    "xml2"
+  ],
+  "openssl": [
+    "askpass"
+  ],
+  "openxlsx": [
+    "R",
+    "grDevices",
+    "methods",
+    "Rcpp",
+    "stats",
+    "stringi",
+    "utils",
+    "zip",
+    "Rcpp"
+  ],
+  "operator.tools": [
+    "utils"
+  ],
+  "optextras": [
+    "numDeriv",
+    "utils"
+  ],
+  "optimx": [
+    "numDeriv"
+  ],
+  "optparse": [
+    "R",
+    "methods",
+    "getopt"
+  ],
+  "ordinal": [
+    "R",
+    "stats",
+    "methods",
+    "ucminf",
+    "MASS",
+    "Matrix",
+    "numDeriv",
+    "nlme"
+  ],
+  "orthogonalsplinebasis": [
+    "methods",
+    "stats",
+    "graphics"
+  ],
+  "osprey": [
+    "dplyr",
+    "ggplot2",
+    "R",
+    "checkmate",
+    "cowplot",
+    "DescTools",
+    "grDevices",
+    "grid",
+    "gridExtra",
+    "gtable",
+    "rlang",
+    "stats",
+    "stringr",
+    "tibble",
+    "tidyr"
+  ],
+  "outliers": [
+    "R"
+  ],
+  "pROC": [
+    "R",
+    "methods",
+    "plyr",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "packrat": [
+    "R",
+    "tools",
+    "utils"
+  ],
+  "pan": [
+    "R"
+  ],
+  "pander": [
+    "R",
+    "grDevices",
+    "graphics",
+    "methods",
+    "utils",
+    "stats",
+    "digest",
+    "tools",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "parallelly": [
+    "parallel",
+    "tools",
+    "utils"
+  ],
+  "parsedate": [
+    "R"
+  ],
+  "partitions": [
+    "R",
+    "gmp",
+    "polynom",
+    "sets",
+    "mathjaxr",
+    "Rdpack"
+  ],
+  "pastecs": [
+    "boot",
+    "stats",
+    "graphics",
+    "utils",
+    "grDevices"
+  ],
+  "patchwork": [
+    "ggplot2",
+    "gtable",
+    "grid",
+    "stats",
+    "grDevices",
+    "utils",
+    "graphics"
+  ],
+  "pbapply": [
+    "R",
+    "parallel"
+  ],
+  "pbkrtest": [
+    "R",
+    "lme4",
+    "broom",
+    "dplyr",
+    "magrittr",
+    "MASS",
+    "Matrix",
+    "methods",
+    "numDeriv",
+    "parallel",
+    "knitr"
+  ],
+  "pcaPP": [
+    "mvtnorm",
+    "methods"
+  ],
+  "pcalg": [
+    "R",
+    "stats",
+    "graphics",
+    "utils",
+    "methods",
+    "abind",
+    "graph",
+    "RBGL",
+    "igraph",
+    "ggm",
+    "corpcor",
+    "robustbase",
+    "vcd",
+    "Rcpp",
+    "bdsmatrix",
+    "sfsmisc",
+    "fastICA",
+    "clue",
+    "Rcpp",
+    "RcppArmadillo",
+    "BH"
+  ],
+  "pcnetmeta": [
+    "R",
+    "rjags",
+    "coda",
+    "grDevices",
+    "methods"
+  ],
+  "pdftools": [
+    "Rcpp",
+    "qpdf",
+    "Rcpp"
+  ],
+  "pec": [
+    "R",
+    "prodlim",
+    "foreach",
+    "rms",
+    "survival",
+    "riskRegression",
+    "lava",
+    "timereg"
+  ],
+  "permute": [
+    "R",
+    "stats"
+  ],
+  "pheatmap": [
+    "R",
+    "grid",
+    "RColorBrewer",
+    "scales",
+    "gtable",
+    "stats",
+    "grDevices",
+    "graphics"
+  ],
+  "pillar": [
+    "cli",
+    "fansi",
+    "glue",
+    "lifecycle",
+    "rlang",
+    "utf8",
+    "utils",
+    "vctrs"
+  ],
+  "pingr": [
+    "processx",
+    "utils"
+  ],
+  "pipeR": [
+    "R"
+  ],
+  "pixmap": [
+    "methods",
+    "graphics",
+    "grDevices"
+  ],
+  "pkgKitten": [
+    "R"
+  ],
+  "pkgbuild": [
+    "R",
+    "callr",
+    "cli",
+    "crayon",
+    "desc",
+    "prettyunits",
+    "processx",
+    "R6",
+    "rprojroot",
+    "withr"
+  ],
+  "pkgconfig": [
+    "utils"
+  ],
+  "pkgdown": [
+    "R",
+    "bslib",
+    "callr",
+    "cli",
+    "desc",
+    "digest",
+    "downlit",
+    "fs",
+    "httr",
+    "jsonlite",
+    "magrittr",
+    "memoise",
+    "purrr",
+    "ragg",
+    "rlang",
+    "rmarkdown",
+    "tibble",
+    "whisker",
+    "withr",
+    "xml2",
+    "yaml"
+  ],
+  "pkgload": [
+    "R",
+    "cli",
+    "crayon",
+    "desc",
+    "fs",
+    "glue",
+    "methods",
+    "rlang",
+    "rprojroot",
+    "utils",
+    "withr"
+  ],
+  "pkgmaker": [
+    "R",
+    "methods",
+    "stats",
+    "registry",
+    "tools",
+    "grDevices",
+    "utils",
+    "graphics",
+    "codetools",
+    "digest",
+    "stringr",
+    "xtable",
+    "withr",
+    "assertthat"
+  ],
+  "plm": [
+    "R",
+    "MASS",
+    "bdsmatrix",
+    "collapse",
+    "zoo",
+    "nlme",
+    "sandwich",
+    "lattice",
+    "lmtest",
+    "maxLik",
+    "Rdpack",
+    "Formula",
+    "stats"
+  ],
+  "plogr": [
+    "R"
+  ],
+  "plot3D": [
+    "R",
+    "misc3d",
+    "stats",
+    "graphics",
+    "grDevices",
+    "methods"
+  ],
+  "plotly": [
+    "R",
+    "ggplot2",
+    "tools",
+    "scales",
+    "httr",
+    "jsonlite",
+    "magrittr",
+    "digest",
+    "viridisLite",
+    "base64enc",
+    "htmltools",
+    "htmlwidgets",
+    "tidyr",
+    "RColorBrewer",
+    "dplyr",
+    "vctrs",
+    "tibble",
+    "lazyeval",
+    "rlang",
+    "crosstalk",
+    "purrr",
+    "data.table",
+    "promises"
+  ],
+  "plotlyGeoAssets": [
+    "R"
+  ],
+  "plotmo": [
+    "R",
+    "Formula",
+    "plotrix",
+    "TeachingDemos"
+  ],
+  "plotrix": [
+    "R",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "pls": [
+    "R",
+    "grDevices",
+    "graphics",
+    "methods",
+    "stats"
+  ],
+  "plyr": [
+    "R",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "png": [
+    "R"
+  ],
+  "polspline": [
+    "stats",
+    "graphics"
+  ],
+  "polyclip": [
+    "R"
+  ],
+  "polylabelr": [
+    "R",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "polynom": [
+    "stats",
+    "graphics"
+  ],
+  "pool": [
+    "methods",
+    "R",
+    "DBI",
+    "R6",
+    "later"
+  ],
+  "posterior": [
+    "R",
+    "methods",
+    "abind",
+    "checkmate",
+    "rlang",
+    "stats",
+    "tibble",
+    "vctrs",
+    "tensorA",
+    "pillar",
+    "distributional",
+    "parallel",
+    "matrixStats"
+  ],
+  "powerSurvEpi": [
+    "R",
+    "stats",
+    "survival",
+    "pracma"
+  ],
+  "prabclus": [
+    "R",
+    "MASS",
+    "mclust"
+  ],
+  "pracma": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils"
+  ],
+  "praise": [
+    "R"
+  ],
+  "prediction": [
+    "R",
+    "utils",
+    "stats",
+    "data.table"
+  ],
+  "preprocessCore": [
+    "stats"
+  ],
+  "prettyunits": [
+    "R"
+  ],
+  "processx": [
+    "R",
+    "ps",
+    "R6",
+    "utils"
+  ],
+  "prodlim": [
+    "R",
+    "Rcpp",
+    "stats",
+    "grDevices",
+    "graphics",
+    "survival",
+    "KernSmooth",
+    "lava",
+    "Rcpp"
+  ],
+  "productplots": [
+    "plyr",
+    "ggplot2"
+  ],
+  "profileModel": [
+    "R"
+  ],
+  "profvis": [
+    "R",
+    "htmlwidgets",
+    "stringr"
+  ],
+  "progress": [
+    "hms",
+    "prettyunits",
+    "R6",
+    "crayon"
+  ],
+  "promises": [
+    "R6",
+    "Rcpp",
+    "later",
+    "rlang",
+    "stats",
+    "magrittr",
+    "later",
+    "Rcpp"
+  ],
+  "proto": [
+    "R"
+  ],
+  "protolite": [
+    "Rcpp",
+    "jsonlite",
+    "Rcpp"
+  ],
+  "proxy": [
+    "R",
+    "stats",
+    "utils"
+  ],
+  "proxyC": [
+    "R",
+    "methods",
+    "Matrix",
+    "Rcpp",
+    "RcppParallel",
+    "Rcpp",
+    "RcppParallel",
+    "RcppArmadillo"
+  ],
+  "pryr": [
+    "R",
+    "stringr",
+    "codetools",
+    "methods",
+    "Rcpp",
+    "lobstr",
+    "Rcpp"
+  ],
+  "ps": [
+    "R",
+    "utils"
+  ],
+  "pscl": [
+    "MASS",
+    "datasets",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "psych": [
+    "mnormt",
+    "parallel",
+    "stats",
+    "graphics",
+    "grDevices",
+    "methods",
+    "lattice",
+    "nlme"
+  ],
+  "purrr": [
+    "R",
+    "magrittr",
+    "rlang"
+  ],
+  "purrrlyr": [
+    "dplyr",
+    "magrittr",
+    "purrr",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "pwr": [
+    "stats",
+    "graphics"
+  ],
+  "pxweb": [
+    "R",
+    "checkmate",
+    "httr",
+    "jsonlite"
+  ],
+  "qpdf": [
+    "Rcpp",
+    "askpass",
+    "curl",
+    "Rcpp"
+  ],
+  "qs": [
+    "R",
+    "Rcpp",
+    "RApiSerialize",
+    "stringfish",
+    "Rcpp",
+    "RApiSerialize",
+    "stringfish"
+  ],
+  "quadprog": [
+    "R"
+  ],
+  "quanteda": [
+    "R",
+    "methods",
+    "fastmatch",
+    "magrittr",
+    "Matrix",
+    "Rcpp",
+    "RcppParallel",
+    "SnowballC",
+    "stopwords",
+    "stringi",
+    "xml2",
+    "yaml",
+    "Rcpp",
+    "RcppParallel",
+    "RcppArmadillo"
+  ],
+  "quantmod": [
+    "R",
+    "xts",
+    "zoo",
+    "TTR",
+    "methods",
+    "curl"
+  ],
+  "quantreg": [
+    "R",
+    "stats",
+    "SparseM",
+    "methods",
+    "graphics",
+    "Matrix",
+    "MatrixModels",
+    "survival",
+    "MASS"
+  ],
+  "qvalue": [
+    "R",
+    "splines",
+    "ggplot2",
+    "grid",
+    "reshape2"
+  ],
+  "qvcalc": [
+    "R"
+  ],
+  "r2d3": [
+    "R",
+    "htmlwidgets",
+    "htmltools",
+    "jsonlite",
+    "rstudioapi"
+  ],
+  "r2rtf": [
+    "R",
+    "grDevices",
+    "tools"
+  ],
+  "rARPACK": [
+    "RSpectra"
+  ],
+  "rJava": [
+    "R",
+    "methods"
+  ],
+  "rJython": [
+    "rJava",
+    "rjson"
+  ],
+  "ragg": [
+    "systemfonts",
+    "textshaping",
+    "systemfonts",
+    "textshaping"
+  ],
+  "rainbow": [
+    "R",
+    "MASS",
+    "pcaPP",
+    "hdrcde",
+    "cluster",
+    "colorspace",
+    "ks",
+    "methods"
+  ],
+  "randomForest": [
+    "R",
+    "stats"
+  ],
+  "randomForestSRC": [
+    "R",
+    "parallel",
+    "data.tree",
+    "DiagrammeR"
+  ],
+  "ranger": [
+    "R",
+    "Rcpp",
+    "Matrix",
+    "Rcpp",
+    "RcppEigen"
+  ],
+  "rapidjsonr": [
+    "R"
+  ],
+  "rappdirs": [
+    "R"
+  ],
+  "rapportools": [
+    "plyr",
+    "pander",
+    "reshape2",
+    "MASS"
+  ],
+  "raster": [
+    "sp",
+    "R",
+    "Rcpp",
+    "methods",
+    "terra",
+    "Rcpp"
+  ],
+  "rattle": [
+    "R",
+    "tibble",
+    "bitops",
+    "stats",
+    "utils",
+    "ggplot2",
+    "grDevices",
+    "graphics",
+    "magrittr",
+    "methods",
+    "stringi",
+    "stringr",
+    "tidyr",
+    "dplyr",
+    "XML",
+    "rpart.plot"
+  ],
+  "rbenchmark": [
+    "R"
+  ],
+  "rbibutils": [
+    "R",
+    "utils",
+    "tools"
+  ],
+  "rbmi": [
+    "R",
+    "mmrm",
+    "pkgload",
+    "Matrix",
+    "methods",
+    "Rcpp",
+    "RcppParallel",
+    "rstan",
+    "rstantools",
+    "R6",
+    "assertthat",
+    "BH",
+    "Rcpp",
+    "RcppEigen",
+    "RcppParallel",
+    "rstan",
+    "StanHeaders",
+    "dplyr",
+    "tidyr",
+    "nlme",
+    "testthat",
+    "emmeans",
+    "tibble",
+    "mvtnorm",
+    "knitr",
+    "rmarkdown",
+    "bookdown",
+    "lubridate",
+    "purrr",
+    "ggplot2",
+    "R.rsp"
+  ],
+  "rcmdcheck": [
+    "callr",
+    "cli",
+    "curl",
+    "desc",
+    "digest",
+    "pkgbuild",
+    "prettyunits",
+    "R6",
+    "rprojroot",
+    "sessioninfo",
+    "utils",
+    "withr",
+    "xopen"
+  ],
+  "readr": [
+    "R",
+    "cli",
+    "clipr",
+    "crayon",
+    "hms",
+    "methods",
+    "rlang",
+    "R6",
+    "tibble",
+    "utils",
+    "lifecycle",
+    "BH",
+    "cpp11",
+    "vroom",
+    "tzdb"
+  ],
+  "readstata13": [
+    "Rcpp",
+    "Rcpp"
+  ],
+  "readxl": [
+    "R",
+    "cellranger",
+    "tibble",
+    "utils",
+    "cpp11",
+    "progress"
+  ],
+  "recipes": [
+    "dplyr",
+    "R",
+    "cli",
+    "clock",
+    "ellipsis",
+    "generics",
+    "glue",
+    "gower",
+    "hardhat",
+    "ipred",
+    "lifecycle",
+    "lubridate",
+    "magrittr",
+    "Matrix",
+    "purrr",
+    "rlang",
+    "stats",
+    "tibble",
+    "tidyr",
+    "tidyselect",
+    "timeDate",
+    "utils",
+    "vctrs",
+    "withr"
+  ],
+  "registry": [
+    "R",
+    "utils"
+  ],
+  "relimp": [
+    "R",
+    "stats",
+    "utils"
+  ],
+  "rematch": [
+    "R"
+  ],
+  "rematch2": [
+    "tibble"
+  ],
+  "remotes": [
+    "R",
+    "methods",
+    "stats",
+    "tools",
+    "utils"
+  ],
+  "renv": [
+    "utils"
+  ],
+  "reporttools": [
+    "xtable",
+    "stats"
+  ],
+  "repr": [
+    "R",
+    "utils",
+    "grDevices",
+    "htmltools",
+    "jsonlite",
+    "pillar",
+    "base64enc"
+  ],
+  "reprex": [
+    "R",
+    "callr",
+    "cli",
+    "clipr",
+    "fs",
+    "glue",
+    "knitr",
+    "lifecycle",
+    "rlang",
+    "rmarkdown",
+    "rstudioapi",
+    "utils",
+    "withr"
+  ],
+  "reshape": [
+    "R",
+    "plyr"
+  ],
+  "reshape2": [
+    "R",
+    "plyr",
+    "Rcpp",
+    "stringr",
+    "Rcpp"
+  ],
+  "restfulr": [
+    "R",
+    "methods",
+    "XML",
+    "RCurl",
+    "rjson",
+    "S4Vectors",
+    "yaml"
+  ],
+  "reticulate": [
+    "R",
+    "Matrix",
+    "Rcpp",
+    "RcppTOML",
+    "graphics",
+    "here",
+    "jsonlite",
+    "methods",
+    "png",
+    "rappdirs",
+    "utils",
+    "withr",
+    "Rcpp"
+  ],
+  "rex": [
+    "lazyeval"
+  ],
+  "rgdal": [
+    "R",
+    "methods",
+    "sp",
+    "grDevices",
+    "graphics",
+    "stats",
+    "utils",
+    "sp"
+  ],
+  "rgenoud": [
+    "R",
+    "utils"
+  ],
+  "rgeos": [
+    "R",
+    "methods",
+    "sp",
+    "utils",
+    "stats",
+    "graphics",
+    "sp"
+  ],
+  "rgexf": [
+    "XML",
+    "igraph",
+    "grDevices",
+    "utils",
+    "servr"
+  ],
+  "rgl": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils",
+    "htmlwidgets",
+    "htmltools",
+    "knitr",
+    "jsonlite",
+    "magrittr",
+    "R6",
+    "base64enc",
+    "mime"
+  ],
+  "rhandsontable": [
+    "jsonlite",
+    "htmlwidgets",
+    "magrittr",
+    "methods",
+    "utils"
+  ],
+  "Rhdf5lib": [],
+  "rhdf5": [
+    "R",
+    "methods",
+    "Rhdf5lib",
+    "rhdf5filters",
+    "Rhdf5lib"
+  ],
+  "rhdf5filters": [
+    "Rhdf5lib"
+  ],
+  "rice": [
+    "R",
+    "httr",
+    "getPass",
+    "haven",
+    "readr",
+    "tibble",
+    "assertthat",
+    "tools",
+    "utils"
+  ],
+  "ricepass": [
+    "shiny",
+    "htmltools",
+    "jsonlite",
+    "rice",
+    "shinyjs"
+  ],
+  "riceutils": [
+    "rice",
+    "rmarkdown",
+    "callr",
+    "assertthat",
+    "tools",
+    "httr",
+    "jsonlite"
+  ],
+  "rio": [
+    "R",
+    "tools",
+    "stats",
+    "utils",
+    "foreign",
+    "haven",
+    "curl",
+    "data.table",
+    "readxl",
+    "openxlsx",
+    "tibble"
+  ],
+  "riskRegression": [
+    "R",
+    "cmprsk",
+    "data.table",
+    "doParallel",
+    "foreach",
+    "ggplot2",
+    "graphics",
+    "lattice",
+    "lava",
+    "mets",
+    "mvtnorm",
+    "parallel",
+    "plotrix",
+    "prodlim",
+    "Publish",
+    "ranger",
+    "Rcpp",
+    "rms",
+    "stats",
+    "survival",
+    "timereg",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "rjags": [
+    "R",
+    "coda"
+  ],
+  "rjson": [
+    "R"
+  ],
+  "rlang": [
+    "R",
+    "utils"
+  ],
+  "rle": [
+    "R",
+    "methods"
+  ],
+  "rlist": [
+    "R",
+    "yaml",
+    "jsonlite",
+    "XML",
+    "data.table"
+  ],
+  "rlistings": [
+    "formatters",
+    "methods",
+    "tibble",
+    "checkmate",
+    "utils"
+  ],
+  "rmapshaper": [
+    "geojsonio",
+    "geojsonlint",
+    "jsonlite",
+    "methods",
+    "readr",
+    "sf",
+    "sp",
+    "V8"
+  ],
+  "rmarkdown": [
+    "R",
+    "bslib",
+    "evaluate",
+    "htmltools",
+    "jquerylib",
+    "jsonlite",
+    "knitr",
+    "methods",
+    "stringr",
+    "tinytex",
+    "tools",
+    "utils",
+    "xfun",
+    "yaml"
+  ],
+  "rms": [
+    "R",
+    "Hmisc",
+    "survival",
+    "lattice",
+    "ggplot2",
+    "SparseM",
+    "methods",
+    "quantreg",
+    "rpart",
+    "nlme",
+    "polspline",
+    "multcomp",
+    "htmlTable",
+    "htmltools",
+    "MASS",
+    "cluster",
+    "digest"
+  ],
+  "rngtools": [
+    "R",
+    "methods",
+    "digest",
+    "utils",
+    "stats",
+    "parallel"
+  ],
+  "robust": [
+    "fit.models",
+    "graphics",
+    "stats",
+    "utils",
+    "lattice",
+    "MASS",
+    "robustbase",
+    "rrcov"
+  ],
+  "robustbase": [
+    "R",
+    "stats",
+    "graphics",
+    "utils",
+    "methods",
+    "DEoptimR"
+  ],
+  "rococo": [
+    "R",
+    "Rcpp",
+    "methods",
+    "stats",
+    "Rcpp"
+  ],
+  "rootSolve": [
+    "R",
+    "stats",
+    "graphics",
+    "grDevices"
+  ],
+  "roprov": [
+    "methods",
+    "fastdigest",
+    "CodeDepends",
+    "igraph"
+  ],
+  "roxygen2": [
+    "R",
+    "brew",
+    "cli",
+    "commonmark",
+    "desc",
+    "digest",
+    "knitr",
+    "methods",
+    "pkgload",
+    "purrr",
+    "R6",
+    "rlang",
+    "stringi",
+    "stringr",
+    "utils",
+    "withr",
+    "xml2",
+    "cpp11"
+  ],
+  "rpact": [
+    "R",
+    "methods",
+    "stats",
+    "utils",
+    "graphics",
+    "tools",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "rpart": [
+    "R",
+    "graphics",
+    "stats",
+    "grDevices"
+  ],
+  "rpart.plot": [
+    "R",
+    "rpart"
+  ],
+  "rpartScore": [
+    "R",
+    "rpart",
+    "stats",
+    "MASS"
+  ],
+  "rprojroot": [
+    "R"
+  ],
+  "rrcov": [
+    "R",
+    "robustbase",
+    "methods",
+    "stats",
+    "stats4",
+    "mvtnorm",
+    "lattice",
+    "pcaPP"
+  ],
+  "rsconnect": [
+    "R",
+    "curl",
+    "digest",
+    "jsonlite",
+    "openssl",
+    "packrat",
+    "rstudioapi",
+    "tools",
+    "yaml"
+  ],
+  "rsm": [
+    "estimability"
+  ],
+  "rsolr": [
+    "R",
+    "BiocGenerics",
+    "methods",
+    "restfulr",
+    "graph",
+    "S4Vectors",
+    "rjson",
+    "XML",
+    "RCurl"
+  ],
+  "rstan": [
+    "R",
+    "StanHeaders",
+    "ggplot2",
+    "methods",
+    "stats4",
+    "inline",
+    "gridExtra",
+    "Rcpp",
+    "RcppParallel",
+    "loo",
+    "pkgbuild",
+    "Rcpp",
+    "RcppEigen",
+    "BH",
+    "StanHeaders",
+    "RcppParallel"
+  ],
+  "rstanarm": [
+    "R",
+    "Rcpp",
+    "methods",
+    "bayesplot",
+    "ggplot2",
+    "lme4",
+    "loo",
+    "Matrix",
+    "nlme",
+    "rstan",
+    "rstantools",
+    "shinystan",
+    "stats",
+    "survival",
+    "RcppParallel",
+    "utils",
+    "StanHeaders",
+    "rstan",
+    "BH",
+    "Rcpp",
+    "RcppEigen",
+    "RcppParallel"
+  ],
+  "rstantools": [
+    "desc",
+    "stats",
+    "utils",
+    "Rcpp",
+    "RcppParallel"
+  ],
+  "rstatix": [
+    "R",
+    "stats",
+    "utils",
+    "tidyr",
+    "purrr",
+    "broom",
+    "rlang",
+    "tibble",
+    "dplyr",
+    "magrittr",
+    "corrplot",
+    "tidyselect",
+    "car",
+    "generics"
+  ],
+  "rstpm2": [
+    "R",
+    "methods",
+    "survival",
+    "splines",
+    "graphics",
+    "Rcpp",
+    "stats",
+    "mgcv",
+    "bbmle",
+    "fastGHQuad",
+    "deSolve",
+    "utils",
+    "parallel",
+    "Rcpp",
+    "RcppArmadillo",
+    "BH"
+  ],
+  "rstudioapi": [
+    "R"
+  ],
+  "rsvg": [
+    "R"
+  ],
+  "rtables": [
+    "methods",
+    "magrittr",
+    "formatters",
+    "R",
+    "stats",
+    "htmltools",
+    "grid"
+  ],
+  "rtf": [
+    "R",
+    "R.oo",
+    "R.methodsS3"
+  ],
+  "runjags": [
+    "R",
+    "parallel",
+    "lattice",
+    "coda",
+    "stats",
+    "utils"
+  ],
+  "rversions": [
+    "curl",
+    "utils",
+    "xml2"
+  ],
+  "rvest": [
+    "R",
+    "glue",
+    "cli",
+    "httr",
+    "lifecycle",
+    "magrittr",
+    "rlang",
+    "selectr",
+    "tibble",
+    "xml2",
+    "withr"
+  ],
+  "rvg": [
+    "R",
+    "grDevices",
+    "Rcpp",
+    "officer",
+    "gdtools",
+    "xml2",
+    "rlang",
+    "Rcpp",
+    "gdtools"
+  ],
+  "rworldmap": [
+    "R",
+    "sp",
+    "maptools",
+    "fields",
+    "methods"
+  ],
+  "s2": [
+    "R",
+    "Rcpp",
+    "wk",
+    "Rcpp",
+    "wk"
+  ],
+  "saemix": [
+    "npde",
+    "graphics",
+    "stats",
+    "methods",
+    "gridExtra",
+    "ggplot2",
+    "grid",
+    "rlang"
+  ],
+  "samplesize": [
+    "R"
+  ],
+  "sandwich": [
+    "R",
+    "stats",
+    "utils",
+    "zoo"
+  ],
+  "sass": [
+    "fs",
+    "rlang",
+    "htmltools",
+    "R6",
+    "rappdirs"
+  ],
+  "scagnostics": [
+    "rJava"
+  ],
+  "scales": [
+    "R",
+    "farver",
+    "labeling",
+    "lifecycle",
+    "munsell",
+    "R6",
+    "RColorBrewer",
+    "rlang",
+    "viridisLite"
+  ],
+  "scatterD3": [
+    "htmlwidgets",
+    "digest",
+    "ellipse"
+  ],
+  "scatterplot3d": [
+    "R",
+    "grDevices",
+    "graphics",
+    "stats"
+  ],
+  "scda": [
+    "R",
+    "utils",
+    "scda.2022"
+  ],
+  "scda.2021": [
+    "R"
+  ],
+  "scda.2022": [
+    "R"
+  ],
+  "scorecard": [
+    "R",
+    "data.table",
+    "ggplot2",
+    "gridExtra",
+    "foreach",
+    "doParallel",
+    "parallel",
+    "openxlsx",
+    "stringi",
+    "cli"
+  ],
+  "segmented": [
+    "MASS",
+    "nlme"
+  ],
+  "selectr": [
+    "R",
+    "methods",
+    "stringr",
+    "R6"
+  ],
+  "sendmailR": [
+    "R",
+    "base64enc"
+  ],
+  "seqinr": [
+    "R",
+    "ade4",
+    "segmented"
+  ],
+  "servr": [
+    "R",
+    "mime",
+    "httpuv",
+    "xfun",
+    "jsonlite"
+  ],
+  "session": [],
+  "sessioninfo": [
+    "R",
+    "cli",
+    "tools",
+    "utils"
+  ],
+  "setRNG": [
+    "R",
+    "stats"
+  ],
+  "sets": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils"
+  ],
+  "sf": [
+    "methods",
+    "R",
+    "classInt",
+    "DBI",
+    "graphics",
+    "grDevices",
+    "grid",
+    "magrittr",
+    "Rcpp",
+    "s2",
+    "stats",
+    "tools",
+    "units",
+    "utils",
+    "Rcpp"
+  ],
+  "sfheaders": [
+    "geometries",
+    "Rcpp",
+    "geometries",
+    "Rcpp"
+  ],
+  "sfsmisc": [
+    "R",
+    "grDevices",
+    "utils",
+    "stats",
+    "tools"
+  ],
+  "shades": [
+    "R"
+  ],
+  "shape": [
+    "R",
+    "stats",
+    "graphics",
+    "grDevices"
+  ],
+  "shiny": [
+    "R",
+    "methods",
+    "utils",
+    "grDevices",
+    "httpuv",
+    "mime",
+    "jsonlite",
+    "xtable",
+    "fontawesome",
+    "htmltools",
+    "R6",
+    "sourcetools",
+    "later",
+    "promises",
+    "tools",
+    "crayon",
+    "rlang",
+    "fastmap",
+    "withr",
+    "commonmark",
+    "glue",
+    "bslib",
+    "cachem",
+    "ellipsis",
+    "lifecycle"
+  ],
+  "shinyAce": [
+    "R",
+    "shiny",
+    "jsonlite",
+    "utils",
+    "tools"
+  ],
+  "shinyBS": [
+    "shiny",
+    "htmltools"
+  ],
+  "shinyFiles": [
+    "htmltools",
+    "jsonlite",
+    "tools",
+    "shiny",
+    "fs",
+    "tibble"
+  ],
+  "shinyRadioMatrix": [
+    "R",
+    "shiny"
+  ],
+  "shinyTree": [
+    "R",
+    "methods",
+    "shiny",
+    "htmlwidgets",
+    "jsonlite",
+    "stringr",
+    "promises"
+  ],
+  "shinyWidgets": [
+    "R",
+    "anytime",
+    "bslib",
+    "sass",
+    "shiny",
+    "htmltools",
+    "jsonlite",
+    "grDevices",
+    "rlang"
+  ],
+  "shinybootstrap2": ["htmltools", "jsonlite", "shiny"],
+  "shinybusy": [
+    "htmltools",
+    "shiny",
+    "jsonlite",
+    "htmlwidgets"
+  ],
+  "shinycssloaders": [
+    "R",
+    "digest",
+    "glue",
+    "grDevices",
+    "shiny"
+  ],
+  "shinydashboard": [
+    "R",
+    "utils",
+    "shiny",
+    "htmltools",
+    "promises"
+  ],
+  "shinyjqui": [
+    "R",
+    "shiny",
+    "htmltools",
+    "htmlwidgets",
+    "jsonlite",
+    "rlang"
+  ],
+  "shinyjs": [
+    "R",
+    "digest",
+    "jsonlite",
+    "shiny"
+  ],
+  "shinystan": [
+    "R",
+    "shiny",
+    "bayesplot",
+    "colourpicker",
+    "DT",
+    "dygraphs",
+    "ggplot2",
+    "gridExtra",
+    "gtools",
+    "markdown",
+    "methods",
+    "reshape2",
+    "rstan",
+    "stats",
+    "shinyjs",
+    "shinythemes",
+    "threejs",
+    "utils",
+    "xtable",
+    "xts"
+  ],
+  "shinytest": [
+    "assertthat",
+    "callr",
+    "crayon",
+    "debugme",
+    "digest",
+    "htmlwidgets",
+    "httpuv",
+    "httr",
+    "jsonlite",
+    "parsedate",
+    "pingr",
+    "R6",
+    "rematch",
+    "rlang",
+    "rstudioapi",
+    "shiny",
+    "testthat",
+    "utils",
+    "webdriver",
+    "withr"
+  ],
+  "shinytest2": [
+    "testthat",
+    "R6",
+    "callr",
+    "checkmate",
+    "chromote",
+    "crayon",
+    "ellipsis",
+    "fs",
+    "globals",
+    "httr",
+    "jsonlite",
+    "pingr",
+    "rlang",
+    "rmarkdown",
+    "shiny",
+    "withr",
+    "cpp11"
+  ],
+  "shinythemes": [
+    "R",
+    "shiny"
+  ],
+  "shinyvalidate": [
+    "shiny",
+    "htmltools",
+    "rlang",
+    "glue"
+  ],
+  "showimage": [
+    "png",
+    "tools"
+  ],
+  "simstudy": [
+    "R",
+    "data.table",
+    "glue",
+    "methods",
+    "mvnfast",
+    "mvtnorm",
+    "Rcpp",
+    "backports",
+    "Rcpp"
+  ],
+  "sitmo": [
+    "R",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "sjlabelled": [
+    "R",
+    "insight",
+    "datawizard",
+    "stats",
+    "tools",
+    "utils"
+  ],
+  "sjmisc": [
+    "R",
+    "dplyr",
+    "insight",
+    "magrittr",
+    "methods",
+    "purrr",
+    "rlang",
+    "sjlabelled",
+    "stats",
+    "tidyselect",
+    "utils"
+  ],
+  "slam": [
+    "R",
+    "stats"
+  ],
+  "slickR": [
+    "R",
+    "htmltools",
+    "utils",
+    "tools",
+    "lifecycle",
+    "stats",
+    "xml2",
+    "base64enc",
+    "htmlwidgets"
+  ],
+  "sm": [
+    "R"
+  ],
+  "sn": [
+    "R",
+    "methods",
+    "stats4",
+    "mnormt",
+    "numDeriv",
+    "utils",
+    "quantreg"
+  ],
+  "sna": [
+    "R",
+    "utils",
+    "statnet.common",
+    "network"
+  ],
+  "snakecase": [
+    "R",
+    "stringr",
+    "stringi"
+  ],
+  "snow": [
+    "R",
+    "utils"
+  ],
+  "snowfall": [
+    "R",
+    "snow"
+  ],
+  "sodium": [
+    "R"
+  ],
+  "sos": [
+    "brew"
+  ],
+  "sourcetools": [
+    "R"
+  ],
+  "sp": [
+    "R",
+    "methods",
+    "utils",
+    "stats",
+    "graphics",
+    "grDevices",
+    "lattice",
+    "grid"
+  ],
+  "spData": [
+    "R",
+    "sp"
+  ],
+  "spacetime": [
+    "R",
+    "graphics",
+    "utils",
+    "stats",
+    "methods",
+    "lattice",
+    "sp",
+    "zoo",
+    "xts",
+    "intervals"
+  ],
+  "spacyr": [
+    "R",
+    "methods",
+    "data.table",
+    "reticulate"
+  ],
+  "spam": [
+    "R",
+    "dotCall64",
+    "grid",
+    "methods"
+  ],
+  "sparkline": [
+    "htmltools",
+    "htmlwidgets"
+  ],
+  "sparklyr": [
+    "R",
+    "assertthat",
+    "base64enc",
+    "config",
+    "DBI",
+    "dbplyr",
+    "digest",
+    "dplyr",
+    "ellipsis",
+    "forge",
+    "generics",
+    "globals",
+    "glue",
+    "httr",
+    "jsonlite",
+    "methods",
+    "openssl",
+    "purrr",
+    "r2d3",
+    "rappdirs",
+    "rlang",
+    "rprojroot",
+    "rstudioapi",
+    "tibble",
+    "tidyr",
+    "tidyselect",
+    "uuid",
+    "vctrs",
+    "withr",
+    "xml2"
+  ],
+  "spatial": [
+    "R",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "spatstat": [
+    "R",
+    "spatstat.data",
+    "spatstat.geom",
+    "spatstat.random",
+    "spatstat.explore",
+    "spatstat.model",
+    "spatstat.linnet",
+    "utils",
+    "spatstat.utils"
+  ],
+  "spatstat.core": [
+    "R",
+    "spatstat.data",
+    "spatstat.geom",
+    "spatstat.random",
+    "stats",
+    "graphics",
+    "grDevices",
+    "utils",
+    "methods",
+    "nlme",
+    "rpart",
+    "spatstat.utils",
+    "spatstat.sparse",
+    "mgcv",
+    "Matrix",
+    "abind",
+    "tensor",
+    "goftest"
+  ],
+  "spatstat.data": [
+    "R",
+    "spatstat.utils",
+    "Matrix"
+  ],
+  "spatstat.geom": [
+    "R",
+    "spatstat.data",
+    "stats",
+    "graphics",
+    "grDevices",
+    "utils",
+    "methods",
+    "spatstat.utils",
+    "deldir",
+    "polyclip"
+  ],
+  "spatstat.linnet": [
+    "R",
+    "spatstat.data",
+    "spatstat.geom",
+    "spatstat.random",
+    "spatstat.explore",
+    "spatstat.model",
+    "stats",
+    "graphics",
+    "grDevices",
+    "methods",
+    "utils",
+    "spatstat.utils",
+    "Matrix",
+    "spatstat.sparse"
+  ],
+  "spatstat.sparse": [
+    "R",
+    "stats",
+    "utils",
+    "methods",
+    "Matrix",
+    "abind",
+    "tensor",
+    "spatstat.utils"
+  ],
+  "spatstat.utils": [
+    "R",
+    "stats",
+    "graphics",
+    "grDevices",
+    "utils",
+    "methods"
+  ],
+  "spelling": [
+    "commonmark",
+    "xml2",
+    "hunspell",
+    "knitr"
+  ],
+  "splines2": [
+    "R",
+    "Rcpp",
+    "stats",
+    "Rcpp",
+    "RcppArmadillo"
+  ],
+  "splitstackshape": [
+    "R",
+    "data.table"
+  ],
+  "sqldf": [
+    "R",
+    "gsubfn",
+    "proto",
+    "RSQLite",
+    "DBI",
+    "chron"
+  ],
+  "ssh": [
+    "credentials",
+    "askpass"
+  ],
+  "stabledist": [
+    "R",
+    "stats"
+  ],
+  "stargazer": [
+    "stats",
+    "utils"
+  ],
+  "startupmsg": [
+    "R"
+  ],
+  "statmod": [
+    "R",
+    "stats",
+    "graphics"
+  ],
+  "statnet.common": [
+    "R",
+    "utils",
+    "methods",
+    "coda",
+    "parallel",
+    "tools"
+  ],
+  "stepp": [
+    "methods",
+    "car",
+    "survival",
+    "splines",
+    "rstudioapi",
+    "scales"
+  ],
+  "stopwords": [
+    "R",
+    "ISOcodes"
+  ],
+  "stringdist": [
+    "R",
+    "parallel"
+  ],
+  "stringfish": [
+    "R",
+    "Rcpp",
+    "RcppParallel",
+    "Rcpp",
+    "RcppParallel"
+  ],
+  "stringi": [
+    "R",
+    "tools",
+    "utils",
+    "stats"
+  ],
+  "stringr": [
+    "R",
+    "cli",
+    "glue",
+    "lifecycle",
+    "magrittr",
+    "rlang",
+    "stringi",
+    "vctrs"
+  ],
+  "strucchange": [
+    "R",
+    "zoo",
+    "sandwich",
+    "graphics",
+    "stats",
+    "utils"
+  ],
+  "styler": [
+    "R",
+    "cli",
+    "magrittr",
+    "purrr",
+    "R.cache",
+    "rlang",
+    "rprojroot",
+    "tools",
+    "vctrs",
+    "withr"
+  ],
+  "summarytools": [
+    "R",
+    "base64enc",
+    "checkmate",
+    "dplyr",
+    "grDevices",
+    "htmltools",
+    "lubridate",
+    "magick",
+    "matrixStats",
+    "methods",
+    "pander",
+    "pryr",
+    "rapportools",
+    "stats",
+    "tcltk",
+    "tibble",
+    "tidyr",
+    "utils"
+  ],
+  "sunburstR": [
+    "d3r",
+    "dplyr",
+    "htmlwidgets",
+    "htmltools"
+  ],
+  "survMisc": [
+    "survival",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils",
+    "knitr",
+    "KMsurv",
+    "ggplot2",
+    "data.table",
+    "zoo",
+    "grid",
+    "gridExtra",
+    "km.ci",
+    "xtable"
+  ],
+  "survey": [
+    "R",
+    "grid",
+    "methods",
+    "Matrix",
+    "survival",
+    "stats",
+    "graphics",
+    "splines",
+    "lattice",
+    "minqa",
+    "numDeriv",
+    "mitools"
+  ],
+  "survival": [
+    "R",
+    "graphics",
+    "Matrix",
+    "methods",
+    "splines",
+    "stats",
+    "utils"
+  ],
+  "survminer": [
+    "ggplot2",
+    "ggpubr",
+    "grid",
+    "gridExtra",
+    "magrittr",
+    "maxstat",
+    "methods",
+    "scales",
+    "survival",
+    "stats",
+    "broom",
+    "dplyr",
+    "tidyr",
+    "survMisc",
+    "purrr",
+    "tibble",
+    "rlang",
+    "ggtext"
+  ],
+  "survsim": [
+    "R",
+    "eha",
+    "statmod"
+  ],
+  "svUnit": [
+    "R",
+    "utils"
+  ],
+  "svglite": [
+    "R",
+    "systemfonts",
+    "cpp11",
+    "systemfonts"
+  ],
+  "switchr": [
+    "methods",
+    "tools",
+    "RJSONIO",
+    "RCurl"
+  ],
+  "sys": [
+    "R"
+  ],
+  "systemfit": [
+    "R",
+    "Matrix",
+    "car",
+    "lmtest",
+    "stats",
+    "sandwich",
+    "MASS",
+    "methods"
+  ],
+  "systemfonts": [
+    "R",
+    "cpp11"
+  ],
+  "table1": [
+    "R",
+    "stats",
+    "Formula",
+    "knitr",
+    "htmltools",
+    "yaml"
+  ],
+  "tableone": [
+    "survey",
+    "MASS",
+    "e1071",
+    "zoo",
+    "gmodels",
+    "nlme",
+    "labelled"
+  ],
+  "tables": [
+    "R",
+    "stats",
+    "utils",
+    "knitr",
+    "htmltools"
+  ],
+  "tcltk2": [
+    "R",
+    "tcltk"
+  ],
+  "tclust": [
+    "R"
+  ],
+  "teal": [
+    "R",
+    "shiny",
+    "teal.data",
+    "teal.transform",
+    "checkmate",
+    "lifecycle",
+    "logger",
+    "magrittr",
+    "methods",
+    "rlang",
+    "shinyjs",
+    "stats",
+    "styler",
+    "teal.code",
+    "teal.logger",
+    "teal.reporter",
+    "teal.slice",
+    "teal.widgets",
+    "utils"
+  ],
+  "teal.code": [
+    "R",
+    "checkmate",
+    "crayon",
+    "lifecycle",
+    "methods",
+    "R6",
+    "rlang",
+    "shiny",
+    "styler",
+    "teal.widgets",
+    "cli",
+    "knitr",
+    "magrittr",
+    "rmarkdown",
+    "testthat"
+  ],
+  "teal.connectors.cdse": [
+    "R",
+    "shiny",
+    "teal.data",
+    "CDSE",
+    "checkmate",
+    "methods"
+  ],
+  "teal.connectors.datasetdb": [
+    "R",
+    "shiny",
+    "teal.data",
+    "checkmate",
+    "dsassembly",
+    "gdbauth",
+    "methods",
+    "shinyjs"
+  ],
+  "teal.connectors.rice": [
+    "R",
+    "shiny",
+    "teal.data",
+    "askpass",
+    "checkmate",
+    "logger",
+    "methods",
+    "rice",
+    "ricepass",
+    "shinyjs",
+    "teal.logger"
+  ],
+  "teal.connectors.snowflake": [
+    "R",
+    "shiny",
+    "teal.data",
+    "askpass",
+    "checkmate",
+    "DBI",
+    "httr",
+    "methods",
+    "odbc",
+    "shinyjs"
+  ],
+  "teal.data": [
+    "R",
+    "shiny",
+    "checkmate",
+    "digest",
+    "formatters",
+    "lifecycle",
+    "logger",
+    "methods",
+    "R6",
+    "rlang",
+    "shinyjs",
+    "stats",
+    "teal.logger",
+    "utils",
+    "yaml",
+    "bslib",
+    "dplyr",
+    "knitr",
+    "magrittr",
+    "MultiAssayExperiment",
+    "readr",
+    "reticulate",
+    "rmarkdown",
+    "scda",
+    "scda.2022",
+    "SummarizedExperiment",
+    "testthat",
+    "withr"
+  ],
+  "teal.gallery": [
+    "R",
+    "checkmate",
+    "renv",
+    "shiny",
+    "teal",
+    "utils"
+  ],
+  "teal.goshawk": [
+    "goshawk",
+    "R",
+    "shiny",
+    "teal",
+    "checkmate",
+    "colourpicker",
+    "dplyr",
+    "DT",
+    "ggplot2",
+    "grDevices",
+    "lifecycle",
+    "logger",
+    "methods",
+    "rlang",
+    "shinyjs",
+    "stats",
+    "teal.code",
+    "teal.logger",
+    "teal.reporter",
+    "teal.transform",
+    "teal.widgets",
+    "tidyr",
+    "knitr",
+    "nestcolor",
+    "rmarkdown",
+    "scda",
+    "scda.2022",
+    "stringr",
+    "tern",
+    "testthat",
+    "utils"
+  ],
+  "teal.logger": [
+    "R",
+    "glue",
+    "lifecycle",
+    "logger",
+    "shiny",
+    "withr",
+    "knitr",
+    "rmarkdown",
+    "testthat"
+  ],
+  "teal.modules.clinical": [
+    "R",
+    "teal",
+    "tern",
+    "assertthat",
+    "broom",
+    "checkmate",
+    "dplyr",
+    "DT",
+    "formatters",
+    "ggplot2",
+    "ggrepel",
+    "grid",
+    "lifecycle",
+    "logger",
+    "magrittr",
+    "methods",
+    "rlang",
+    "rmarkdown",
+    "rtables",
+    "scales",
+    "shiny",
+    "shinyjs",
+    "shinyWidgets",
+    "stats",
+    "styler",
+    "teal.code",
+    "teal.logger",
+    "teal.reporter",
+    "teal.transform",
+    "teal.widgets",
+    "tern.gee",
+    "tern.mmrm",
+    "tidyr",
+    "utils",
+    "vistime"
+  ],
+  "teal.modules.general": [
+    "ggmosaic",
+    "ggplot2",
+    "R",
+    "shiny",
+    "shinyTree",
+    "teal",
+    "checkmate",
+    "dplyr",
+    "DT",
+    "forcats",
+    "grid",
+    "logger",
+    "magrittr",
+    "scales",
+    "shinyjs",
+    "shinyWidgets",
+    "stats",
+    "stringr",
+    "teal.code",
+    "teal.logger",
+    "teal.reporter",
+    "teal.slice",
+    "teal.transform",
+    "teal.widgets",
+    "tern",
+    "tibble",
+    "tidyr",
+    "tidyselect",
+    "utils",
+    "broom",
+    "colourpicker",
+    "ggExtra",
+    "ggpmisc",
+    "ggpp",
+    "goftest",
+    "gridExtra",
+    "htmlwidgets",
+    "jsonlite",
+    "knitr",
+    "lattice",
+    "MASS",
+    "methods",
+    "nestcolor",
+    "rlang",
+    "rmarkdown",
+    "rtables",
+    "scda",
+    "scda.2022",
+    "sparkline",
+    "teal.data",
+    "testthat"
+  ],
+  "teal.modules.hermes": [
+    "ggplot2",
+    "R",
+    "shiny",
+    "teal",
+    "checkmate",
+    "DT",
+    "edgeR",
+    "forcats",
+    "hermes",
+    "lifecycle",
+    "logger",
+    "MultiAssayExperiment",
+    "rtables",
+    "S4Vectors",
+    "shinyRadioMatrix",
+    "shinyWidgets",
+    "stats",
+    "stringr",
+    "SummarizedExperiment",
+    "teal.data",
+    "teal.logger",
+    "teal.reporter",
+    "teal.widgets",
+    "tern",
+    "covr",
+    "dplyr",
+    "globals",
+    "knitr",
+    "matrixStats",
+    "R6",
+    "rvest",
+    "scda",
+    "scda.2022",
+    "shinytest",
+    "testthat"
+  ],
+  "teal.osprey": [
+    "osprey",
+    "R",
+    "shiny",
+    "teal",
+    "checkmate",
+    "dplyr",
+    "formatters",
+    "ggplot2",
+    "lifecycle",
+    "logger",
+    "purrr",
+    "shinyvalidate",
+    "teal.code",
+    "teal.logger",
+    "teal.reporter",
+    "teal.widgets",
+    "tern",
+    "tidyr",
+    "knitr",
+    "nestcolor",
+    "rmarkdown",
+    "scda",
+    "scda.2022",
+    "teal.data",
+    "testthat"
+  ],
+  "teal.reporter": [
+    "bslib",
+    "checkmate",
+    "grid",
+    "htmltools",
+    "knitr",
+    "lifecycle",
+    "R6",
+    "rmarkdown",
+    "shiny",
+    "shinyWidgets",
+    "yaml",
+    "zip",
+    "DT",
+    "ggplot2",
+    "lattice",
+    "png",
+    "rtables",
+    "testthat",
+    "tinytex"
+  ],
+  "teal.slice": [
+    "R",
+    "shiny",
+    "checkmate",
+    "dplyr",
+    "ggplot2",
+    "grDevices",
+    "lifecycle",
+    "logger",
+    "methods",
+    "R6",
+    "shinyjs",
+    "shinyWidgets",
+    "stats",
+    "teal.data",
+    "teal.logger",
+    "teal.widgets",
+    "bslib",
+    "formatters",
+    "knitr",
+    "MultiAssayExperiment",
+    "rmarkdown",
+    "scda",
+    "scda.2022",
+    "SummarizedExperiment",
+    "testthat",
+    "utils",
+    "withr"
+  ],
+  "teal.transform": [
+    "magrittr",
+    "R",
+    "checkmate",
+    "dplyr",
+    "formatters",
+    "lifecycle",
+    "logger",
+    "methods",
+    "rlang",
+    "shiny",
+    "shinyjs",
+    "stats",
+    "teal.code",
+    "teal.data",
+    "teal.logger",
+    "teal.slice",
+    "teal.widgets",
+    "tidyr",
+    "tidyselect",
+    "knitr",
+    "rmarkdown",
+    "scda",
+    "scda.2022",
+    "shinytest",
+    "testthat"
+  ],
+  "teal.widgets": [
+    "R",
+    "bslib",
+    "checkmate",
+    "ggplot2",
+    "graphics",
+    "htmltools",
+    "lifecycle",
+    "methods",
+    "rtables",
+    "shiny",
+    "shinyjs",
+    "shinyWidgets",
+    "styler",
+    "knitr",
+    "lattice",
+    "magrittr",
+    "png",
+    "rmarkdown",
+    "shinytest2",
+    "testthat",
+    "withr"
+  ],
+  "tensor": [
+    "R"
+  ],
+  "tensorA": [
+    "R",
+    "stats"
+  ],
+  "tensorflow": [
+    "R",
+    "config",
+    "processx",
+    "reticulate",
+    "tfruns",
+    "utils",
+    "yaml",
+    "grDevices",
+    "tfautograph",
+    "rstudioapi"
+  ],
+  "tern": [
+    "R",
+    "rtables",
+    "broom",
+    "car",
+    "checkmate",
+    "cowplot",
+    "dplyr",
+    "emmeans",
+    "forcats",
+    "formatters",
+    "ggplot2",
+    "grid",
+    "gridExtra",
+    "gtable",
+    "labeling",
+    "lifecycle",
+    "magrittr",
+    "methods",
+    "Rdpack",
+    "rlang",
+    "scales",
+    "stats",
+    "survival",
+    "tibble",
+    "tidyr",
+    "utils"
+  ],
+  "tern.gee": [
+    "R",
+    "tern",
+    "checkmate",
+    "dplyr",
+    "emmeans",
+    "formatters",
+    "geeasy",
+    "geepack",
+    "nlme",
+    "rtables",
+    "stats",
+    "knitr",
+    "rmarkdown",
+    "testthat",
+    "vdiffr"
+  ],
+  "tern.mmrm": [
+    "R",
+    "tern",
+    "checkmate",
+    "cowplot",
+    "dplyr",
+    "emmeans",
+    "formatters",
+    "generics",
+    "ggplot2",
+    "lifecycle",
+    "magrittr",
+    "mmrm",
+    "rlang",
+    "rtables",
+    "stats",
+    "tidyr",
+    "broom",
+    "grid",
+    "knitr",
+    "maditr",
+    "Matrix",
+    "rmarkdown",
+    "testthat",
+    "vdiffr"
+  ],
+  "tern.rbmi": [
+    "R",
+    "rbmi",
+    "tern",
+    "broom",
+    "checkmate",
+    "formatters",
+    "lifecycle",
+    "magrittr",
+    "rtables",
+    "dplyr",
+    "knitr",
+    "Matrix",
+    "rmarkdown",
+    "testthat",
+    "tidyr"
+  ],
+  "testit": [
+    "R"
+  ],
+  "testthat": [
+    "R",
+    "brio",
+    "callr",
+    "cli",
+    "desc",
+    "digest",
+    "ellipsis",
+    "evaluate",
+    "jsonlite",
+    "lifecycle",
+    "magrittr",
+    "methods",
+    "pkgload",
+    "praise",
+    "processx",
+    "ps",
+    "R6",
+    "rlang",
+    "utils",
+    "waldo",
+    "withr"
+  ],
+  "textshaping": [
+    "R",
+    "systemfonts",
+    "cpp11",
+    "systemfonts"
+  ],
+  "tfautograph": [
+    "R",
+    "reticulate",
+    "backports"
+  ],
+  "tfruns": [
+    "R",
+    "utils",
+    "jsonlite",
+    "base64enc",
+    "yaml",
+    "config",
+    "magrittr",
+    "whisker",
+    "tidyselect",
+    "rlang",
+    "rstudioapi",
+    "reticulate"
+  ],
+  "threejs": [
+    "R",
+    "igraph",
+    "htmlwidgets",
+    "base64enc",
+    "crosstalk",
+    "methods",
+    "stats"
+  ],
+  "tibble": [
+    "R",
+    "fansi",
+    "lifecycle",
+    "magrittr",
+    "methods",
+    "pillar",
+    "pkgconfig",
+    "rlang",
+    "utils",
+    "vctrs"
+  ],
+  "tidybayes": [
+    "R",
+    "methods",
+    "ggdist",
+    "dplyr",
+    "tidyr",
+    "ggplot2",
+    "coda",
+    "rlang",
+    "arrayhelpers",
+    "tidyselect",
+    "tibble",
+    "magrittr",
+    "posterior",
+    "withr",
+    "vctrs"
+  ],
+  "tidygraph": [
+    "tibble",
+    "dplyr",
+    "igraph",
+    "magrittr",
+    "utils",
+    "rlang",
+    "R6",
+    "tools",
+    "stats",
+    "tidyr",
+    "pillar",
+    "cli",
+    "cpp11"
+  ],
+  "tidyr": [
+    "R",
+    "dplyr",
+    "ellipsis",
+    "glue",
+    "lifecycle",
+    "magrittr",
+    "purrr",
+    "rlang",
+    "tibble",
+    "tidyselect",
+    "utils",
+    "vctrs",
+    "cpp11"
+  ],
+  "tidyselect": [
+    "R",
+    "cli",
+    "glue",
+    "lifecycle",
+    "rlang",
+    "vctrs",
+    "withr"
+  ],
+  "tidyverse": [
+    "R",
+    "broom",
+    "cli",
+    "crayon",
+    "dbplyr",
+    "dplyr",
+    "dtplyr",
+    "forcats",
+    "ggplot2",
+    "googledrive",
+    "googlesheets4",
+    "haven",
+    "hms",
+    "httr",
+    "jsonlite",
+    "lubridate",
+    "magrittr",
+    "modelr",
+    "pillar",
+    "purrr",
+    "readr",
+    "readxl",
+    "reprex",
+    "rlang",
+    "rstudioapi",
+    "rvest",
+    "stringr",
+    "tibble",
+    "tidyr",
+    "xml2"
+  ],
+  "timeDate": [
+    "R",
+    "graphics",
+    "utils",
+    "stats",
+    "methods"
+  ],
+  "timeSeries": [
+    "R",
+    "timeDate",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils",
+    "methods"
+  ],
+  "timereg": [
+    "R",
+    "survival",
+    "lava",
+    "numDeriv",
+    "stats",
+    "graphics",
+    "grDevices",
+    "utils",
+    "methods"
+  ],
+  "timevis": [
+    "R",
+    "htmltools",
+    "htmlwidgets",
+    "jsonlite",
+    "magrittr",
+    "methods",
+    "rmarkdown",
+    "shiny"
+  ],
+  "tinytex": [
+    "xfun"
+  ],
+  "tis": [
+    "R"
+  ],
+  "tm": [
+    "R",
+    "NLP",
+    "Rcpp",
+    "parallel",
+    "slam",
+    "stats",
+    "tools",
+    "utils",
+    "graphics",
+    "xml2",
+    "BH",
+    "Rcpp"
+  ],
+  "tmvnsim": [
+    "R"
+  ],
+  "topicmodels": [
+    "R",
+    "stats4",
+    "methods",
+    "modeltools",
+    "slam",
+    "tm"
+  ],
+  "trackr": [
+    "histry",
+    "fastdigest",
+    "ggplot2",
+    "lattice",
+    "gridGraphics",
+    "methods",
+    "CodeDepends",
+    "RJSONIO",
+    "rsolr",
+    "htmltools",
+    "miniUI",
+    "shiny",
+    "rmarkdown",
+    "roprov",
+    "rlang"
+  ],
+  "tree": [
+    "R",
+    "grDevices",
+    "graphics",
+    "stats"
+  ],
+  "treemap": [
+    "R",
+    "colorspace",
+    "data.table",
+    "ggplot2",
+    "grid",
+    "gridBase",
+    "igraph",
+    "methods",
+    "RColorBrewer",
+    "shiny"
+  ],
+  "treemapify": [
+    "R",
+    "ggplot2",
+    "ggfittext",
+    "grid"
+  ],
+  "triebeard": [
+    "Rcpp",
+    "Rcpp"
+  ],
+  "trimcluster": [
+    "R"
+  ],
+  "tripack": [
+    "R"
+  ],
+  "truncdist": [
+    "R",
+    "stats4",
+    "evd"
+  ],
+  "truncnorm": [
+    "R"
+  ],
+  "tseries": [
+    "R",
+    "graphics",
+    "stats",
+    "utils",
+    "quadprog",
+    "zoo",
+    "quantmod"
+  ],
+  "tufte": [
+    "htmltools",
+    "knitr",
+    "rmarkdown",
+    "xfun"
+  ],
+  "twang": [
+    "R",
+    "gbm",
+    "survey",
+    "xtable",
+    "lattice",
+    "latticeExtra",
+    "MatrixModels",
+    "data.table",
+    "ggplot2",
+    "xgboost"
+  ],
+  "tweenr": [
+    "R",
+    "farver",
+    "magrittr",
+    "rlang",
+    "vctrs",
+    "cpp11"
+  ],
+  "twitteR": [
+    "R",
+    "methods",
+    "bit64",
+    "rjson",
+    "DBI",
+    "httr"
+  ],
+  "tzdb": [
+    "R",
+    "cpp11"
+  ],
+  "ucminf": [
+    "R"
+  ],
+  "udunits2": [
+    "R"
+  ],
+  "units": [
+    "R",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "urca": [
+    "R",
+    "methods",
+    "nlme",
+    "graphics",
+    "stats"
+  ],
+  "urltools": [
+    "R",
+    "Rcpp",
+    "methods",
+    "triebeard",
+    "Rcpp"
+  ],
+  "uroot": [
+    "R",
+    "stats"
+  ],
+  "usethis": [
+    "R",
+    "cli",
+    "clipr",
+    "crayon",
+    "curl",
+    "desc",
+    "fs",
+    "gert",
+    "gh",
+    "glue",
+    "jsonlite",
+    "lifecycle",
+    "purrr",
+    "rappdirs",
+    "rlang",
+    "rprojroot",
+    "rstudioapi",
+    "stats",
+    "utils",
+    "whisker",
+    "withr",
+    "yaml"
+  ],
+  "utf8": [
+    "R"
+  ],
+  "uuid": [
+    "R"
+  ],
+  "vars": [
+    "R",
+    "MASS",
+    "strucchange",
+    "urca",
+    "lmtest",
+    "sandwich"
+  ],
+  "vcd": [
+    "R",
+    "grid",
+    "stats",
+    "utils",
+    "MASS",
+    "grDevices",
+    "colorspace",
+    "lmtest"
+  ],
+  "vcdExtra": [
+    "R",
+    "vcd",
+    "gnm",
+    "grid",
+    "MASS",
+    "grDevices",
+    "stats",
+    "utils",
+    "ca"
+  ],
+  "vctrs": [
+    "R",
+    "cli",
+    "glue",
+    "lifecycle",
+    "rlang"
+  ],
+  "vdiffr": [
+    "R",
+    "diffobj",
+    "glue",
+    "grDevices",
+    "htmltools",
+    "lifecycle",
+    "rlang",
+    "testthat",
+    "xml2",
+    "cpp11"
+  ],
+  "vegan": [
+    "permute",
+    "lattice",
+    "R",
+    "MASS",
+    "cluster",
+    "mgcv"
+  ],
+  "vioplot": [
+    "sm",
+    "zoo"
+  ],
+  "vipor": [
+    "R",
+    "stats",
+    "graphics"
+  ],
+  "viridis": [
+    "R",
+    "viridisLite",
+    "stats",
+    "ggplot2",
+    "gridExtra"
+  ],
+  "viridisLite": [
+    "R"
+  ],
+  "visNetwork": [
+    "R",
+    "htmlwidgets",
+    "htmltools",
+    "jsonlite",
+    "magrittr",
+    "utils",
+    "methods",
+    "grDevices",
+    "stats"
+  ],
+  "vistime": [
+    "R",
+    "rlang",
+    "assertive.types",
+    "plotly",
+    "ggplot2",
+    "ggrepel",
+    "RColorBrewer"
+  ],
+  "vroom": [
+    "R",
+    "bit64",
+    "cli",
+    "crayon",
+    "glue",
+    "hms",
+    "lifecycle",
+    "methods",
+    "rlang",
+    "stats",
+    "tibble",
+    "tidyselect",
+    "tzdb",
+    "vctrs",
+    "withr",
+    "cpp11",
+    "progress",
+    "tzdb"
+  ],
+  "vsn": [
+    "R",
+    "Biobase",
+    "methods",
+    "affy",
+    "limma",
+    "lattice",
+    "ggplot2"
+  ],
+  "waldo": [
+    "cli",
+    "diffobj",
+    "fansi",
+    "glue",
+    "methods",
+    "rematch2",
+    "rlang",
+    "tibble"
+  ],
+  "waveslim": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats",
+    "utils"
+  ],
+  "webdriver": [
+    "callr",
+    "base64enc",
+    "curl",
+    "debugme",
+    "httr",
+    "jsonlite",
+    "R6",
+    "showimage",
+    "utils",
+    "withr"
+  ],
+  "webshot": [
+    "R",
+    "magrittr",
+    "jsonlite",
+    "callr"
+  ],
+  "whisker": [
+    "R"
+  ],
+  "withr": [
+    "R",
+    "graphics",
+    "grDevices",
+    "stats"
+  ],
+  "wk": [
+    "R"
+  ],
+  "wordcloud": [
+    "methods",
+    "RColorBrewer",
+    "Rcpp",
+    "Rcpp"
+  ],
+  "writexl": [
+    "R"
+  ],
+  "xaringan": [
+    "htmltools",
+    "knitr",
+    "servr",
+    "xfun",
+    "rmarkdown"
+  ],
+  "xfun": [
+    "stats",
+    "tools"
+  ],
+  "xgboost": [
+    "R",
+    "Matrix",
+    "methods",
+    "data.table",
+    "jsonlite"
+  ],
+  "xgobi": [],
+  "xml2": [
+    "R",
+    "methods"
+  ],
+  "xmlparsedata": [
+    "R"
+  ],
+  "xopen": [
+    "R",
+    "processx"
+  ],
+  "xpose4": [
+    "R",
+    "lattice",
+    "Hmisc",
+    "survival",
+    "dplyr",
+    "tibble",
+    "methods",
+    "lazyeval",
+    "gam",
+    "splines",
+    "grid",
+    "readr"
+  ],
+  "xtable": [
+    "R",
+    "stats",
+    "utils"
+  ],
+  "xts": [
+    "zoo",
+    "methods",
+    "zoo"
+  ],
+  "yaml": [
+    "R"
+  ],
+  "zeallot": [
+    "R"
+  ],
+  "zip": [
+    "R"
+  ],
+  "zlibbioc": [
+    "R"
+  ],
+  "zoo": [
+    "R",
+    "stats",
+    "utils",
+    "graphics",
+    "grDevices",
+    "lattice"
+  ]
+}
