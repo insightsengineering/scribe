@@ -28,6 +28,7 @@ func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string
 }
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
+	log.Debugf("Parsing DESCRIPTION file: %s", descriptionFilePath)
 	jsonFile, _ := ioutil.ReadFile(descriptionFilePath)
 	return parseDescription(string(jsonFile))
 }
@@ -333,7 +334,7 @@ func getPackageDeps(
 	reposUrls []string,
 	packagesLocation map[string]struct{ PackageType, Location string },
 ) map[string][]string {
-
+	log.Debugf("Getting Package dependencies for %v", packages)
 	packagesSet := make(map[string]bool)
 	for _, p := range packages {
 		packagesSet[p] = true
@@ -365,10 +366,12 @@ func getPackageDeps(
 	for k := range packagesNoDeps {
 		info := packagesLocation[k]
 		if info.PackageType == "tar.gz" {
+			log.Debugf("Getting packages %s", k)
 			targzDeps := getPackageDepsFromTarGz(info.Location)
 			deps[k] = targzDeps
 		}
 	}
+	log.Debugf("Find %d packages with dependencies", len(deps))
 	return deps
 }
 
