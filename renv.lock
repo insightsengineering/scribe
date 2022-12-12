@@ -1126,6 +1126,11 @@
       "Repository": "CRAN",
       "Hash": "fb135751ed3f00f33890826823ebe332"
     },
+    "Rhdf5lib":{
+      "Package": "Rhdf5lib",
+      "Version": "1.14.2",
+      "Source": "Bioconductor"
+    }
     "Rmpfr": {
       "Package": "Rmpfr",
       "Version": "0.8-4",
