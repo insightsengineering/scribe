@@ -17,9 +17,9 @@ package cmd
 
 import (
 	"bufio"
-	"strings"
 	"io/ioutil"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/schollz/progressbar/v3"
@@ -107,6 +107,7 @@ func checkResultsReceiver(messages chan PackageCheckInfo,
 			writeJSON("allPackagesCheckInfo.json", allPackagesCheckInfo)
 
 			if receivedResults == totalPackages {
+				checkWaiter <- struct{}{}
 				break
 			}
 		default:
@@ -114,18 +115,44 @@ func checkResultsReceiver(messages chan PackageCheckInfo,
 			time.Sleep(time.Second)
 		}
 	}
-	checkWaiter <- struct{}{}
+}
+
+func runCmdCheck(cmdCheckChan chan string, packagePath string) {
+	log.Info("Checking package ", packagePath)
+	out, err := exec.Command("R", "CMD", "check", packagePath).CombinedOutput()
+	checkError(err)
+	cmdCheckChan <- string(out)
 }
 
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packagePath string) {
-	log.Info("Checking package ", packagePath)
-	out, err := exec.Command("R", "CMD", "check", packagePath).CombinedOutput()
-	checkError(err)
+	cmdCheckChan := make(chan string)
+	go runCmdCheck(cmdCheckChan, packagePath)
 	var singlePackageCheckInfo []ItemCheckInfo
-	parseCheckOutput(string(out), &singlePackageCheckInfo)
-	messages <- PackageCheckInfo{packagePath, singlePackageCheckInfo}
-	<-guard
+	var waitInterval = 1
+	var totalWaitTime = 0
+	var breakOuterLoop = false
+	// Wait until R CMD check completes
+	for {
+		select {
+		case msg := <-cmdCheckChan:
+			parseCheckOutput(msg, &singlePackageCheckInfo)
+			messages <- PackageCheckInfo{packagePath, singlePackageCheckInfo}
+			<-guard
+			breakOuterLoop = true
+			log.Info("R CMD check ", packagePath, " completed after ", totalWaitTime, "s")
+			break
+		default:
+			if totalWaitTime%5 == 0 {
+				log.Info("R CMD check ", packagePath, "... [", totalWaitTime, "s elapsed]")
+			}
+			time.Sleep(time.Duration(waitInterval) * time.Second)
+			totalWaitTime += waitInterval
+		}
+		if breakOuterLoop {
+			break
+		}
+	}
 }
 
 // TODO temporary function to run some R CMD checks in parallel
@@ -144,7 +171,7 @@ func checkPackages() {
 	for _, file := range files {
 		if !file.IsDir() {
 			guard <- struct{}{}
-			go checkSinglePackage(messages, guard, directoryPath + "/" + file.Name())
+			go checkSinglePackage(messages, guard, directoryPath+"/"+file.Name())
 		}
 	}
 
