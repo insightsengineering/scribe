@@ -19,7 +19,8 @@ import (
 func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string][]string) map[string]bool {
 	newmap := make(map[string]bool)
 	for k, v := range originMap {
-		if mapskeysToRemove[k] == nil || len(mapskeysToRemove[k]) == 0  {
+		if mapskeysToRemove[k] == nil || len(mapskeysToRemove[k]) == 0 ||
+			(len(mapskeysToRemove[k]) == 1 && mapskeysToRemove[k][0] == "") {
 			newmap[k] = v
 		}
 	}
@@ -28,7 +29,7 @@ func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string
 }
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
-	log.Debugf("Parsing DESCRIPTION file: %s", descriptionFilePath)
+	log.Tracef("Parsing DESCRIPTION file: %s", descriptionFilePath)
 	jsonFile, _ := ioutil.ReadFile(descriptionFilePath)
 	return parseDescription(string(jsonFile))
 }
@@ -398,4 +399,22 @@ func sortByCounter(counter map[string]int, nodes []string) []string {
 		return counter[nodes[i]] < counter[nodes[j]]
 	})
 	return nodes
+}
+
+func isDependencyFulfilled(packageName string, dependency map[string][]string, installedPackagesWithVersion map[string]string) bool {
+	log.Debugf("Checking if package %s has fulfilled dependencies", packageName)
+	deps := dependency[packageName]
+	if len(deps) > 0 {
+		for _, dep := range deps {
+			if v, ok := installedPackagesWithVersion[dep]; ok {
+				if v == "" {
+					return false
+				}
+			} else {
+				log.Debugf("Not all dependencies are installed. Eg.:%s", dep)
+				return false
+			}
+		}
+	}
+	return true
 }

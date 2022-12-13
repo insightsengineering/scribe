@@ -8,9 +8,32 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+
+func Test_isDependencyFulfilled(t *testing.T) {
+	packageName := "packageUnderTest"
+	cases := []struct {
+			graph map[string][]string,
+			installedPackages map[string]string,
+			isFulfilled bool
+			} {
+				{
+					map[string][]string {
+					{
+						packageName: []string{"dep1", "dep2"}}
+					},
+					map[string]string {},
+					false
+				}
+			}
+	for _, c := range cases {
+		isFulfilled := isDependencyFulfilled(packageName, c.graph, c.installedPackages)
+		assert.Equal(t, c.isFulfilled, isFulfilled)
+	}
+}
+
 func Test_getMapKeyDiffOrEmpty(t *testing.T) {
-	original := map[string]bool{"a": true, "b": false, "c": true, "e": false}
-	mapsKeysToRemove := map[string][]string{"b": {}, "c": {}, "d": {}}
+	original := map[string]bool{"a": true, "b": false, "c": true, "e": false, "f":true}
+	mapsKeysToRemove := map[string][]string{"b": {}, "c": {}, "d": {}, "f":{""}}
 
 	res := getMapKeyDiffOrEmpty(original, mapsKeysToRemove)
 

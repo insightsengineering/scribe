@@ -45,6 +45,27 @@ type InstallInfo struct {
 	OutputLocation string `json:"outputLocation"`
 }
 
+type InstallationInfo struct {
+	PackageName           string `json:"packageName"`
+	InstallationSucceeded bool   `json:"installationSucceeded"`
+}
+
+const (
+	InstallationStatusSucceeded = iota
+	InstallationStatusSkipped
+	InstallationStatusFailed
+)
+
+func mkLibPathDir(temporalLibPath string) {
+	for _, libPath := range strings.Split(temporalLibPath, ":") {
+		if _, err := os.Stat(libPath); os.IsNotExist(err) {
+			err := os.MkdirAll(libPath, os.ModePerm)
+			checkError(err)
+			log.Tracef("Created dir %s", libPath)
+		}
+	}
+}
+
 func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	log.Debug("Getting installed packages")
 	res := make(map[string]string)
@@ -59,7 +80,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 			}
 			for _, f := range files {
 				if f.IsDir() {
-					descFilePath := filepath.Join(libPath ,f.Name(), "DESCRIPTION")
+					descFilePath := filepath.Join(libPath, f.Name(), "DESCRIPTION")
 					log.Debugf("Checking file %s", descFilePath)
 					if _, errStat := os.Stat(descFilePath); errStat == nil {
 						descFilePaths = append(descFilePaths, descFilePath)
@@ -73,7 +94,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 				packageVersion := descItems["Version"]
 				if _, ok := res[packageName]; !ok {
 					res[packageName] = packageVersion
-				}else {
+				} else {
 					log.Tracef("Duplicated package %s with version %s under %s libPath", packageName, packageVersion, libPath)
 				}
 			}
@@ -84,7 +105,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 }
 
 func executeInstallation(outputLocation string, packageName string) error {
-	log.Debugf("Executing Installation step on package %s located in %s", packageName, outputLocation)
+	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
 	mkLibPathDir(packageLogPath)
 	logFilePath := filepath.Join(packageLogPath, packageName+".out")
 
@@ -97,18 +118,12 @@ func executeInstallation(outputLocation string, packageName string) error {
 
 	//cmd := "R CMD INSTALL --install-tests --configure-vars='LIB_DIR=" + libDirPath + "' -l " + temporalLibPath + " " + outputLocation
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
-	log.Trace("execCommand:"+ cmd)
+	log.Trace("execCommand:" + cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
 			"STRINGI_DISABLE_PKG_CONFIG=1",
-			//"LD_LIBRARY_PATH",
-			//"R_INCLUDE_DIR",
-			//"R_LIBS_SITE",
-			//"R_LIBS_USER",
-			//"PKG_LIBS",
-			//"PKG_CONFIG_PATH",
 		}, logFile)
 	if err != nil {
 		log.Error(cmd)
@@ -122,35 +137,18 @@ func installSinglePackage(
 	packageName string,
 	message chan InstallationInfo,
 	guard chan struct{},
+	installedPackages map[string]string,
 ) {
+	log.Info("Installing package %s", packageName)
 
-	executeInstallation(outputLocation, packageName)
+	err := executeInstallation(outputLocation, packageName)
 
-	//installationSucceeded := err != nil
-	//message <- InstallationInfo{packageName, installationSucceeded}
-	//<-guard
+	installationSucceeded := err != nil
+	message <- InstallationInfo{packageName, installationSucceeded}
+	installedPackages[packageName] = "v1"
+
+	<-guard
 }
-
-func mkLibPathDir(temporalLibPath string) {
-	for _, libPath := range strings.Split(temporalLibPath, ":") {
-		if _, err := os.Stat(libPath); os.IsNotExist(err) {
-			err := os.MkdirAll(libPath, os.ModePerm)
-			checkError(err)
-			log.Tracef("Created dir %s", libPath)
-		}
-	}
-}
-
-type InstallationInfo struct {
-	PackageName           string `json:"packageName"`
-	InstallationSucceeded bool   `json:"installationSucceeded"`
-}
-
-const (
-	InstallationStatusSucceeded =iota
-	InstallationStatusSkipped
-	InstallationStatusFailed
-)
 
 func installResultReceiver(
 	message chan InstallationInfo,
@@ -254,15 +252,19 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		writeJSON(readFile, depsOrdered)
 	}
 
-	installedPackage := getInstalledPackagesWithVersion([]string {temporalLibPath})
+	installedDeps := getInstalledPackagesWithVersion([]string{temporalLibPath})
 
 	messages := make(chan InstallationInfo)
-	maxDownloadRoutines := 10000
+	defer close(messages)
+
+	maxDownloadRoutines := 10
 	guard := make(chan struct{}, maxDownloadRoutines)
+	defer close(guard)
 
 	var successfulDownloads, failedDownloads int
 	totalPackages := len(renvLock.Packages)
 	installWaiter := make(chan struct{})
+	defer close(installWaiter)
 
 	go installResultReceiver(
 		messages,
@@ -274,17 +276,25 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	)
 
 	for i := 0; i < len(depsOrdered); i++ {
+		nextPackage := false
 		packageName := depsOrdered[i]
+		log.Tracef("Processing package %s", packageName)
 		if val, ok := packagesLocation[packageName]; ok {
-			guard <- struct{}{}
-			installedVer, isInstalled := installedPackage[packageName]
+			installedVer, isInstalled := installedDeps[packageName]
 			if !isInstalled || installedVer == "" {
-							//go
-							installSinglePackage(val.Location, packageName, messages, guard)
-
-			}else {
-				log.Debug("Package "+ packageName + " is already installed")
+				if isDependencyFulfilled(packageName, deps, installedDeps) {
+					guard <- struct{}{}
+					go installSinglePackage(val.Location, packageName, messages, guard, installedDeps)
+				}
+			} else {
+				log.Debug("Package " + packageName + " is already installed")
 			}
+		} else {
+			installedDeps[packageName] = "v1"
+		}
+
+		if nextPackage {
+			i++
 		}
 	}
 	<-installWaiter
