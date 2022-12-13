@@ -68,6 +68,15 @@ func mkLibPathDir(temporalLibPath string) {
 	}
 }
 
+func getInstalledPackagesWithVersionWithBaseRPackages(libPaths []string) map[string]string {
+	installedPackages := getInstalledPackagesWithVersion(libPaths)
+	basePackages := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base", "R"}
+	for _, p := range basePackages {
+		installedPackages[p] = ""
+	}
+	return installedPackages
+}
+
 func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	log.Debug("Getting installed packages")
 	res := make(map[string]string)
@@ -304,9 +313,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		writeJSON(readFile, depsOrdered)
 	}
 
-	installedDeps := getInstalledPackagesWithVersion([]string{temporalLibPath})
-	installedDeps["R"] = ""
-	installedDeps["utils"] = ""
+	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
 
 	messages := make(chan InstallationInfo)
 	defer close(messages)
