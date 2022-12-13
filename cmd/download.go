@@ -67,6 +67,8 @@ type DownloadInfo struct {
 	SavedBandwidth int64 `json:"savedBandwidth"`
 	// possible values: tar.gz, git, bioconductor or empty value in case of error
 	DownloadedPackageType string `json:"downloadedPackageType"`
+	PackageName    string `json:"packageName"`
+	PackageVersion string `json:"packageVersion"`
 }
 
 // Struct used to store data about tar.gz packages saved in local cache.
@@ -207,7 +209,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 //   - "notfound_bioc" means the package couldn't be found in Bioconductor
 //
 // * URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
-// * fallback URL - in case package can't be found in CRAN, it is downloaded in the newest available CRAN version
+// * fallback URL - in case specific package version can't be found in CRAN, it is downloaded in the newest available CRAN version
 // * location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
 // * fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
 // * number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
@@ -353,7 +355,8 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		} else {
 			packageType = "tar.gz"
 		}
-		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth, packageType}
+		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth,
+			packageType, packageName, packageVersion}
 	case download:
 		statusCode, contentLength := downloadFileFunction(packageURL, outputLocation)
 		if statusCode != http.StatusOK {
@@ -380,28 +383,29 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		} else {
 			packageType = "tar.gz"
 		}
-		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0, packageType}
+		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0, packageType,
+			 packageName, packageVersion}
 	case "notfound_bioc":
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
-			packageVersion + " in BioConductor.", 0, "", 0, ""}
+			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, ""}
 	case "github":
 		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git"}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, ""}
 		} else {
-			messages <- DownloadInfo{-2, message, 0, "", 0, ""}
+			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, ""}
 		}
 	case "gitlab":
 		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git"}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, ""}
 		} else {
-			messages <- DownloadInfo{-3, message, 0, "", 0, ""}
+			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, ""}
 		}
 	default:
-		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0, ""}
+		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0, "", "", ""}
 	}
 	<-guard
 }
@@ -535,8 +539,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 
 			*allDownloadInfo = append(
 				*allDownloadInfo,
-				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength,
-					msg.OutputLocation, msg.SavedBandwidth, msg.DownloadedPackageType},
+				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength, msg.OutputLocation,
+					msg.SavedBandwidth, msg.DownloadedPackageType, msg.PackageName, msg.PackageVersion},
 			)
 
 			if *successfulDownloads+*failedDownloads == totalPackages {

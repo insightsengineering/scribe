@@ -89,7 +89,12 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+		// downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+		// writeJSON("allDownloadInfo.json", allDownloadInfo)
+		readJSON("allDownloadInfo.json", &allDownloadInfo)
+		var reportData []ReportInfo
+		preprocessReportData(allDownloadInfo, &reportData)
+		writeReport(reportData, "outputReport.html")
 	},
 }
 

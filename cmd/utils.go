@@ -58,3 +58,11 @@ func writeJSON(filename string, j interface{}) int {
 
 	return len(s)
 }
+
+func readJSON(filename string, j interface{}) {
+	byteValue, err := os.ReadFile(filename)
+	checkError(err)
+
+	err = json.Unmarshal(byteValue, j)
+	checkError(err)
+}
