@@ -18,6 +18,8 @@ package cmd
 
 import (
 	"encoding/json"
+	"sync"
+
 	//"io/fs"
 	"io/ioutil"
 	"os"
@@ -138,8 +140,10 @@ func installSinglePackage(
 	message chan InstallationInfo,
 	guard chan struct{},
 	installedPackages map[string]string,
+	wg *sync.WaitGroup,
 ) {
-	log.Info("Installing package %s", packageName)
+	defer wg.Done()
+	log.Infof("Installing package %s", packageName)
 
 	err := executeInstallation(outputLocation, packageName)
 
@@ -275,6 +279,8 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		installWaiter,
 	)
 
+	wg := new(sync.WaitGroup)
+
 	for i := 0; i < len(depsOrdered); i++ {
 		nextPackage := false
 		packageName := depsOrdered[i]
@@ -284,7 +290,8 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 			if !isInstalled || installedVer == "" {
 				if isDependencyFulfilled(packageName, deps, installedDeps) {
 					guard <- struct{}{}
-					go installSinglePackage(val.Location, packageName, messages, guard, installedDeps)
+					wg.Add(1)
+					go installSinglePackage(val.Location, packageName, messages, guard, installedDeps, wg)
 				}
 			} else {
 				log.Debug("Package " + packageName + " is already installed")
@@ -297,6 +304,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 			i++
 		}
 	}
+	wg.Wait()
 	<-installWaiter
 
 	log.Info("Installation is done")
