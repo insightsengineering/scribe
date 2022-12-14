@@ -280,9 +280,6 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 							}
 						}
 					}
-					if len(packageDep) == 0 {
-						packageDep = append(packageDep, "R")
-					}
 					deps[packageName] = packageDep
 				}
 			}

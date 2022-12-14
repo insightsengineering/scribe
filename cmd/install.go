@@ -70,7 +70,7 @@ func mkLibPathDir(temporalLibPath string) {
 
 func getInstalledPackagesWithVersionWithBaseRPackages(libPaths []string) map[string]string {
 	installedPackages := getInstalledPackagesWithVersion(libPaths)
-	basePackages := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base", "R"}
+	basePackages := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base"}
 	for _, p := range basePackages {
 		installedPackages[p] = ""
 	}
@@ -127,7 +127,6 @@ func executeInstallation(outputLocation string, packageName string) error {
 		return logFileErr
 	}
 
-	//cmd := "R CMD INSTALL --install-tests --configure-vars='LIB_DIR=" + libDirPath + "' -l " + temporalLibPath + " " + outputLocation
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
 	output, err := execCommand(cmd, false, false,
@@ -140,6 +139,7 @@ func executeInstallation(outputLocation string, packageName string) error {
 		log.Error(cmd)
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
 	}
+	log.Infof("Executed Installation step on package %s located in %s", packageName, outputLocation)
 	return err
 }
 
@@ -156,6 +156,7 @@ func installSinglePackage(
 	wgmap map[string]*sync.WaitGroup,
 	mutexWillUnlock *sync.RWMutex,
 	mutexInstalled *sync.RWMutex,
+	waitList map[string]bool,
 ) {
 	defer wgGlobal.Done()
 	log.Tracef("Installing Single Package for package %s", packageName)
@@ -169,7 +170,7 @@ func installSinglePackage(
 			willUnlock[d] = append(willUnlock[d], packageName)
 			wg, ok := wgmap[packageName]
 			if ok {
-				log.Tracef("Lock for package %s. Dependencies on %v. It will unlock %v", packageName, dep, willUnlock[d])
+				log.Tracef("Raised by %s. Lock for package %s raise by %s. Dependencies on %v. It will unlock %v", d, packageName, d, dep, willUnlock[d])
 				wg.Add(1)
 			}
 			mutexWillUnlock.Unlock()
@@ -180,13 +181,18 @@ func installSinglePackage(
 	wg, ok := wgmap[packageName]
 	if ok {
 		log.Debugf("Installation for package %s needs to wait", packageName)
+		waitList[packageName] = true
+		log.Warnf("wg.Wait() waitList: %v", waitList)
 		wg.Wait()
+		waitList[packageName] = false
+		delete(waitList, packageName)
 	}
 
 	log.Infof("Installing package %s", packageName)
 
 	executeInstallation(outputLocation, packageName)
 
+	log.Tracef("Updating installedPackages object for package %s", packageName)
 	mutexInstalled.Lock()
 	installedPackages[packageName] = "v1"
 	mutexInstalled.Unlock()
@@ -195,20 +201,24 @@ func installSinglePackage(
 	//message <- InstallationInfo{packageName, installationSucceeded}
 	//installedPackages[packageName] = "v1"
 
+	log.Tracef("Package %s has been installed. Now, it will unlock next packages", packageName)
 	mutexWillUnlock.RLock()
 	unlock, ok := willUnlock[packageName]
 	if ok {
 		for _, p := range unlock {
 			wg, ok := wgmap[p]
 			if ok {
-				log.Tracef("Unlock for package %s", p)
+				log.Tracef("Unlocking for package %s", p)
+				log.Warnf("wg.Done() waitList: %v", waitList)
 				wg.Done()
+				log.Tracef("Unlocked for package %s", p)
 			}
 		}
 	}
 	mutexWillUnlock.RUnlock()
-
+	log.Tracef("Installed Single Package for package %s", packageName)
 	<-guard
+	log.Warnf("Installed Single Package waitList: %v", waitList)
 }
 
 func installResultReceiver(
@@ -287,8 +297,9 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	for _, v := range *allDownloadInfo {
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
 	}
+	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
 
-	var deps map[string][]string
+	deps := make(map[string][]string)
 	var depsOrdered []string
 
 	readFile := "deps.json"
@@ -297,7 +308,22 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		jsonFile, _ := ioutil.ReadFile(readFile)
 		json.Unmarshal(jsonFile, &deps)
 	} else {
-		deps = getPackageDeps(packages, renvLock.Bioconductor.Version, allDownloadInfo, reposUrls, packagesLocation)
+		depsAll := getPackageDeps(packages, renvLock.Bioconductor.Version, allDownloadInfo, reposUrls, packagesLocation)
+		for p, depAll := range depsAll {
+			if _, ok := packagesLocation[p]; ok {
+				dep := make([]string, 0)
+				for _, d := range depAll {
+					_, okInpackagesLocation := packagesLocation[d]
+					_, okInInstalledDeps := installedDeps[d]
+					if okInpackagesLocation || okInInstalledDeps {
+						dep = append(dep, d)
+					}
+				}
+				if len(dep) > 0 {
+					deps[p] = dep
+				}
+			}
+		}
 		writeJSON(readFile, deps)
 	}
 
@@ -312,8 +338,6 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		log.Debugf("TSorted %d packages. Ordered %d packages", len(deps), len(depsOrdered))
 		writeJSON(readFile, depsOrdered)
 	}
-
-	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
 
 	messages := make(chan InstallationInfo)
 	defer close(messages)
@@ -338,19 +362,22 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	wgGlobal := new(sync.WaitGroup)
 	wgmap := make(map[string]*sync.WaitGroup)
+	depsOrderedToInstall := make([]string, 0)
 	for _, packageName := range depsOrdered {
 		if _, ok := packagesLocation[packageName]; ok {
 			var waitgroup sync.WaitGroup
 			wgmap[packageName] = &waitgroup
+			depsOrderedToInstall = append(depsOrderedToInstall, packageName)
 		}
 	}
 
 	var mutexWillUnlock = sync.RWMutex{}
 	var mutexInstalled = sync.RWMutex{}
 	willUnlock := map[string][]string{}
+	waitList := map[string]bool{}
 
-	for i := 0; i < len(depsOrdered); i++ {
-		packageName := depsOrdered[i]
+	for i := 0; i < len(depsOrderedToInstall); i++ {
+		packageName := depsOrderedToInstall[i]
 		log.Tracef("Processing package %s", packageName)
 
 		if val, ok := packagesLocation[packageName]; ok {
@@ -363,6 +390,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 					messages, guard,
 					wgGlobal, wgmap,
 					&mutexWillUnlock, &mutexInstalled,
+					waitList,
 				)
 			} else {
 				log.Debug("Package " + packageName + " is already installed")
