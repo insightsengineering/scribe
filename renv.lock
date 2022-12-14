@@ -20,6 +20,13 @@
     "Version": "3.15"
   },
   "Packages": {
+    "Rhdf5lib": {
+      "Package": "Rhdf5lib",
+      "Version": "1.18.2",
+      "Source": "Bioconductor",
+      "Hash": "720badd4eb76a481fb97d65e08dc67f0",
+      "Requirements": []
+    },
     "Rhtslib": {
       "Package": "Rhtslib",
       "Version": "1.28.0",
