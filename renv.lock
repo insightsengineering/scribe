@@ -20,7 +20,41 @@
     "Version": "3.15"
   },
   "Packages": {
-
+    "KEGGREST": {
+      "Package": "KEGGREST",
+      "Version": "1.36.3",
+      "Source": "Bioconductor",
+      "Hash": "343c1821f29a5061d66b2bdb4e87da35"
+    },
+    "rtracklayer": {
+      "Package": "rtracklayer",
+      "Version": "1.56.1",
+      "Source": "Bioconductor",
+      "Hash": "fcd0a6d7691bb3aefb4608e6e0996095",
+      "Requirements": []
+    },
+    "BiocIO": {
+      "Package": "BiocIO",
+      "Version": "1.6.0",
+      "Source": "Bioconductor",
+      "Hash": "10f50bd6daf34cd11d222befa8829635",
+      "Requirements": []
+    },
+    "Biostrings": {
+      "Package": "Biostrings",
+      "Version": "2.64.1",
+      "Source": "Bioconductor",
+      "Hash": "a2b71046a5e013f4929b85937392a1f9",
+      "Requirements": []
+    },
+    "EnsemblRest": {
+      "Package": "EnsemblRest",
+      "Version": "1.5.3",
+      "Source": "Repository",
+      "Repository": "NEST_GHE",
+      "Hash": "cf4eb3606777f480772f19e4213b6baf",
+      "Requirements": []
+    },
     "annotate": {
       "Package": "annotate",
       "Version": "1.74.0",
@@ -2123,7 +2157,7 @@
     },
     "IRanges": {
       "Package": "IRanges",
-      "Version": "2.30.0",
+      "Version": "2.30.1",
       "Source": "Bioconductor",
       "Hash": "148fe882b25f679b03afc45da15e760c"
     },
