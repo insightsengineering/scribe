@@ -92,8 +92,8 @@ var rootCmd = &cobra.Command{
 		// downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 		// writeJSON("allDownloadInfo.json", allDownloadInfo)
 		readJSON("allDownloadInfo.json", &allDownloadInfo)
-		var reportData []ReportInfo
-		preprocessReportData(allDownloadInfo, &reportData)
+		var reportData ReportInfo
+		preprocessReportData(allDownloadInfo, &systemInfo, &reportData)
 		writeReport(reportData, "outputReport.html")
 	},
 }
