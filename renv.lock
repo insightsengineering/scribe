@@ -20,6 +20,28 @@
     "Version": "3.15"
   },
   "Packages": {
+    "Rsamtools": {
+      "Package": "Rsamtools",
+      "Version": "2.12.0",
+      "Source": "Bioconductor",
+      "Hash": "55e8c5ccea90dfc370e4abdbc5a01cb9",
+      "Requirements": []
+    },
+    "GenomicAlignments": {
+      "Package": "GenomicAlignments",
+      "Version": "1.32.1",
+      "Source": "Bioconductor",
+      "Hash": "e1e27b5fac829942cf1359555dfbed9a",
+      "Requirements": []
+    },
+    "restfulr": {
+      "Package": "restfulr",
+      "Version": "0.0.13",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "48d7ce4ee04cef63ae75d87bbb94b1f7",
+      "Requirements": []
+    },
     "KEGGREST": {
       "Package": "KEGGREST",
       "Version": "1.36.3",
