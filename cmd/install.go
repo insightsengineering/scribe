@@ -92,7 +92,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 			for _, f := range files {
 				if f.IsDir() {
 					descFilePath := filepath.Join(libPath, f.Name(), "DESCRIPTION")
-					log.Debugf("Checking file %s", descFilePath)
+					log.Tracef("Checking file %s", descFilePath)
 					if _, errStat := os.Stat(descFilePath); errStat == nil {
 						descFilePaths = append(descFilePaths, descFilePath)
 					}
@@ -185,17 +185,17 @@ func installSinglePackage(
 		log.Warnf("wg.Wait() waitList: %v", waitList)
 		wg.Wait()
 		waitList[packageName] = false
-		delete(waitList, packageName)
+		//delete(waitList, packageName)
 	}
 
 	log.Infof("Installing package %s", packageName)
 
-	executeInstallation(outputLocation, packageName)
-
-	log.Tracef("Updating installedPackages object for package %s", packageName)
-	mutexInstalled.Lock()
-	installedPackages[packageName] = "v1"
-	mutexInstalled.Unlock()
+	err := executeInstallation(outputLocation, packageName)
+	if err != nil {
+		mutexInstalled.Lock()
+		installedPackages[packageName] = "v1"
+		mutexInstalled.Unlock()
+	}
 
 	//installationSucceeded := err != nil
 	//message <- InstallationInfo{packageName, installationSucceeded}
@@ -393,7 +393,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 					waitList,
 				)
 			} else {
-				log.Debug("Package " + packageName + " is already installed")
+				log.Trace("Package " + packageName + " is already installed")
 			}
 		}
 	}
