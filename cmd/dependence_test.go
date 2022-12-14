@@ -105,7 +105,8 @@ func Test_getPackageDepsFromTarGz(t *testing.T) {
 }
 
 func Test_getPackageDepsFromRepositoryURLs(t *testing.T) {
-	deps := getPackageDepsFromRepositoryURLs([]string{"http://rkalvrexper.kau.roche.com:4242/roche-ghe@default/latest"},
+	deps := getPackageDepsFromRepositoryURLs(
+		[]string{"http://rkalvrexper.kau.roche.com:4242/roche-ghe@default/latest"},
 		map[string]bool{"ArtifactDB": true, "gp.auth": true})
 	assert.NotEmpty(t, deps)
 	assert.NotEmpty(t, deps["ArtifactDB"])
@@ -138,7 +139,7 @@ func Test_getPackageDepsFromBioconductor(t *testing.T) {
 
 func Test_getPackageDepsFromCrandb(t *testing.T) {
 	pkgs := []string{"ggplot2", "dplyr"}
-	packDeps := getPackageDepsFromCrandb(pkgs)
+	packDeps := getPackageDepsFromCrandb(toEmptyMapString(pkgs))
 
 	assert.NotEmpty(t, packDeps)
 	assert.Contains(t, packDeps["dplyr"], "rlang")
@@ -154,7 +155,7 @@ func Test_getPackageDepsFromCrandbWithChunk(t *testing.T) {
 
 func Test_getCrandbUrl(t *testing.T) {
 	pkgs := []string{"ggplot2"}
-	url := getCrandbUrl(pkgs)
+	url := getCrandbUrl(toEmptyMapString(pkgs))
 	assert.True(t, strings.Contains(url, "ggplot2"))
 }
 

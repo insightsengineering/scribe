@@ -157,10 +157,11 @@ func installSinglePackage(
 	mutexWillUnlock *sync.RWMutex,
 	mutexInstalled *sync.RWMutex,
 	waitList map[string]bool,
+	currentInstallation map[string]bool,
 ) {
 	defer wgGlobal.Done()
 	log.Tracef("Installing Single Package for package %s", packageName)
-
+	log.Tracef("currentInstallation: %v", currentInstallation)
 	dep := deps[packageName]
 	shouldWait := false
 	for _, d := range dep {
@@ -186,18 +187,20 @@ func installSinglePackage(
 		waitList[packageName] = true
 		log.Warnf("wg.Wait() waitList: %v", waitList)
 		wg.Wait()
-		//waitList[packageName] = false
 		delete(waitList, packageName)
 	}
 
 	log.Infof("Installing package %s", packageName)
 
+	currentInstallation[packageName] = true
 	err := executeInstallation(outputLocation, packageName)
+	delete(currentInstallation, packageName)
 	if err != nil {
 		mutexInstalled.Lock()
 		installedPackages[packageName] = "v1"
 		mutexInstalled.Unlock()
 	}
+	log.Tracef("currentInstallation: %v", currentInstallation)
 
 	//installationSucceeded := err != nil
 	//message <- InstallationInfo{packageName, installationSucceeded}
@@ -220,6 +223,7 @@ func installSinglePackage(
 	mutexWillUnlock.RUnlock()
 	log.Tracef("Installed Single Package for package %s", packageName)
 	log.Warnf("Installed Single Package waitList: %v", waitList)
+	log.Tracef("currentInstallation: %v", currentInstallation)
 	<-guard
 }
 
@@ -377,6 +381,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	var mutexInstalled = sync.RWMutex{}
 	willUnlock := map[string][]string{}
 	waitList := map[string]bool{}
+	currentInstallation := map[string]bool{}
 
 	for i := 0; i < len(depsOrderedToInstall); i++ {
 		packageName := depsOrderedToInstall[i]
@@ -393,6 +398,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 					wgGlobal, wgmap,
 					&mutexWillUnlock, &mutexInstalled,
 					waitList,
+					currentInstallation,
 				)
 			} else {
 				log.Trace("Package " + packageName + " is already installed")
