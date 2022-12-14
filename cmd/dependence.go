@@ -109,16 +109,20 @@ func removePackageVersionConstraints(packageVersion string) string {
 
 func getPackageDepsFromDescriptionFileContent(descriptionFileContent string, includeSuggests bool) []string {
 	deps := make([]string, 0)
-	desc := parseDescription(descriptionFileContent)
-	fields := getDependenciesFields(includeSuggests)
-	for _, field := range fields {
-		fieldLine := desc[field]
-		for _, pversionConstraints := range strings.Split(fieldLine, ",") {
-			p := removePackageVersionConstraints(pversionConstraints)
-			if p != "" {
-				deps = append(deps, p)
+	if descriptionFileContent != "" {
+		desc := parseDescription(descriptionFileContent)
+		fields := getDependenciesFields(includeSuggests)
+		for _, field := range fields {
+			fieldLine := desc[field]
+			for _, pversionConstraints := range strings.Split(fieldLine, ",") {
+				p := removePackageVersionConstraints(pversionConstraints)
+				if p != "" {
+					deps = append(deps, p)
+				}
 			}
 		}
+	} else {
+		log.Warnf("Cannot get Package dependencies from empty string")
 	}
 	return deps
 }
@@ -144,17 +148,20 @@ func getDependenciesFields(includeSuggests bool) []string {
 func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 	f, err := os.Open(tarGzFilePath)
 	if err != nil {
+		log.Tracef("Cannot open file %s", tarGzFilePath)
 		log.Error(err)
 	} else {
 		defer f.Close()
 		gzf, err := gzip.NewReader(f)
 		if err != nil {
+			log.Tracef("Cannot read tar.gz %v file", f)
 			log.Error(err)
 		} else {
 			tarReader := tar.NewReader(gzf)
 			for true {
 				header, err := tarReader.Next()
 				if err == io.EOF || err != nil {
+					log.Tracef("Got to EOF for %v  %s file", tarReader, tarGzFilePath)
 					log.Error(err)
 					break
 				}
@@ -164,6 +171,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 						data := make([]byte, header.Size)
 						_, err := tarReader.Read(data)
 						if err != nil {
+							log.Tracef("Cannot read DESCRIPTION file from zipped %s file", tarGzFilePath)
 							log.Error(err)
 						}
 						return string(data)
@@ -176,6 +184,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 }
 
 func getPackageDepsFromTarGz(tarGzFilePath string) []string {
+	log.Tracef("Getting dependencies from file %s", tarGzFilePath)
 	descContent := getDescriptionFileContentFromTargz(tarGzFilePath)
 	return getPackageDepsFromDescriptionFileContent(descContent, false)
 }
