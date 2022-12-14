@@ -120,9 +120,6 @@ func getPackageDepsFromDescriptionFileContent(descriptionFileContent string, inc
 			}
 		}
 	}
-	//if len(deps) == 0 {
-	//	deps = append(deps, "R")
-	//}
 	return deps
 }
 
@@ -133,9 +130,6 @@ func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggest
 		descriptionFileData, _ := ioutil.ReadFile(descFilePath)
 		deps = getPackageDepsFromDescriptionFileContent(string(descriptionFileData), includeSuggests)
 	}
-	//if len(deps) == 0 {
-	//	deps = append(deps, "R")
-	//}
 	return deps
 }
 
@@ -231,9 +225,6 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 					}
 				}
 			}
-			// if len(deps[p]) == 0 {
-			// 	deps[p] = append(deps[p], "R")
-			// }
 		}
 	}
 	return deps
