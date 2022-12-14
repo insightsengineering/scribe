@@ -162,6 +162,7 @@ func installSinglePackage(
 	log.Tracef("Installing Single Package for package %s", packageName)
 
 	dep := deps[packageName]
+	shouldWait := false
 	for _, d := range dep {
 		mutexInstalled.RLock()
 		_, ok := installedPackages[d]
@@ -172,6 +173,7 @@ func installSinglePackage(
 			if ok {
 				log.Tracef("Raised by %s. Lock for package %s raise by %s. Dependencies on %v. It will unlock %v", d, packageName, d, dep, willUnlock[d])
 				wg.Add(1)
+				shouldWait = true
 			}
 			mutexWillUnlock.Unlock()
 		}
@@ -179,13 +181,13 @@ func installSinglePackage(
 	}
 
 	wg, ok := wgmap[packageName]
-	if ok {
+	if ok && shouldWait {
 		log.Debugf("Installation for package %s needs to wait", packageName)
 		waitList[packageName] = true
 		log.Warnf("wg.Wait() waitList: %v", waitList)
 		wg.Wait()
-		waitList[packageName] = false
-		//delete(waitList, packageName)
+		//waitList[packageName] = false
+		delete(waitList, packageName)
 	}
 
 	log.Infof("Installing package %s", packageName)

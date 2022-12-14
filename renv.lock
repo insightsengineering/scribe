@@ -2072,7 +2072,7 @@
     },
     "IRanges": {
       "Package": "IRanges",
-      "Version": "2.20.2",
+      "Version": "2.30.0",
       "Source": "Bioconductor",
       "Hash": "148fe882b25f679b03afc45da15e760c"
     },
@@ -2888,22 +2888,14 @@
     },
     "rbmi": {
       "Package": "rbmi",
-      "Version": "1.1.4",
-      "Source": "Repository",
-      "Repository": "NEST_RSPM",
-      "Requirements": [
-        "BH",
-        "Matrix",
-        "R6",
-        "Rcpp",
-        "RcppEigen",
-        "RcppParallel",
-        "StanHeaders",
-        "assertthat",
-        "glmmTMB",
-        "rstan",
-        "rstantools"
-      ]
+      "Version": "1.2.3",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "insightsengineering",
+      "RemoteRepo": "rbmi",
+      "RemoteRef": "main",
+      "RemoteSha": "8ec299a637701dcc1c6afb20b38027e3a1932ce8"
     },
     "rcmdcheck": {
       "Package": "rcmdcheck",
@@ -3087,7 +3079,7 @@
     },
     "rice": {
       "Package": "rice",
-      "Version": "3.0",
+      "Version": "3.0.1",
       "Source": "Repository",
       "Repository": "NEST_GHE",
       "Hash": "21da43a66b962fa0bdcda306cc1a1381",
@@ -3726,7 +3718,7 @@
     },
     "teal.osprey": {
       "Package": "teal.osprey",
-      "Version": "0.1.14.9008",
+      "Version": "0.1.15",
       "Source": "Repository",
       "Repository": "NEST_RSPM"
     },
