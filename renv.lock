@@ -503,6 +503,18 @@
       "Hash": "7c01112d4a7528159c335b486a046101",
       "Requirements": []
     },
+    "MatrixGenerics":{
+      "Package": "MatrixGenerics",
+      "Version": "1.8.1",
+      "Source": "Bioconductor",
+      "Requirements": []
+    },
+    "GenomeInfoDb":{
+      "Package": "GenomeInfoDb",
+      "Version": "1.32.4",
+      "Source": "Bioconductor",
+      "Requirements": []
+    },
     "SingleCellExperiment": {
       "Package": "SingleCellExperiment",
       "Version": "1.18.0",
