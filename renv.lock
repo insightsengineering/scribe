@@ -20,6 +20,13 @@
     "Version": "3.15"
   },
   "Packages": {
+    "Rhtslib": {
+      "Package": "Rhtslib",
+      "Version": "1.28.0",
+      "Source": "Bioconductor",
+      "Hash": "b88f760ac9993107b94388100f136f43",
+      "Requirements": []
+    },
     "Rsamtools": {
       "Package": "Rsamtools",
       "Version": "2.12.0",
