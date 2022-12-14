@@ -2082,6 +2082,30 @@
       "Source": "Bioconductor",
       "Hash": "b2dabf833cc349c2cd9cba38de7af085"
     },
+    "XVector": {
+      "Package": "XVector",
+      "Version": "0.36.0",
+      "Source": "Bioconductor",
+      "Hash": "b72b7c53049b71fbfd0792fb7ec66987"
+    },
+    "genefilter": {
+      "Package": "genefilter",
+      "Version": "1.78.0",
+      "Source": "Bioconductor",
+      "Hash": "34fd072f5e71c40b799501f4956f9f77"
+    },
+    "geneplotter": {
+      "Package": "geneplotter",
+      "Version": "1.74.0",
+      "Source": "Bioconductor",
+      "Hash": "47eb16880df2f531689468c4073aebc4"
+    },
+    "DelayedArray": {
+      "Package": "DelayedArray",
+      "Version": "0.22.0",
+      "Source": "Bioconductor",
+      "Hash": "b6d613d1e53206ce39aa7a27a1704486"
+    },
     "igraph": {
       "Package": "igraph",
       "Version": "1.3.2",
