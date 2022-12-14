@@ -219,8 +219,8 @@ func installSinglePackage(
 	}
 	mutexWillUnlock.RUnlock()
 	log.Tracef("Installed Single Package for package %s", packageName)
-	<-guard
 	log.Warnf("Installed Single Package waitList: %v", waitList)
+	<-guard
 }
 
 func installResultReceiver(

@@ -20,6 +20,57 @@
     "Version": "3.15"
   },
   "Packages": {
+
+    "annotate": {
+      "Package": "annotate",
+      "Version": "1.74.0",
+      "Source": "Bioconductor",
+      "Hash": "48b73c5d046919eceb3867df75074b30"
+    },
+    "AnnotationDbi": {
+      "Package": "AnnotationDbi",
+      "Version": "1.58.0",
+      "Source": "Bioconductor",
+      "Hash": "48b73c5d046919eceb3867df75074b30"
+    },
+    "ArtifactDB": {
+      "Package": "ArtifactDB",
+      "Version": "1.0.35",
+      "Source": "Repository",
+      "Repository": "NEST_GHE",
+      "Hash": "81793ebdc5fcd52a62b0d703a6f5ef09",
+      "Requirements": []
+    },
+    "ShadowArray": {
+      "Package": "ShadowArray",
+      "Version": "0.99.26",
+      "Source": "Repository",
+      "Repository": "NEST_GHE",
+      "Hash": "6540231a205d4958e731c1abb338f44b",
+      "Requirements": []
+    },
+    "HDF5Array": {
+      "Package": "HDF5Array",
+      "Version": "1.24.2",
+      "Source": "Bioconductor",
+      "Hash": "04b03e15910f87fc66dc76cf5f396c7b",
+      "Requirements": []
+    },
+    "metacommons": {
+      "Package": "metacommons",
+      "Version": "1.5.0",
+      "Source": "Repository",
+      "Repository": "NEST_GHE",
+      "Hash": "00c4a58cb87f99df6b4ac8b30eccc597",
+      "Requirements": []
+    },
+    "genomitory": {
+      "Package": "genomitory",
+      "Version": "0.99.35",
+      "Source": "Repository",
+      "Repository": "NEST_GHE",
+      "Hash": "7f2a67f5c36cf2853524cb67bcbb7c26"
+    },
     "BH": {
       "Package": "BH",
       "Version": "1.78.0-0",
