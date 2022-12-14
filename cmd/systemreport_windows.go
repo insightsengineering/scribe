@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"golang.org/x/sys/windows/registry"
 	"fmt"
+	"golang.org/x/sys/windows/registry"
 	"strconv"
 )
 

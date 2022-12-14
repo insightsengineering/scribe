@@ -17,7 +17,7 @@ func Test_isDependencyFulfilled(t *testing.T) {
 	}{
 		{
 			map[string][]string{
-				packageName: []string{"dep1", "dep2"},
+				packageName: {"dep1", "dep2"},
 			},
 			map[string]string{},
 			false,

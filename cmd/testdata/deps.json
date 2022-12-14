@@ -3221,21 +3221,6 @@
     "vctrs",
     "systemfonts"
   ],
-  "ggformula": [
-    "R",
-    "ggplot2",
-    "ggstance",
-    "scales",
-    "ggridges",
-    "mosaicCore",
-    "rlang",
-    "magrittr",
-    "tibble",
-    "stringr",
-    "ggforce",
-    "grid",
-    "labelled"
-  ],
   "ggfortify": [
     "methods",
     "ggplot2",
@@ -4222,16 +4207,6 @@
   "labeling": [
     "stats",
     "graphics"
-  ],
-  "labelled": [
-    "R",
-    "haven",
-    "dplyr",
-    "lifecycle",
-    "rlang",
-    "vctrs",
-    "stringr",
-    "tidyr"
   ],
   "laeken": [
     "R",
@@ -7117,15 +7092,6 @@
     "knitr",
     "htmltools",
     "yaml"
-  ],
-  "tableone": [
-    "survey",
-    "MASS",
-    "e1071",
-    "zoo",
-    "gmodels",
-    "nlme",
-    "labelled"
   ],
   "tables": [
     "R",
