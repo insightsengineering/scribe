@@ -19,37 +19,47 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"fmt"
 )
 
 type ReportInfo struct {
 	PackageName         string `json:"packageName"`
 	PackageVersion      string `json:"packageVersion"`
-	DownloadStatusCode  int    `json:"statusCode"`
-	DownloadStatusColor string `json:"downloadStatusColor"`
+	DownloadStatusText  string `json:"downloadStatusText"`
+	DownloadHelp        string `json:"downloadHelp"`
 }
 
 func preprocessReportData(allDownloadInfo []DownloadInfo, reportData *[]ReportInfo) {
-	var downloadStatusColor string
+	var downloadStatusText string
+	var downloadHelp string
 	for _, p := range allDownloadInfo {
 		if p.StatusCode < 0 {
-			downloadStatusColor = "bg-danger"
+			downloadStatusText = "❌"
+			downloadHelp = "data-toggle=\"tooltip\" data-placement=\"right\" title=\"" + fmt.Sprint(p.StatusCode) + "\""
 		} else {
-			downloadStatusColor = "bg-success"
+			downloadStatusText = "✅"
+			downloadHelp = ""
 		}
 		*reportData = append(
 			*reportData,
-			ReportInfo{p.PackageName, p.PackageVersion, p.StatusCode, downloadStatusColor},
+			ReportInfo{p.PackageName, p.PackageVersion, downloadStatusText, downloadHelp},
 		)
 	}
 }
 
 func writeReport(reportData []ReportInfo, outputFile string) {
-	tmpl, err := template.ParseFiles("cmd/report/index.html")
+	funcMap := template.FuncMap{
+		"safe": func(s string) template.HTMLAttr {
+			return template.HTMLAttr(s)
+		 },
+	}
+	tmpl, err := template.New("index.html").Funcs(funcMap).ParseFiles("cmd/report/index.html")
 	checkError(err)
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	checkError(err)
 	reportFile, err := os.Create(outputFile)
 	checkError(err)
 	defer reportFile.Close()
-	tmpl.Execute(reportFile, reportData)
+	err = tmpl.ExecuteTemplate(reportFile, "index.html", reportData)
+	checkError(err)
 }

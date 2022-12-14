@@ -11,34 +11,80 @@
 
 <body>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
     crossorigin="anonymous"></script>
-  <div class="container text-center border border-dark">
-    <div class="row border border-dark">
-      <div class="col">
-        Package name
-      </div>
-      <div class="col">
-        Package version
-      </div>
-      <div class="col">
-        Status
-      </div>
+  <script src="https://code.jquery.com/jquery-3.6.2.slim.min.js"
+    integrity="sha256-E3P3OaTZH+HlEM7f1gdAT3lHAn4nWBZXuYe89DFg2d0=" crossorigin="anonymous"></script>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item active" id="statusPageNavItem">
+          <a class="nav-link" href="#" id="statusPageNavLink">Status</a>
+        </li>
+        <li class="nav-item" id="systemInfoNavItem">
+          <a class="nav-link" href="#" id="systemInfoNavLink">System info</a>
+        </li>
+      </ul>
     </div>
-    {{range .}}
-    <div class="row border">
-      <div class="col">
-        {{.PackageName}}
+  </nav>
+  <!-- Script for filtering table rows based on the case-insensitive search input -->
+  <script>
+    $(document).ready(function () {
+      $("#txtInputTable").on("keyup", function () {
+        var value = $(this).val().toLowerCase();
+        $(".not-header-row").filter(function () {
+          $(this).toggle($(this).text()
+            .toLowerCase().indexOf(value) > -1)
+        });
+      });
+    });
+    $(document).ready(function () {
+      $("#statusPage").show();
+      $("#systemInfo").hide();
+      $("#statusPageNavLink").click(function () {
+        $("#statusPage").show();
+        $("#statusPageNavItem").addClass("active");
+        $("#systemInfo").hide();
+        $("#systemInfoNavItem").removeClass("active");
+      });
+
+      $("#systemInfoNavLink").click(function () {
+        $("#systemInfo").show();
+        $("#systemInfoNavItem").addClass("active");
+        $("#statusPage").hide();
+        $("#statusPageNavItem").removeClass("active");
+      });
+    });
+  </script>
+
+  <div id="statusPage">
+    <input type="text" class="form-control" placeholder="Search Here" id="txtInputTable">
+    <br />
+    <div class="container text-center border border-dark">
+      <div class="row border border-dark">
+        <div class="col">
+          Package name
+        </div>
+        <div class="col">
+          Package version
+        </div>
+        <div class="col">
+          Status
+        </div>
       </div>
-      <div class="col">
-        {{.PackageVersion}}
+      <!-- go template iterating through all package information -->
+      {{range .}}
+      <div class="row border not-header-row">
+        <div class="col">{{.PackageName}}</div>
+        <div class="col">{{.PackageVersion}}</div>
+        <div class="col" {{.DownloadHelp | safe}}>{{.DownloadStatusText}}</div>
       </div>
-      <div class="col {{.DownloadStatusColor}}">
-        {{.DownloadStatusCode}}
-      </div>
+      {{end}}
     </div>
-    {{end}}
+  </div>
+  <div id="systemInfo">
+    System info will go here
   </div>
 </body>
 
