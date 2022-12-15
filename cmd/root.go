@@ -94,6 +94,7 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
+		os.MkdirAll(temporalCacheDirectory, os.ModePerm)
 		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
 		if _, err := os.Stat(downloadInfoFile); err == nil {
 			log.Info("Reading", downloadInfoFile)

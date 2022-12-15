@@ -147,6 +147,7 @@ func getDependenciesFields(includeSuggests bool) []string {
 }
 
 func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
+	res := ""
 	f, err := os.Open(tarGzFilePath)
 	if err != nil {
 		log.Tracef("Cannot open file %s", tarGzFilePath)
@@ -170,20 +171,23 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 				if name != "" && strings.HasSuffix(name, "DESCRIPTION") {
 					if header.Typeflag == tar.TypeReg {
 						data := make([]byte, header.Size)
-						_, err := tarReader.Read(data)
-						if err != nil {
-							if err != io.EOF {
-								log.Tracef("Cannot read DESCRIPTION file from zipped %s file", tarGzFilePath)
-								log.Error(err)
+						for {
+							_, err := tarReader.Read(data)
+							res += strings.Trim(string(data), "\x00")
+							if err != nil {
+								if err != io.EOF {
+									log.Tracef("Cannot read DESCRIPTION file from zipped %s file", tarGzFilePath)
+									log.Error(err)
+								}
+								return res
 							}
 						}
-						return string(data)
 					}
 				}
 			}
 		}
 	}
-	return ""
+	return res
 }
 
 func getPackageDepsFromTarGz(tarGzFilePath string) []string {

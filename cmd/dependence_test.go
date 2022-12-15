@@ -31,14 +31,14 @@ func Test_isDependencyFulfilled(t *testing.T) {
 
 func Test_getMapKeyDiffOrEmpty(t *testing.T) {
 	original := map[string]bool{"a": true, "b": false, "c": true, "e": false, "f": true}
-	mapsKeysToRemove := map[string][]string{"b": {}, "c": {}, "d": {}, "f": {""}}
+	mapsKeysToRemove := map[string][]string{"b": {"tex"}, "c": {"R"}, "d": {""}, "f": {""}}
 
 	res := getMapKeyDiffOrEmpty(original, mapsKeysToRemove)
 
 	assert.NotEmpty(t, res)
-	assert.Equal(t, map[string]bool{"a": true, "e": false}, res)
-	assert.Equal(t, map[string]bool{"a": true, "b": false, "c": true, "e": false}, original)
-	assert.Equal(t, map[string][]string{"b": {}, "c": {}, "d": {}}, mapsKeysToRemove)
+	assert.Equal(t, map[string]bool{"a": true, "e": false, "f": true}, res)
+	assert.Equal(t, map[string]bool{"a": true, "b": false, "c": true, "e": false, "f": true}, original)
+	assert.Equal(t, map[string][]string{"b": {"tex"}, "c": {"R"}, "d": {""}, "f": {""}}, mapsKeysToRemove)
 }
 
 func Test_parseDescriptionFile(t *testing.T) {
@@ -54,8 +54,6 @@ func Test_parseDescriptionFile(t *testing.T) {
 	for _, c := range cases {
 		kv := parseDescriptionFile(c.filename)
 		assert.Equal(t, c.fieldValue, kv[c.field])
-		pv := removePackageVersionConstraints(kv[c.field])
-		assert.Equal(t, c.extracted, pv)
 	}
 }
 
@@ -94,13 +92,14 @@ func Test_removePackageVersionConstraints(t *testing.T) {
 }
 
 func Test_getPackageDepsFromTarGz(t *testing.T) {
-	cases := []struct{ targz string }{
-		{"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz"},
-		{"testdata/targz/curl_4.3.2.tar.gz"},
+	cases := []struct{ targz, containsDep string }{
+		{"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz", "NominalLogisticBiplot"},
+		{"testdata/targz/curl_4.3.2.tar.gz", "R"},
 	}
 	for _, v := range cases {
 		deps := getPackageDepsFromTarGz(v.targz)
 		assert.NotEmpty(t, deps)
+		assert.True(t, slices.Contains(deps, v.containsDep))
 	}
 }
 
@@ -114,13 +113,11 @@ func Test_getPackageDepsFromRepositoryURLs(t *testing.T) {
 }
 
 func Test_getPackageDepsFromSinglePackageLocation(t *testing.T) {
-	//repoLocation := "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.code"
+	t.Skip("skipping integration test")
 	repoLocation := "testdata/BiocBaseUtils"
 	packDeps := getPackageDepsFromSinglePackageLocation(repoLocation, true)
-
 	assert.NotEmpty(t, packDeps)
 	assert.True(t, slices.Contains(packDeps, "R"))
-
 }
 
 func Test_getPackageDepsFromPackagesFile(t *testing.T) {

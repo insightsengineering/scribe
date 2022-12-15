@@ -7,11 +7,13 @@ import (
 )
 
 func Test_executeInstallation(t *testing.T) {
+	t.Skip("skipping integration test")
 	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils")
 	assert.NoError(t, err)
 }
 
 func Test_executeInstallationFromTargz(t *testing.T) {
+	t.Skip("skipping integration test")
 	cases := []struct{ targz, packageName string }{
 		{"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz", "OrdinalLogisticBiplot"},
 		{"testdata/targz/curl_4.3.2.tar.gz", "curl"},
