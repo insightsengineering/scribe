@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"sync"
 
-	//"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,14 +31,13 @@ import (
 
 const maxInstallRoutines = 40
 
-const temporalLibPath = "/tmp/scribe/installed_packages" //:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
-
+const temporalLibPath = "/tmp/scribe/installed_packages"
 const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
 
 const packageLogPath = "/tmp/scribe/installed_logs"
 
 // for LIB_DIR sys variable
-const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig" // /usr/lib/x86_64-linux-gnu/pkgconfig
+const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig"
 
 type InstallInfo struct {
 	StatusCode     int    `json:"statusCode"`
