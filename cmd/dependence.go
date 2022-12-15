@@ -134,6 +134,7 @@ func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggest
 		descriptionFileData, _ := ioutil.ReadFile(descFilePath)
 		deps = getPackageDepsFromDescriptionFileContent(string(descriptionFileData), includeSuggests)
 	}
+	log.Tracef("Filled %d packages with dependencies from SinglePackageLocation", len(deps))
 	return deps
 }
 
@@ -171,8 +172,10 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 						data := make([]byte, header.Size)
 						_, err := tarReader.Read(data)
 						if err != nil {
-							log.Tracef("Cannot read DESCRIPTION file from zipped %s file", tarGzFilePath)
-							log.Error(err)
+							if err != io.EOF {
+								log.Tracef("Cannot read DESCRIPTION file from zipped %s file", tarGzFilePath)
+								log.Error(err)
+							}
 						}
 						return string(data)
 					}
@@ -214,6 +217,7 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 			packagesWithVersionInChunk = make(map[string]string)
 		}
 	}
+	log.Tracef("Filled %d packages with dependencies from CrandbWithChunk", len(deps))
 	return deps
 }
 
@@ -247,6 +251,7 @@ func getPackageDepsFromRepositoryURLs(repositoryUrls []string, packages map[stri
 			deps[k] = v
 		}
 	}
+	log.Tracef("Filled %d packages with dependencies from Repository URLs", len(deps))
 	return deps
 }
 
@@ -295,6 +300,7 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 
 		}
 	}
+	log.Tracef("Filled %d packages with dependencies from PackagesFileContent", len(deps))
 	return deps
 }
 
@@ -322,6 +328,7 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 			deps[k] = depsBiocCategory[k]
 		}
 	}
+	log.Tracef("Filled %d packages with dependencies from Bioconductor", len(deps))
 	return deps
 }
 

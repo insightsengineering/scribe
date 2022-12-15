@@ -195,7 +195,7 @@ func installSinglePackage(
 
 	currentInstallation[packageName] = true
 	err := executeInstallation(outputLocation, packageName)
-	delete(currentInstallation, packageName)
+	currentInstallation[packageName] = false
 	if err != nil {
 		mutexInstalled.Lock()
 		installedPackages[packageName] = "v1"
