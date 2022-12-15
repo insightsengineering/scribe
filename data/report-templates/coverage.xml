@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.57289004" branch-rate="0" version="" timestamp="1671100213786" lines-covered="448" lines-valid="782" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.57289004" branch-rate="0" version="" timestamp="1671115626062" lines-covered="448" lines-valid="782" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -1321,15 +1321,16 @@
             </method>
             <method name="Execute" signature="" line-rate="0" branch-rate="0" complexity="0">
               <lines>
+                <line number="103" hits="0"></line>
                 <line number="104" hits="0"></line>
                 <line number="105" hits="0"></line>
                 <line number="106" hits="0"></line>
                 <line number="107" hits="0"></line>
-                <line number="108" hits="0"></line>
               </lines>
             </method>
             <method name="init" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
+                <line number="110" hits="2"></line>
                 <line number="111" hits="2"></line>
                 <line number="112" hits="2"></line>
                 <line number="113" hits="2"></line>
@@ -1344,11 +1345,11 @@
                 <line number="122" hits="2"></line>
                 <line number="123" hits="2"></line>
                 <line number="124" hits="2"></line>
-                <line number="125" hits="2"></line>
               </lines>
             </method>
             <method name="initConfig" signature="" line-rate="0" branch-rate="0" complexity="0">
               <lines>
+                <line number="127" hits="0"></line>
                 <line number="128" hits="0"></line>
                 <line number="129" hits="0"></line>
                 <line number="130" hits="0"></line>
@@ -1362,13 +1363,12 @@
                 <line number="138" hits="0"></line>
                 <line number="139" hits="0"></line>
                 <line number="140" hits="0"></line>
-                <line number="141" hits="0"></line>
+                <line number="142" hits="0"></line>
                 <line number="143" hits="0"></line>
                 <line number="144" hits="0"></line>
                 <line number="145" hits="0"></line>
                 <line number="146" hits="0"></line>
                 <line number="147" hits="0"></line>
-                <line number="148" hits="0"></line>
               </lines>
             </method>
           </methods>
@@ -1401,11 +1401,12 @@
             <line number="70" hits="0"></line>
             <line number="71" hits="0"></line>
             <line number="72" hits="0"></line>
+            <line number="103" hits="0"></line>
             <line number="104" hits="0"></line>
             <line number="105" hits="0"></line>
             <line number="106" hits="0"></line>
             <line number="107" hits="0"></line>
-            <line number="108" hits="0"></line>
+            <line number="110" hits="2"></line>
             <line number="111" hits="2"></line>
             <line number="112" hits="2"></line>
             <line number="113" hits="2"></line>
@@ -1420,7 +1421,7 @@
             <line number="122" hits="2"></line>
             <line number="123" hits="2"></line>
             <line number="124" hits="2"></line>
-            <line number="125" hits="2"></line>
+            <line number="127" hits="0"></line>
             <line number="128" hits="0"></line>
             <line number="129" hits="0"></line>
             <line number="130" hits="0"></line>
@@ -1434,13 +1435,12 @@
             <line number="138" hits="0"></line>
             <line number="139" hits="0"></line>
             <line number="140" hits="0"></line>
-            <line number="141" hits="0"></line>
+            <line number="142" hits="0"></line>
             <line number="143" hits="0"></line>
             <line number="144" hits="0"></line>
             <line number="145" hits="0"></line>
             <line number="146" hits="0"></line>
             <line number="147" hits="0"></line>
-            <line number="148" hits="0"></line>
           </lines>
         </class>
         <class name="-" filename="cmd/systemreport.go" line-rate="0.40625" branch-rate="0" complexity="0">
