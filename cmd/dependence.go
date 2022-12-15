@@ -333,19 +333,22 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 }
 
 func getPackageDeps(
-	packages []string,
+	//packages []string,
+	rpackages map[string]Rpackage,
 	bioconductorVersion string,
 	allDownloadInfo *[]DownloadInfo,
 	reposUrls []string,
 	packagesLocation map[string]struct{ PackageType, Location string },
 ) map[string][]string {
-	log.Debugf("Getting Package dependencies for %v", packages)
+	log.Debugf("Getting Package dependencies for %d packages", len(rpackages))
 	packagesSet := make(map[string]bool)
-	for _, p := range packages {
-		packagesSet[p] = true
+	packagesWithVersion := make(map[string]string)
+	for k, v := range rpackages {
+		packagesSet[k] = true
+		packagesWithVersion[k] = v.Version
 	}
 
-	deps := getPackageDepsFromCrandbWithChunk(toEmptyMapString(packages))
+	deps := getPackageDepsFromCrandbWithChunk(packagesWithVersion)
 	depsBioc := getPackageDepsFromBioconductor(packagesSet, bioconductorVersion)
 	for k, v := range depsBioc {
 		deps[k] = v

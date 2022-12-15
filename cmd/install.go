@@ -335,7 +335,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		jsonFile, _ := ioutil.ReadFile(readFile)
 		json.Unmarshal(jsonFile, &deps)
 	} else {
-		depsAll := getPackageDeps(packages, renvLock.Bioconductor.Version, allDownloadInfo, reposUrls, packagesLocation)
+		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, allDownloadInfo, reposUrls, packagesLocation)
 		for p, depAll := range depsAll {
 			if _, ok := packagesLocation[p]; ok {
 				dep := make([]string, 0)
