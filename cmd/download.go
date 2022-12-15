@@ -67,8 +67,8 @@ type DownloadInfo struct {
 	SavedBandwidth int64 `json:"savedBandwidth"`
 	// possible values: tar.gz, git, bioconductor or empty value in case of error
 	DownloadedPackageType string `json:"downloadedPackageType"`
-	PackageName    string `json:"packageName"`
-	PackageVersion string `json:"packageVersion"`
+	PackageName           string `json:"packageName"`
+	PackageVersion        string `json:"packageVersion"`
 }
 
 // Struct used to store data about tar.gz packages saved in local cache.
@@ -384,7 +384,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 			packageType = "tar.gz"
 		}
 		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0, packageType,
-			 packageName, packageVersion}
+			packageName, packageVersion}
 	case "notfound_bioc":
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
 			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, ""}
