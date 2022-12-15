@@ -160,6 +160,7 @@ func installSinglePackage(
 	currentInstallation map[string]bool,
 	mutexwaitList *sync.RWMutex,
 	mutexcurrentInstallation *sync.RWMutex,
+	mutexwgmap *sync.RWMutex,
 
 ) {
 	defer wgGlobal.Done()
@@ -173,17 +174,19 @@ func installSinglePackage(
 		if !ok {
 			mutexWillUnlock.Lock()
 			willUnlock[d] = append(willUnlock[d], packageName)
+			mutexwgmap.Lock()
 			wg, ok := wgmap[packageName]
 			if ok {
 				log.Tracef("Raised by %s. Lock for package %s raise by %s. Dependencies on %v. It will unlock %v", d, packageName, d, dep, willUnlock[d])
 				wg.Add(1)
 				shouldWait = true
 			}
+			mutexwgmap.Unlock()
 			mutexWillUnlock.Unlock()
 		}
 		mutexInstalled.RUnlock()
 	}
-
+	mutexwgmap.Lock()
 	wg, ok := wgmap[packageName]
 	if ok && shouldWait {
 		log.Debugf("Installation for package %s needs to wait", packageName)
@@ -201,6 +204,7 @@ func installSinglePackage(
 		delete(waitList, packageName)
 		mutexwaitList.Unlock()
 	}
+	mutexwgmap.Unlock()
 
 	log.Warnf("Installing package %s", packageName)
 
@@ -231,14 +235,20 @@ func installSinglePackage(
 	mutexWillUnlock.RUnlock()
 	if ok {
 		for _, p := range unlock {
+			mutexwgmap.Lock()
 			wg, ok := wgmap[p]
 			if ok {
 				log.Tracef("Unlocking for package %s", p)
+				mutexwaitList.RLock()
 				log.Warnf("wg.Done() waitList: %v", waitList)
+				mutexwaitList.RUnlock()
+				mutexcurrentInstallation.RLock()
 				log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
+				mutexcurrentInstallation.RUnlock()
 				wg.Done()
 				log.Tracef("Unlocked for package %s", p)
 			}
+			mutexwgmap.Unlock()
 		}
 	}
 
@@ -405,7 +415,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	currentInstallation := map[string]bool{}
 	var mutexwaitList = sync.RWMutex{}
 	var mutexcurrentInstallation = sync.RWMutex{}
-
+	var mutexwgmap = sync.RWMutex{}
 	for i := 0; i < len(depsOrderedToInstall); i++ {
 		packageName := depsOrderedToInstall[i]
 		log.Tracef("Processing package %s", packageName)
@@ -419,11 +429,13 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 					deps, installedDeps, willUnlock,
 					messages, guard,
 					wgGlobal, wgmap,
-					&mutexWillUnlock, &mutexInstalled,
+					&mutexWillUnlock,
+					&mutexInstalled,
 					waitList,
 					currentInstallation,
 					&mutexwaitList,
 					&mutexcurrentInstallation,
+					&mutexwgmap,
 				)
 			} else {
 				log.Trace("Package " + packageName + " is already installed")
