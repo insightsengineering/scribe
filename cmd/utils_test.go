@@ -40,12 +40,14 @@ func Test_writeJSON(t *testing.T) {
 }
 
 func Test_execCommand(t *testing.T) {
+	t.Skip("skipping integration test")
 	res, err := execCommand("R CMD", false, false, nil, nil)
 	assert.NotEmpty(t, res)
 	assert.Nil(t, err)
 }
 
 func Test_execCommandWithEnvs(t *testing.T) {
+	t.Skip("skipping integration test")
 	filePath := "Test_execCommandWithEnvs.log"
 	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 		os.Remove(filePath)
