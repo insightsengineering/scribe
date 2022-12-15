@@ -161,7 +161,7 @@ func installSinglePackage(
 ) {
 	defer wgGlobal.Done()
 	log.Tracef("Installing Single Package for package %s", packageName)
-	log.Tracef("currentInstallation: %v", currentInstallation)
+	log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
 	dep := deps[packageName]
 	shouldWait := false
 	for _, d := range dep {
@@ -186,11 +186,12 @@ func installSinglePackage(
 		log.Debugf("Installation for package %s needs to wait", packageName)
 		waitList[packageName] = true
 		log.Warnf("wg.Wait() waitList: %v", waitList)
+		log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
 		wg.Wait()
 		delete(waitList, packageName)
 	}
 
-	log.Infof("Installing package %s", packageName)
+	log.Warnf("Installing package %s", packageName)
 
 	currentInstallation[packageName] = true
 	err := executeInstallation(outputLocation, packageName)
@@ -200,7 +201,7 @@ func installSinglePackage(
 		installedPackages[packageName] = "v1"
 		mutexInstalled.Unlock()
 	}
-	log.Tracef("currentInstallation: %v", currentInstallation)
+	log.Warnf("currentInstallation: %v", currentInstallation)
 
 	//installationSucceeded := err != nil
 	//message <- InstallationInfo{packageName, installationSucceeded}
@@ -215,15 +216,16 @@ func installSinglePackage(
 			if ok {
 				log.Tracef("Unlocking for package %s", p)
 				log.Warnf("wg.Done() waitList: %v", waitList)
+				log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
 				wg.Done()
 				log.Tracef("Unlocked for package %s", p)
 			}
 		}
 	}
 	mutexWillUnlock.RUnlock()
-	log.Tracef("Installed Single Package for package %s", packageName)
+	log.Warnf("Installed Single Package for package %s", packageName)
 	log.Warnf("Installed Single Package waitList: %v", waitList)
-	log.Tracef("currentInstallation: %v", currentInstallation)
+	log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
 	<-guard
 }
 
