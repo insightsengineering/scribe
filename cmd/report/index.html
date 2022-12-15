@@ -20,7 +20,34 @@
         $(document).ready(function () {
             $('#packagesTable').DataTable();
         });
+        $(document).ready($(function () {
+            $('#systemInfo').hide();
+            $('#statusPage').show();
+            $('#navbarSystemInformation').click(function () {
+                $('#statusPage').hide();
+                $('#systemInfo').show();
+            });
+            $('#navbarReport').click(function () {
+                $('#systemInfo').hide();
+                $('#statusPage').show();
+            });
+
+        }));
     </script>
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark sticky-top">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navbarReport">Report</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navbarSystemInformation">System information</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <div id="statusPage">
         <table id="packagesTable" class="display">
             <thead>
@@ -44,8 +71,86 @@
             </tbody>
         </table>
     </div>
-    <br />
-    <a href="systemInfo.html">System information</a>
+    <div id="systemInfo">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Operating system</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.OperatingSystem}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Architecture</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.Architecture}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Kernel version</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.KernelVersion}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Pretty name</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.PrettyName}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">System packages</p>
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                        {{.SystemInformation.SystemPackages | safe}}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">R version</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.RVersion}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Time</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.Time}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Environment variables</p>
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                        {{.SystemInformation.EnvVariables | safe}}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Hostname</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.Hostname}}
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 

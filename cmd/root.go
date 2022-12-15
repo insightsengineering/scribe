@@ -97,7 +97,6 @@ var rootCmd = &cobra.Command{
 		err := os.MkdirAll("outputReport", os.ModePerm)
 		checkError(err)
 		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")
-		writeReport(reportData, "outputReport/systemInfo.html", "cmd/report/systemInfo.html")
 	},
 }
 
