@@ -169,69 +169,87 @@ func installSinglePackage(
 	dep := deps[packageName]
 	shouldWait := false
 	for _, d := range dep {
+		log.Warnf("0: %s", packageName)
 		mutexInstalled.RLock()
+		log.Warnf("1: %s", packageName)
+
 		_, ok := installedPackages[d]
 		if !ok {
-			mutexWillUnlock.Lock()
+			//mutexWillUnlock.RLock()
 			willUnlock[d] = append(willUnlock[d], packageName)
-			mutexWillUnlock.Unlock()
-
+			//mutexWillUnlock.RUnlock()
+			log.Warnf("2: %s", packageName)
 			mutexwgmap.Lock()
+			log.Warnf("3: %s", packageName)
+
 			wg, ok := wgmap[packageName]
 			if ok {
 				log.Tracef("Raised by %s. Lock for package %s raise by %s. Dependencies on %v. It will unlock %v", d, packageName, d, dep, willUnlock[d])
 				wg.Add(1)
 				shouldWait = true
 			}
+			log.Warnf("4: %s", packageName)
 			mutexwgmap.Unlock()
 		}
+		log.Warnf("5: %s", packageName)
 		mutexInstalled.RUnlock()
+		log.Warnf("5.1: %s", packageName)
 	}
-	mutexwgmap.Lock()
+	log.Warnf("5.2: %s", packageName)
+	mutexwgmap.RLock()
+	log.Warnf("5.3: %s", packageName)
 	wg, ok := wgmap[packageName]
+	mutexwgmap.RUnlock()
+	log.Warnf("5.4: %s", packageName)
 	if ok && shouldWait {
 		log.Debugf("Installation for package %s needs to wait", packageName)
+		log.Warnf("5.5: %s", packageName)
 		mutexwaitList.Lock()
 		waitList[packageName] = true
+		log.Warnf("5.6: %s", packageName)
 		mutexwaitList.Unlock()
+		log.Warnf("5.7: %s", packageName)
 		log.Warnf("wg.Wait()")
 		log.Warnf("%s waitList: %v", packageName, waitList)
 		log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
 		log.Warnf("%s installedPackages: %v", packageName, installedPackages)
 		log.Warnf("%s willUnlock: %v", packageName, willUnlock)
-
+		log.Warnf("5.8: %s", packageName)
 		wg.Wait()
+		log.Warnf("5.9: %s", packageName)
 		mutexwaitList.Lock()
+		log.Warnf("5.10: %s", packageName)
 		delete(waitList, packageName)
+		log.Warnf("5.11: %s", packageName)
 		mutexwaitList.Unlock()
 	}
-	mutexwgmap.Unlock()
+	log.Warnf("5.12: %s", packageName)
 
 	log.Warnf("Installing package %s", packageName)
 
-	log.Warnf("1: %s", packageName)
+	log.Warnf("6.1: %s", packageName)
 	mutexcurrentInstallation.Lock()
 	currentInstallation[packageName] = true
-	log.Warnf("2: %s", packageName)
+	log.Warnf("6.2: %s", packageName)
 	mutexcurrentInstallation.Unlock()
-	log.Warnf("3: %s", packageName)
+	log.Warnf("6.3: %s", packageName)
 
 	err := executeInstallation(outputLocation, packageName)
-	log.Warnf("4: %s", packageName)
+	log.Warnf("6.4: %s", packageName)
 
 	mutexcurrentInstallation.Lock()
 	currentInstallation[packageName] = false
-	log.Warnf("5: %s", packageName)
+	log.Warnf("6.5: %s", packageName)
 	mutexcurrentInstallation.Unlock()
-	log.Warnf("6: %s", packageName)
+	log.Warnf("6.6: %s", packageName)
 
 	if err != nil {
-		log.Warnf("7: %s", packageName)
+		log.Warnf("6.7: %s", packageName)
 		mutexInstalled.Lock()
 		installedPackages[packageName] = "v1"
-		log.Warnf("8: %s", packageName)
+		log.Warnf("6.8: %s", packageName)
 		mutexInstalled.Unlock()
-		log.Warnf("9: %s", packageName)
+		log.Warnf("6.9: %s", packageName)
 	}
 	log.Warnf("currentInstallation: %v", currentInstallation)
 
@@ -240,37 +258,37 @@ func installSinglePackage(
 	//installedPackages[packageName] = "v1"
 
 	log.Tracef("Package %s has been installed. Now, it will unlock next packages", packageName)
-	log.Warnf("10: %s", packageName)
+	log.Warnf("6.10: %s", packageName)
 	mutexWillUnlock.RLock()
-	log.Warnf("11: %s", packageName)
+	log.Warnf("6.11: %s", packageName)
 	unlock, ok := willUnlock[packageName]
 	mutexWillUnlock.RUnlock()
-	log.Warnf("12: %s", packageName)
+	log.Warnf("6.12: %s", packageName)
 	if ok {
 		for _, p := range unlock {
-			log.Warnf("13: %s", packageName)
-			mutexwgmap.Lock()
-			log.Warnf("14: %s", packageName)
+			log.Warnf("6.13: %s", packageName)
+			mutexwgmap.RLock()
+			log.Warnf("6.14: %s", packageName)
 			wg, ok := wgmap[p]
 			if ok {
 				log.Tracef("Unlocking for package %s", p)
-				log.Warnf("15: %s", packageName)
+				log.Warnf("6.15: %s", packageName)
 				mutexwaitList.RLock()
-				log.Warnf("16: %s", packageName)
+				log.Warnf("6.16: %s", packageName)
 				log.Warnf("wg.Done() waitList: %v", waitList)
-				log.Warnf("17: %s", packageName)
+				log.Warnf("6.17: %s", packageName)
 				mutexwaitList.RUnlock()
-				log.Warnf("18: %s", packageName)
+				log.Warnf("6.18: %s", packageName)
 				mutexcurrentInstallation.RLock()
-				log.Warnf("19: %s", packageName)
+				log.Warnf("6.19: %s", packageName)
 				log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
 				mutexcurrentInstallation.RUnlock()
-				log.Warnf("20: %s", packageName)
+				log.Warnf("6.20: %s", packageName)
 				wg.Done()
 				log.Tracef("Unlocked for package %s", p)
 			}
-			mutexwgmap.Unlock()
-			log.Warnf("21: %s", packageName)
+			mutexwgmap.RUnlock()
+			log.Warnf("6.21: %s", packageName)
 		}
 	}
 
