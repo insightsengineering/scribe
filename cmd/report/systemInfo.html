@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scribe report</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+
+<body>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+    <div id="systemInfo">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Operating system</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.OperatingSystem}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Architecture</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.Architecture}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Kernel version</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.KernelVersion}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Pretty name</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.PrettyName}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">System packages</p>
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                        {{.SystemInformation.SystemPackages | safe}}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">R version</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.RVersion}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Time</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.Time}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Environment variables</p>
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                        {{.SystemInformation.EnvVariables | safe}}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="fw-bold">Hostname</p>
+                </div>
+                <div class="col">
+                    {{.SystemInformation.Hostname}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

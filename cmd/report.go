@@ -19,15 +19,17 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
-	"fmt"
 	"net/http"
 	"strings"
+	"math/rand"
+	"time"
 )
 
 type PackagesData struct {
 	PackageName         string `json:"packageName"`
 	PackageVersion      string `json:"packageVersion"`
 	DownloadStatusText  string `json:"downloadStatusText"`
+	CheckStatusText     string `json:"checkStatusText"`
 }
 
 type ReportInfo struct {
@@ -36,26 +38,35 @@ type ReportInfo struct {
 }
 
 func preprocessReportData(allDownloadInfo []DownloadInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
+	rand.Seed(time.Now().UnixNano())
 	var downloadStatusText string
+	var checkStatusText string
 	for _, p := range allDownloadInfo {
 		if p.StatusCode != http.StatusOK {
 			var statusDescription string
 			switch p.StatusCode {
-			case -1: statusDescription = "package version could not be found in any BioConductor repository"
-			case -2: statusDescription = "error during cloning of GitHub repository"
-			case -3: statusDescription = "error during cloning of GitLab repository"
-			case -4: statusDescription = "network error during package download"
+			case -1: statusDescription = "BioC package not found"
+			case -2: statusDescription = "GitHub clone error"
+			case -3: statusDescription = "GitLab clone error"
+			case -4: statusDescription = "network error"
 			case 404: statusDescription = "package not found"
 			}
-			downloadStatusText = "<button type=\"button\" class=\"btn\"" +
-				"data-bs-toggle=\"tooltip\" data-bs-placement=\"left\" title=\"" +
-				fmt.Sprintf("Status %s: %s", fmt.Sprint(p.StatusCode), statusDescription) + "\">❌</button>"
+			downloadStatusText = "<span class=\"badge bg-danger\">" + statusDescription + "</span>"
 		} else {
-			downloadStatusText = "<button type=\"button\" class=\"btn\" disabled>✅</button>"
+			downloadStatusText = "<span class=\"badge bg-success\">OK</span>"
 		}
+		// TODO temporarily generate random check status
+		// This will have to be replaced by a real check status
+		badge := rand.Intn(4)
+		switch badge {
+			case 0: checkStatusText = "<span class=\"badge bg-success\">OK</span>"
+			case 1: checkStatusText = "<span class=\"badge bg-info text-dark\">check note(s)</span>"
+			case 2: checkStatusText = "<span class=\"badge bg-warning text-dark\">check warning(s)</span>"
+			case 3: checkStatusText = "<span class=\"badge bg-danger\">check error(s)</span>"
+			}
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
-			PackagesData{p.PackageName, p.PackageVersion, downloadStatusText},
+			PackagesData{p.PackageName, p.PackageVersion, downloadStatusText, checkStatusText},
 		)
 	}
 	reportOutput.SystemInformation = systemInfo
@@ -67,19 +78,20 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, systemInfo *SystemInfo
 		"\n", "<br />", -1)
 }
 
-func writeReport(reportData ReportInfo, outputFile string) {
+func writeReport(reportData ReportInfo, outputFile string, templateFile string) {
 	funcMap := template.FuncMap{
+		// Function required for inserting HTML code into the template.
 		"safe": func(s string) template.HTML {
 			return template.HTML(s)
 		 },
 	}
-	tmpl, err := template.New("index.html").Funcs(funcMap).ParseFiles("cmd/report/index.html")
+	tmpl, err := template.New(filepath.Base(templateFile)).Funcs(funcMap).ParseFiles(templateFile)
 	checkError(err)
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	checkError(err)
 	reportFile, err := os.Create(outputFile)
 	checkError(err)
 	defer reportFile.Close()
-	err = tmpl.ExecuteTemplate(reportFile, "index.html", reportData)
+	err = tmpl.ExecuteTemplate(reportFile, filepath.Base(templateFile), reportData)
 	checkError(err)
 }

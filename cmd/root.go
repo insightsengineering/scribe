@@ -94,7 +94,10 @@ var rootCmd = &cobra.Command{
 		readJSON("allDownloadInfo.json", &allDownloadInfo)
 		var reportData ReportInfo
 		preprocessReportData(allDownloadInfo, &systemInfo, &reportData)
-		writeReport(reportData, "outputReport.html")
+		err := os.MkdirAll("outputReport", os.ModePerm)
+		checkError(err)
+		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")
+		writeReport(reportData, "outputReport/systemInfo.html", "cmd/report/systemInfo.html")
 	},
 }
 
