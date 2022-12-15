@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -40,6 +41,8 @@ var log = logrus.New()
 // GitHub repositories are cloned into github subdirectory
 // GitLab repositories are cloned into gitlab subdirectory
 const localOutputDirectory = "/tmp/scribe/downloaded_packages"
+
+const temporalCacheDirectory = "/tmp/scribe/cache"
 
 var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
@@ -91,15 +94,15 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		readFile := "downloadInfo.json"
-		if _, err := os.Stat(readFile); err == nil {
-			log.Info("Reading", readFile)
-			jsonFile, _ := ioutil.ReadFile(readFile)
+		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
+		if _, err := os.Stat(downloadInfoFile); err == nil {
+			log.Info("Reading", downloadInfoFile)
+			jsonFile, _ := ioutil.ReadFile(downloadInfoFile)
 			json.Unmarshal(jsonFile, &allDownloadInfo)
 		} else {
-			log.Info("No", readFile)
+			log.Infof("No %s", downloadInfoFile)
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
-			writeJSON(readFile, &allDownloadInfo)
+			writeJSON(downloadInfoFile, &allDownloadInfo)
 		}
 		InstallPackages(renvLock, &allDownloadInfo)
 	},
