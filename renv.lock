@@ -20,6 +20,13 @@
     "Version": "3.15"
   },
   "Packages": {
+    "GenomeInfoDbData": {
+      "Package": "GenomeInfoDbData",
+      "Version": "1.2.8",
+      "Source": "Bioconductor",
+      "Hash": "89e8144e21da34e26b7c05945cefa3ca",
+      "Requirements": []
+    },
     "zlibbioc": {
       "Package": "zlibbioc",
       "Version": "1.42.0",
