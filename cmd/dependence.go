@@ -7,12 +7,10 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -32,7 +30,11 @@ func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
 	log.Tracef("Parsing DESCRIPTION file: %s", descriptionFilePath)
-	jsonFile, _ := ioutil.ReadFile(descriptionFilePath)
+	jsonFile, err := ioutil.ReadFile(descriptionFilePath)
+	if err != nil {
+		log.Errorf("Error reading DESCRIPTION file %v", err)
+		return map[string]string{}
+	}
 	return parseDescription(string(jsonFile))
 }
 
@@ -82,24 +84,28 @@ func request(url string) (string, error) {
 	} // #nosec
 	client := &http.Client{Transport: tr}
 	log.Tracef("Requesting %s" + url)
-	resp, err := client.Get(url)
-	checkError(err)
+	resp, errc := client.Get(url)
+	checkError(errc)
 
-	if err == nil {
+	if errc == nil {
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
-			b, err := io.ReadAll(resp.Body)
-			if err != nil {
-				log.Fatalln(err)
+			b, errr := io.ReadAll(resp.Body)
+			if errr != nil {
+				log.Error(errr)
+				errc = errr
 			}
 			return string(b), nil
 		}
 	}
-	return "", err
+	return "", errc
 }
 func getPackageContent() string {
 	url := "https://cloud.r-project.org/src/contrib/PACKAGES"
-	content, _ := request(url)
+	content, err := request(url)
+	if err != nil {
+		log.Errorf("Failed to get package content for URL %s", url)
+	}
 	return content
 }
 
@@ -133,7 +139,10 @@ func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggest
 	descFilePath := filepath.Join(repoLocation, "DESCRIPTION")
 	deps := make([]string, 0)
 	if _, err := os.Stat(descFilePath); !os.IsNotExist(err) {
-		descriptionFileData, _ := ioutil.ReadFile(descFilePath)
+		descriptionFileData, err := ioutil.ReadFile(descFilePath)
+		if err != nil {
+			log.Errorf("Cannot read DESCRIPTION file %s", descFilePath)
+		}
 		deps = getPackageDepsFromDescriptionFileContent(string(descriptionFileData), includeSuggests)
 	}
 	log.Tracef("Filled %d packages with dependencies from SinglePackageLocation", len(deps))
@@ -162,7 +171,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 			log.Error(err)
 		} else {
 			tarReader := tar.NewReader(gzf)
-			for true {
+			for {
 				header, err := tarReader.Next()
 				if err == io.EOF || err != nil {
 					log.Tracef("Got to EOF for %v  %s file", tarReader, tarGzFilePath)
@@ -212,12 +221,11 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 		chunkSize++
 
 		if chunkSize >= chunkMaxSize || (lastChunkNumber == chunkCounter && lastChunkSize == chunkSize) {
-			log.Debugf("Getting deps from Crandb service. Chunk #%d. Packages: %d", chunkCounter, len(packagesWithVersionInChunk))
+			log.Tracef("Getting deps from Crandb service. Chunk #%d. Packages: %d", chunkCounter, len(packagesWithVersionInChunk))
 			depsInChunk := getPackageDepsFromCrandb(packagesWithVersionInChunk)
 			for k, v := range depsInChunk {
 				deps[k] = v
 			}
-			writeJSON("deps_crandb_inChunk"+strconv.Itoa(chunkCounter)+".json", depsInChunk)
 			chunkCounter++
 			chunkSize = 0
 			packagesWithVersionInChunk = make(map[string]string)
@@ -229,12 +237,11 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 
 func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string][]string {
 	depsFields := getDependenciesFields(false)
-	url := getCrandbUrl(packagesWithVersion)
+	url := getCrandbURL(packagesWithVersion)
 	log.Trace("Request for package deps from CranDB on URL: " + url)
-	depsJson, _ := request(url)
+	depsJSON, _ := request(url)
 	var m map[string]map[string]map[string]string
-	json.Unmarshal([]byte(depsJson), &m)
-	writeJSON("deps_crandb_inChunk_unmarshal"+strconv.Itoa(rand.Intn(10000))+".json", m)
+	json.Unmarshal([]byte(depsJSON), &m)
 	deps := make(map[string][]string)
 	for k, v := range packagesWithVersion {
 		p := k
@@ -255,11 +262,11 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 	return deps
 }
 
-func getPackageDepsFromRepositoryURLs(repositoryUrls []string, packages map[string]bool) map[string][]string {
+func getPackageDepsFromRepositoryURLs(repositoryURLs []string, packages map[string]bool) map[string][]string {
 	deps := make(map[string][]string)
-	for _, url := range repositoryUrls {
-		depsForUrl := getPackageDepsFromRepositoryURL(url, packages)
-		for k, v := range depsForUrl {
+	for _, url := range repositoryURLs {
+		depsForURL := getPackageDepsFromRepositoryURL(url, packages)
+		for k, v := range depsForURL {
 			deps[k] = v
 		}
 	}
@@ -267,12 +274,12 @@ func getPackageDepsFromRepositoryURLs(repositoryUrls []string, packages map[stri
 	return deps
 }
 
-func getPackageDepsFromRepositoryURL(repositoryUrl string, packages map[string]bool) map[string][]string {
+func getPackageDepsFromRepositoryURL(repositoryURL string, packages map[string]bool) map[string][]string {
 	endPoint := "src/contrib/PACKAGES"
-	if !strings.HasSuffix(repositoryUrl, endPoint) {
-		repositoryUrl = repositoryUrl + "/" + endPoint
+	if !strings.HasSuffix(repositoryURL, endPoint) {
+		repositoryURL = repositoryURL + "/" + endPoint
 	}
-	content, err := request(repositoryUrl)
+	content, err := request(repositoryURL)
 	if err != nil {
 		log.Error(err)
 	} else {
@@ -294,22 +301,19 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 			err := yaml.Unmarshal([]byte(linegroup), &m)
 			if err != nil {
 				log.Fatalf("error: %v", err)
-			} else {
-				if len(m) > 1 {
-					packageDep := make([]string, 0)
-					for _, field := range depFields {
-						fieldLine := m[field]
-						for _, pversionConstraints := range strings.Split(fieldLine, ",") {
-							p := removePackageVersionConstraints(pversionConstraints)
-							if p != "" {
-								packageDep = append(packageDep, p)
-							}
+			} else if len(m) > 1 {
+				packageDep := make([]string, 0)
+				for _, field := range depFields {
+					fieldLine := m[field]
+					for _, pversionConstraints := range strings.Split(fieldLine, ",") {
+						p := removePackageVersionConstraints(pversionConstraints)
+						if p != "" {
+							packageDep = append(packageDep, p)
 						}
 					}
-					deps[packageName] = packageDep
 				}
+				deps[packageName] = packageDep
 			}
-
 		}
 	}
 	log.Tracef("Filled %d packages with dependencies from PackagesFileContent", len(deps))
@@ -317,7 +321,10 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 }
 
 func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]bool) map[string][]string {
-	packagesContent, _ := ioutil.ReadFile(packagesFilePath)
+	packagesContent, err := ioutil.ReadFile(packagesFilePath)
+	if err != nil {
+		log.Errorf("Cannot read file %s", packagesFilePath)
+	}
 	return getPackageDepsFromPackagesFileContent(string(packagesContent), packages)
 
 }
@@ -327,7 +334,7 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 
 	for _, biocCategory := range bioconductorCategories {
 		packageFileLocation := localOutputDirectory + "/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_"))
-		depsBiocCategory := make(map[string][]string)
+		var depsBiocCategory map[string][]string
 		if _, err := os.Stat(packageFileLocation); !os.IsNotExist(err) {
 			depsBiocCategory = getPackageDepsFromPackagesFile(packageFileLocation, packages)
 		} else {
@@ -347,7 +354,7 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 func getPackageDeps(
 	rpackages map[string]Rpackage,
 	bioconductorVersion string,
-	reposUrls []string,
+	reposURLs []string,
 	packagesLocation map[string]struct{ PackageType, Location string },
 ) map[string][]string {
 	log.Debugf("Getting Package dependencies for %d packages", len(rpackages))
@@ -364,7 +371,7 @@ func getPackageDeps(
 		deps[k] = v
 	}
 
-	depsRepos := getPackageDepsFromRepositoryURLs(reposUrls, packagesSet)
+	depsRepos := getPackageDepsFromRepositoryURLs(reposURLs, packagesSet)
 	for k, v := range depsRepos {
 		// it will not overwrite if package already exists
 		if _, ok := deps[k]; !ok {
@@ -386,7 +393,7 @@ func getPackageDeps(
 	packagesNoDeps := getMapKeyDiffOrEmpty(packagesSet, deps)
 	for k := range packagesNoDeps {
 		info := packagesLocation[k]
-		if info.PackageType == "tar.gz" {
+		if info.PackageType == targzExtensionFile {
 			log.Debugf("Getting packages %s", k)
 			targzDeps := getPackageDepsFromTarGz(info.Location)
 			deps[k] = targzDeps
@@ -396,7 +403,7 @@ func getPackageDeps(
 	return deps
 }
 
-func getCrandbUrl(packagesWithVersion map[string]string) string {
+func getCrandbURL(packagesWithVersion map[string]string) string {
 	acc := ""
 	for k, v := range packagesWithVersion {
 		if len(acc) > 0 {

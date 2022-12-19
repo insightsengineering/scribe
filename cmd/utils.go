@@ -100,7 +100,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	preParts := strings.FieldsFunc(command, f)
 	for i := range preParts {
 		part := preParts[i]
-		parts = append(parts, strings.Replace(part, "'", "", -1))
+		parts = append(parts, strings.ReplaceAll(part, "'", ""))
 	}
 
 	cmd := exec.Command(parts[0], parts[1:]...)
@@ -131,7 +131,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	}
 	err := cmd.Start()
 	if err != nil {
-		log.Fatalln(err)
+		log.Error(err)
 	}
 
 	if file != nil {
@@ -154,7 +154,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		}
 
 		err = cmd.Wait()
-		outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+		outStr, errStr := string(stdoutBuf.String()), string(stderrBuf.Bytes())
 		if err != nil {
 			if showOutput {
 				log.Println(errStr + outStr)

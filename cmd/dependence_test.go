@@ -156,9 +156,9 @@ func Test_getPackageDepsFromCrandbWithChunk(t *testing.T) {
 	assert.Contains(t, packDeps["childsds"], "tidyr")
 }
 
-func Test_getCrandbUrl(t *testing.T) {
+func Test_getCrandbURL(t *testing.T) {
 	pkgs := []string{"ggplot2"}
-	url := getCrandbUrl(toEmptyMapString(pkgs))
+	url := getCrandbURL(toEmptyMapString(pkgs))
 	assert.True(t, strings.Contains(url, "ggplot2"))
 }
 

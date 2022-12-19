@@ -23,20 +23,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
-
-	"github.com/schollz/progressbar/v3"
 )
-
-const maxInstallRoutines = 40
 
 const temporalLibPath = "/tmp/scribe/installed_packages"
 const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
 
 const packageLogPath = "/tmp/scribe/installed_logs"
-
-// for LIB_DIR sys variable
-const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig"
 
 type InstallInfo struct {
 	PackageName   string `json:"packageName"`
@@ -45,7 +37,9 @@ type InstallInfo struct {
 
 type InstallResultInfo struct {
 	InstallInfo
-	Status int `json:"status"`
+	PackageVersion string `json:"packageVersion"`
+	Status         int    `json:"status"`
+	LogFilePath    string `json:"logFilePath"`
 }
 
 const (
@@ -111,11 +105,8 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	return res
 }
 
-func executeInstallation(outputLocation string, packageName string) error {
+func executeInstallation(outputLocation, packageName, logFilePath string) error {
 	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
-	mkLibPathDir(packageLogPath)
-	logFilePath := filepath.Join(packageLogPath, packageName+".out")
-
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer logFile.Close()
 	if logFileErr != nil {
@@ -129,7 +120,6 @@ func executeInstallation(outputLocation string, packageName string) error {
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
-			"STRINGI_DISABLE_PKG_CONFIG=1",
 		}, logFile)
 	if err != nil {
 		log.Error(cmd)
@@ -143,64 +133,24 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 	for {
 		select {
 		case installInfo := <-installChan:
-			executeInstallation(installInfo.InputLocation, installInfo.PackageName)
+			logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
+			err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath)
+			packageVersion := ""
+			Status := InstallResultInfoStatusFailed
+			if err == nil {
+				descFilePath := filepath.Join(installInfo.InputLocation, installInfo.PackageName, "DESCRIPTION")
+				installedDesc := parseDescriptionFile(descFilePath)
+				packageVersion = installedDesc["Version"]
+				Status = InstallResultInfoStatusSucceeded
+			}
 			installResultChan <- InstallResultInfo{
-				InstallInfo: installInfo,
-				Status:      1,
+				InstallInfo:    installInfo,
+				Status:         Status,
+				PackageVersion: packageVersion,
+				LogFilePath:    logFilePath,
 			}
 		}
 	}
-}
-
-func installResultReceiver(
-	message chan InstallInfo,
-	successfulInstallation *int,
-	failedInstallation *int,
-	totalPackages int,
-	allInstallationInfo *[]InstallInfo,
-	installWaiter chan struct{},
-) {
-
-	*successfulInstallation = 0
-	*failedInstallation = 0
-	idleSeconds := 0
-	var bar progressbar.ProgressBar
-	if interactive {
-		bar = *progressbar.Default(
-			int64(totalPackages),
-			"Installing...",
-		)
-	}
-	const maxIdleSeconds = 20
-
-	for {
-		select {
-		case msg := <-message:
-			idleSeconds = 0
-			if interactive {
-				err := bar.Add(1)
-				checkError(err)
-			}
-
-			*allInstallationInfo = append(*allInstallationInfo, msg)
-
-			if *successfulInstallation+*failedInstallation == totalPackages {
-				// As soon as we got statuses for all packages we want to return to main routine.
-				idleSeconds = maxIdleSeconds
-			}
-		default:
-			time.Sleep(time.Second)
-			idleSeconds++
-		}
-		// Last maxIdleWaits attempts at receiving status from package downloader didn't yield any
-		// messages. Or all packages have been downloaded. Hence, we finish waiting for any other statuses.
-		if idleSeconds >= maxIdleSeconds {
-			break
-		}
-	}
-	// Signal to DownloadPackages function that all downloads have been completed.
-	installWaiter <- struct{}{}
-
 }
 
 func getOrderedDependencies(
@@ -211,9 +161,9 @@ func getOrderedDependencies(
 	deps := make(map[string][]string)
 	var depsOrdered []string
 
-	var reposUrls []string
+	var reposURLs []string
 	for _, v := range renvLock.R.Repositories {
-		reposUrls = append(reposUrls, v.URL)
+		reposURLs = append(reposURLs, v.URL)
 	}
 
 	readFile := filepath.Join(temporalCacheDirectory, "deps.json")
@@ -222,7 +172,7 @@ func getOrderedDependencies(
 		jsonFile, _ := ioutil.ReadFile(readFile)
 		json.Unmarshal(jsonFile, &deps)
 	} else {
-		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, reposUrls, packagesLocation)
+		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, reposURLs, packagesLocation)
 
 		for p, depAll := range depsAll {
 			if _, ok := packagesLocation[p]; ok {
@@ -241,7 +191,7 @@ func getOrderedDependencies(
 		}
 		writeJSON(readFile, deps)
 	}
-	//defer os.Remove(readFile)
+	defer os.Remove(readFile)
 
 	readFile = filepath.Join(temporalCacheDirectory, "depsOrdered.json")
 	if _, err := os.Stat(readFile); err == nil {
@@ -254,7 +204,7 @@ func getOrderedDependencies(
 		log.Debugf("TSorted %d packages. Ordered %d packages", len(deps), len(depsOrdered))
 		writeJSON(readFile, depsOrdered)
 	}
-	//defer os.Remove(readFile)
+	defer os.Remove(readFile)
 
 	depsOrderedToInstall := make([]string, 0)
 	for _, packageName := range depsOrdered {
@@ -269,6 +219,7 @@ func getOrderedDependencies(
 
 func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	mkLibPathDir(temporalLibPath)
+	mkLibPathDir(packageLogPath)
 
 	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
@@ -295,7 +246,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	}
 
 	minI := 0
-	maxI := 20
+	maxI := 20 // max number of parallel installing workers
 
 	// running packages which have no dependencies
 	counter := minI // number of currently installing packages in queue
@@ -317,13 +268,15 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	}
 
 	log.Tracef("running on channels")
+	installResultInfos := make([]InstallResultInfo, 0)
 Loop:
 	for {
 		select {
-		case installationInfo := <-installResultChan:
-			installing[installationInfo.PackageName] = false
-			processed[installationInfo.PackageName] = true
-			installedDeps[installationInfo.PackageName] = ""
+		case installResultInfo := <-installResultChan:
+			installResultInfos = append(installResultInfos, installResultInfo)
+			installing[installResultInfo.PackageName] = false
+			processed[installResultInfo.PackageName] = true
+			installedDeps[installResultInfo.PackageName] = ""
 			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
 				nextPackage := depsOrderedToInstall[i]
 				if !processed[nextPackage] {
@@ -331,25 +284,23 @@ Loop:
 						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
 							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location}
 							installing[nextPackage] = true
-							//} else {
-							//maxI++
 						}
 					}
 				} else {
 					if i == minI {
-						minI++
+						minI++ // increment if package with index minI has been installed
 						maxI++
 					}
 				}
 			}
 			if minI >= len(depsOrderedToInstall) {
-				log.Debugf("Installation is done")
-				installChan = nil
-				installResultChan = nil
 				break Loop
 			}
-			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installationInfo.PackageName, minI, maxI, installing, processed)
+			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
 		}
 	}
-	log.Info("Installation is done")
+	installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
+	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
+	writeJSON(installResultInfosFilePath, installResultInfos)
+	log.Infof("Installation for %d is done", len(installResultInfos))
 }

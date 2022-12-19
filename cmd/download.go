@@ -41,6 +41,7 @@ const bioConductorURL = "https://www.bioconductor.org/packages"
 const GitHub = "GitHub"
 const cache = "cache"
 const download = "download"
+const targzExtensionFile = "tar.gz"
 
 // Maximum number of concurrently running download goroutines.
 const maxDownloadRoutines = 40
@@ -353,7 +354,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		if strings.HasPrefix(packageURL, bioConductorURL) {
 			packageType = "bioconductor"
 		} else {
-			packageType = "tar.gz"
+			packageType = targzExtensionFile
 		}
 		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth, packageType, packageName}
 	case download:
@@ -380,7 +381,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		if strings.HasPrefix(packageURL, bioConductorURL) {
 			packageType = "bioconductor"
 		} else {
-			packageType = "tar.gz"
+			packageType = targzExtensionFile
 		}
 		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0, packageType, packageName}
 	case "notfound_bioc":

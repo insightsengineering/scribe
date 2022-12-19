@@ -94,7 +94,10 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		os.MkdirAll(temporalCacheDirectory, os.ModePerm)
+		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
+		if mkdirerr != nil {
+			log.Errorf("Cannot make dir %s %v", temporalCacheDirectory, mkdirerr)
+		}
 		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
 		if _, err := os.Stat(downloadInfoFile); err == nil {
 			log.Info("Reading", downloadInfoFile)
