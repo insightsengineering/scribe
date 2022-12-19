@@ -18,7 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -61,7 +60,7 @@ func Test_execCommandWithEnvs(t *testing.T) {
 	assert.NotEmpty(t, res)
 	assert.Nil(t, err)
 
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 
 	fmt.Print(content)
 	assert.NotEmpty(t, content)
@@ -69,9 +68,10 @@ func Test_execCommandWithEnvs(t *testing.T) {
 
 }
 
+// nolint
 func Test_tsort_many_packages(t *testing.T) {
 	var deps map[string][]string
-	jsonFile, _ := ioutil.ReadFile("testdata/deps.json")
+	jsonFile, _ := os.ReadFile("testdata/deps.json")
 	json.Unmarshal(jsonFile, &deps)
 	ordered := tsort(deps)
 	assert.NotEmpty(t, deps)

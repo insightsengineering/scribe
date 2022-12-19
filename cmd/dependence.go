@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,7 +29,7 @@ func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
 	log.Tracef("Parsing DESCRIPTION file: %s", descriptionFilePath)
-	jsonFile, err := ioutil.ReadFile(descriptionFilePath)
+	jsonFile, err := os.ReadFile(descriptionFilePath)
 	if err != nil {
 		log.Errorf("Error reading DESCRIPTION file %v", err)
 		return map[string]string{}
@@ -67,6 +66,7 @@ func cleanDescription(description string) string {
 			continue
 		}
 
+		// nolint: gocritic
 		if continuation && strings.HasPrefix(line, " ") {
 			content += line + "\n"
 		} else if line == "\n" {
@@ -93,7 +93,7 @@ func request(url string) (string, error) {
 			b, errr := io.ReadAll(resp.Body)
 			if errr != nil {
 				log.Error(errr)
-				errc = errr
+				return "", errr
 			}
 			return string(b), nil
 		}
@@ -139,7 +139,7 @@ func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggest
 	descFilePath := filepath.Join(repoLocation, "DESCRIPTION")
 	deps := make([]string, 0)
 	if _, err := os.Stat(descFilePath); !os.IsNotExist(err) {
-		descriptionFileData, err := ioutil.ReadFile(descFilePath)
+		descriptionFileData, err := os.ReadFile(descFilePath)
 		if err != nil {
 			log.Errorf("Cannot read DESCRIPTION file %s", descFilePath)
 		}
@@ -239,26 +239,33 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 	depsFields := getDependenciesFields(false)
 	url := getCrandbURL(packagesWithVersion)
 	log.Trace("Request for package deps from CranDB on URL: " + url)
-	depsJSON, _ := request(url)
-	var m map[string]map[string]map[string]string
-	json.Unmarshal([]byte(depsJSON), &m)
+	depsJSON, err := request(url)
+	if err != nil {
+		log.Errorf("Failed to get package deps from CranDB: %v", err)
+	}
 	deps := make(map[string][]string)
-	for k, v := range packagesWithVersion {
-		p := k
-		if v != "" {
-			p += "-" + v
-		}
-		if m[p] != nil {
-			for _, df := range depsFields {
-				if m[p][df] != nil {
-					for d := range m[p][df] {
-						deps[k] = append(deps[k], d)
+	var m map[string]map[string]map[string]string
+	errunmarshal := json.Unmarshal([]byte(depsJSON), &m)
+	if errunmarshal != nil {
+		log.Error(errunmarshal)
+	} else {
+		for k, v := range packagesWithVersion {
+			p := k
+			if v != "" {
+				p += "-" + v
+			}
+			if m[p] != nil {
+				for _, df := range depsFields {
+					if m[p][df] != nil {
+						for d := range m[p][df] {
+							deps[k] = append(deps[k], d)
+						}
 					}
 				}
 			}
 		}
+		log.Tracef("Get getPackageDepsFromCrandb %v", deps)
 	}
-	log.Tracef("Get getPackageDepsFromCrandb %v", deps)
 	return deps
 }
 
@@ -321,7 +328,7 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 }
 
 func getPackageDepsFromPackagesFile(packagesFilePath string, packages map[string]bool) map[string][]string {
-	packagesContent, err := ioutil.ReadFile(packagesFilePath)
+	packagesContent, err := os.ReadFile(packagesFilePath)
 	if err != nil {
 		log.Errorf("Cannot read file %s", packagesFilePath)
 	}

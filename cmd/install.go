@@ -19,7 +19,6 @@ package cmd
 import (
 	"encoding/json"
 
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,7 +74,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 			log.Debugf("Searching for installed package under %s", libPath)
 			descFilePaths := make([]string, 0)
 
-			files, err := ioutil.ReadDir(libPath)
+			files, err := os.ReadDir(libPath)
 			if err != nil {
 				log.Errorf("libPath: %s Error: %v", libPath, err)
 			}
@@ -108,11 +107,11 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 func executeInstallation(outputLocation, packageName, logFilePath string) error {
 	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-	defer logFile.Close()
 	if logFileErr != nil {
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, logFileErr, logFilePath)
 		return logFileErr
 	}
+	defer logFile.Close()
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
@@ -130,25 +129,22 @@ func executeInstallation(outputLocation, packageName, logFilePath string) error 
 }
 
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
-	for {
-		select {
-		case installInfo := <-installChan:
-			logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
-			err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath)
-			packageVersion := ""
-			Status := InstallResultInfoStatusFailed
-			if err == nil {
-				descFilePath := filepath.Join(installInfo.InputLocation, installInfo.PackageName, "DESCRIPTION")
-				installedDesc := parseDescriptionFile(descFilePath)
-				packageVersion = installedDesc["Version"]
-				Status = InstallResultInfoStatusSucceeded
-			}
-			installResultChan <- InstallResultInfo{
-				InstallInfo:    installInfo,
-				Status:         Status,
-				PackageVersion: packageVersion,
-				LogFilePath:    logFilePath,
-			}
+	for installInfo := range installChan {
+		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
+		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath)
+		packageVersion := ""
+		Status := InstallResultInfoStatusFailed
+		if err == nil {
+			descFilePath := filepath.Join(installInfo.InputLocation, installInfo.PackageName, "DESCRIPTION")
+			installedDesc := parseDescriptionFile(descFilePath)
+			packageVersion = installedDesc["Version"]
+			Status = InstallResultInfoStatusSucceeded
+		}
+		installResultChan <- InstallResultInfo{
+			InstallInfo:    installInfo,
+			Status:         Status,
+			PackageVersion: packageVersion,
+			LogFilePath:    logFilePath,
 		}
 	}
 }
@@ -169,8 +165,10 @@ func getOrderedDependencies(
 	readFile := filepath.Join(temporalCacheDirectory, "deps.json")
 	if _, err := os.Stat(readFile); err == nil {
 		log.Info("Reading", readFile)
-		jsonFile, _ := ioutil.ReadFile(readFile)
-		json.Unmarshal(jsonFile, &deps)
+		jsonFile, errr := os.ReadFile(readFile)
+		checkError(errr)
+		errunmarshal := json.Unmarshal(jsonFile, &deps)
+		checkError(errunmarshal)
 	} else {
 		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, reposURLs, packagesLocation)
 
@@ -196,8 +194,10 @@ func getOrderedDependencies(
 	readFile = filepath.Join(temporalCacheDirectory, "depsOrdered.json")
 	if _, err := os.Stat(readFile); err == nil {
 		log.Infof("Reading %s", readFile)
-		jsonFile, _ := ioutil.ReadFile(readFile)
-		json.Unmarshal(jsonFile, &depsOrdered)
+		jsonFile, errr := os.ReadFile(readFile)
+		checkError(errr)
+		errUnmarshal := json.Unmarshal(jsonFile, &depsOrdered)
+		checkError(errUnmarshal)
 	} else {
 		log.Debugf("TSorting %d packages", len(deps))
 		depsOrdered = tsort(deps)
@@ -217,6 +217,7 @@ func getOrderedDependencies(
 	return depsOrderedToInstall, deps
 }
 
+// nolint: gocyclo
 func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	mkLibPathDir(temporalLibPath)
 	mkLibPathDir(packageLogPath)
@@ -250,29 +251,39 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	// running packages which have no dependencies
 	counter := minI // number of currently installing packages in queue
-	for _, v := range depsOrderedToInstall {
-		log.Tracef("Checking %s", v)
-		_, ok := installedDeps[v]
+	installResultInfos := make([]InstallResultInfo, 0)
+
+	for _, p := range depsOrderedToInstall {
+		log.Tracef("Checking %s", p)
+		ver, ok := installedDeps[p]
 		if !ok {
-			if isDependencyFulfilled(v, deps, installedDeps) {
+			if isDependencyFulfilled(p, deps, installedDeps) {
 				counter++
-				log.Tracef("Triggering %s", v)
-				installing[v] = true
-				installChan <- InstallInfo{v, packagesLocation[v].Location}
+				log.Tracef("Triggering %s", p)
+				installing[p] = true
+				installChan <- InstallInfo{p, packagesLocation[p].Location}
 			}
 			if counter >= maxI {
 				log.Warnf("All the rest packages have dependencies. Counter:%d", counter)
 				break
 			}
+		} else {
+			installResultInfos = append(installResultInfos, InstallResultInfo{
+				InstallInfo: InstallInfo{
+					PackageName:   p,
+					InputLocation: packagesLocation[p].Location,
+				},
+				PackageVersion: ver,
+				LogFilePath:    "",
+				Status:         InstallResultInfoStatusSkipped,
+			})
 		}
 	}
 
-	log.Tracef("running on channels")
-	installResultInfos := make([]InstallResultInfo, 0)
-Loop:
-	for {
-		select {
-		case installResultInfo := <-installResultChan:
+	if len(installResultInfos) < len(depsOrderedToInstall) {
+		log.Tracef("running on channels")
+	Loop:
+		for installResultInfo := range installResultChan {
 			installResultInfos = append(installResultInfos, installResultInfo)
 			installing[installResultInfo.PackageName] = false
 			processed[installResultInfo.PackageName] = true
@@ -299,6 +310,7 @@ Loop:
 			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
 		}
 	}
+
 	installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
 	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
 	writeJSON(installResultInfosFilePath, installResultInfos)

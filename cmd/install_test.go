@@ -8,7 +8,7 @@ import (
 
 func Test_executeInstallation(t *testing.T) {
 	t.Skip("skipping integration test")
-	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils")
+	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out")
 	assert.NoError(t, err)
 }
 
@@ -23,7 +23,7 @@ func Test_executeInstallationFromTargz(t *testing.T) {
 		{"testdata/targz/tripack_1.3-9.1.tar.gz", "tripack"},
 	}
 	for _, v := range cases {
-		err := executeInstallation(v.targz, v.packageName)
+		err := executeInstallation(v.targz, v.packageName, v.packageName+".out")
 		assert.NoError(t, err)
 	}
 }

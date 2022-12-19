@@ -18,7 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -101,8 +100,10 @@ var rootCmd = &cobra.Command{
 		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
 		if _, err := os.Stat(downloadInfoFile); err == nil {
 			log.Info("Reading", downloadInfoFile)
-			jsonFile, _ := ioutil.ReadFile(downloadInfoFile)
-			json.Unmarshal(jsonFile, &allDownloadInfo)
+			jsonFile, errr := os.ReadFile(downloadInfoFile)
+			checkError(errr)
+			errUnmarshal := json.Unmarshal(jsonFile, &allDownloadInfo)
+			checkError(errUnmarshal)
 		} else {
 			log.Infof("No %s", downloadInfoFile)
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)

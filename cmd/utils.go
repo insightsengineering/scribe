@@ -79,6 +79,7 @@ func fillEnvFromSystem(envs []string) []string {
 }
 
 // Execute a system command
+// nolint: gocyclo
 func execCommand(command string, showOutput bool, returnOutput bool, envs []string, file *os.File) (string, error) {
 	lastQuote := rune(0)
 	f := func(c rune) bool {
@@ -120,8 +121,14 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	}
 
 	var stdoutBuf, stderrBuf bytes.Buffer
-	stdoutIn, _ := cmd.StdoutPipe()
-	stderrIn, _ := cmd.StderrPipe()
+	stdoutIn, stdoutInErr := cmd.StdoutPipe()
+	if stdoutInErr != nil {
+		log.Errorf("Cannot create STDOUT pipe")
+	}
+	stderrIn, stderrInErr := cmd.StderrPipe()
+	if stderrInErr != nil {
+		log.Errorf("Cannot create STDERR pipe")
+	}
 
 	var errStdout, errStderr error
 	var stdout, stderr io.Writer
@@ -154,7 +161,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		}
 
 		err = cmd.Wait()
-		outStr, errStr := string(stdoutBuf.String()), string(stderrBuf.Bytes())
+		outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 		if err != nil {
 			if showOutput {
 				log.Println(errStr + outStr)
@@ -198,11 +205,6 @@ func tsort(graph map[string][]string) (resultOrder []string) {
 		indegree[from] = len(tos)
 	}
 
-	//for to, degree := range outdegree {
-	//	if degree == 0 {
-	//		resultOrder = append(resultOrder, to)
-	//	}
-	//}
 	sort.Strings(resultOrder)
 
 	stack := []string{}
@@ -211,8 +213,8 @@ func tsort(graph map[string][]string) (resultOrder []string) {
 	dfs = func(node string, fvisited map[string]bool, fstack *[]string) {
 		fvisited[node] = true
 		for _, to := range sortByCounter(outdegree, graph[node]) {
-			if fvisited[to] == false {
-				dfs(to, fvisited, &*fstack)
+			if !fvisited[to] {
+				dfs(to, fvisited, fstack)
 			}
 		}
 		*fstack = append(*fstack, node)
@@ -226,7 +228,7 @@ func tsort(graph map[string][]string) (resultOrder []string) {
 	allNodes = sortByCounter(outdegree, allNodes)
 
 	for _, node := range allNodes {
-		if visited[node] == false {
+		if !visited[node] {
 			dfs(node, visited, &stack)
 		}
 
