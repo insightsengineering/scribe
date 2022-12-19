@@ -135,7 +135,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		packageVersion := ""
 		Status := InstallResultInfoStatusFailed
 		if err == nil {
-			descFilePath := filepath.Join(installInfo.InputLocation, installInfo.PackageName, "DESCRIPTION")
+			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
 			Status = InstallResultInfoStatusSucceeded

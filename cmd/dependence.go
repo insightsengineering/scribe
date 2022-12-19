@@ -240,32 +240,30 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 	url := getCrandbURL(packagesWithVersion)
 	log.Trace("Request for package deps from CranDB on URL: " + url)
 	depsJSON, err := request(url)
-	if err != nil {
-		log.Errorf("Failed to get package deps from CranDB: %v", err)
-	}
+	checkError(err)
 	deps := make(map[string][]string)
 	var m map[string]map[string]map[string]string
 	errunmarshal := json.Unmarshal([]byte(depsJSON), &m)
 	if errunmarshal != nil {
 		log.Error(errunmarshal)
-	} else {
-		for k, v := range packagesWithVersion {
-			p := k
-			if v != "" {
-				p += "-" + v
-			}
-			if m[p] != nil {
-				for _, df := range depsFields {
-					if m[p][df] != nil {
-						for d := range m[p][df] {
-							deps[k] = append(deps[k], d)
-						}
+	}
+
+	for k, v := range packagesWithVersion {
+		p := k
+		if v != "" {
+			p += "-" + v
+		}
+		if m[p] != nil {
+			for _, df := range depsFields {
+				if m[p][df] != nil {
+					for d := range m[p][df] {
+						deps[k] = append(deps[k], d)
 					}
 				}
 			}
 		}
-		log.Tracef("Get getPackageDepsFromCrandb %v", deps)
 	}
+	log.Tracef("Get getPackageDepsFromCrandb %v", deps)
 	return deps
 }
 

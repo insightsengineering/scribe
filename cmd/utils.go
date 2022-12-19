@@ -104,6 +104,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		parts = append(parts, strings.ReplaceAll(part, "'", ""))
 	}
 
+	// nolint: gosec
 	cmd := exec.Command(parts[0], parts[1:]...)
 	cmd.Env = os.Environ()
 
@@ -161,7 +162,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		}
 
 		err = cmd.Wait()
-		outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+		outStr, errStr := stdoutBuf.String(), stderrBuf.String()
 		if err != nil {
 			if showOutput {
 				log.Println(errStr + outStr)
