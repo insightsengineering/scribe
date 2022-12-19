@@ -1173,12 +1173,6 @@
     "utils",
     "methods"
   ],
-  "RocheTemplates": [
-    "R"
-  ],
-  "RocheTeradata": [
-    "R"
-  ],
   "Rook": [
     "R",
     "utils",

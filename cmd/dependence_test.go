@@ -1,3 +1,18 @@
+/*
+Copyright 2022 F. Hoffmann-La Roche AG
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package cmd
 
 import (
@@ -104,8 +119,9 @@ func Test_getPackageDepsFromTarGz(t *testing.T) {
 }
 
 func Test_getPackageDepsFromRepositoryURLs(t *testing.T) {
+	t.Skip("skipping integration test")
 	deps := getPackageDepsFromRepositoryURLs(
-		[]string{"http://rkalvrexper.kau.roche.com:4242/roche-ghe@default/latest"},
+		[]string{"https://cloud.r-project.org"},
 		map[string]bool{"ArtifactDB": true, "gp.auth": true})
 	assert.NotEmpty(t, deps)
 	assert.NotEmpty(t, deps["ArtifactDB"])
@@ -192,7 +208,7 @@ Title: Create Common TLGs used in Clinical Trials
 Version: 0.7.6.9037
 Date: 2022-01-27
 Authors@R: c(
-    person("NEST", , , "basel.nestcicd@roche.com", role = c("aut", "cre")),
+    person("NEST", , , "basel.nestcicd", role = c("aut", "cre")),
   )
 Description: Table, Listings, and Graphs (TLG) library for common outputs
     used in clinical trials.
