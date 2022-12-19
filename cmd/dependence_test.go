@@ -135,11 +135,17 @@ func Test_getPackageDepsFromBioconductor(t *testing.T) {
 }
 
 func Test_getPackageDepsFromCrandb(t *testing.T) {
-	pkgs := []string{"ggplot2", "dplyr"}
-	packDeps := getPackageDepsFromCrandb(toEmptyMapString(pkgs))
-
-	assert.NotEmpty(t, packDeps)
-	assert.Contains(t, packDeps["dplyr"], "rlang")
+	casetable := []struct {
+		pkgs map[string]string
+	}{
+		{map[string]string{"ggplot2": ""}},
+		{map[string]string{"ggplot2": "3.3.6"}},
+	}
+	for _, ps := range casetable {
+		packDeps := getPackageDepsFromCrandb(ps.pkgs)
+		assert.NotEmpty(t, packDeps)
+		assert.Contains(t, packDeps["ggplot2"], "rlang")
+	}
 }
 
 func Test_getPackageDepsFromCrandbWithChunk(t *testing.T) {

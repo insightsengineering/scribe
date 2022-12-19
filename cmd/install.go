@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"sync"
 
 	"io/ioutil"
 	"os"
@@ -40,20 +39,19 @@ const packageLogPath = "/tmp/scribe/installed_logs"
 const libDirPath = "/usr/lib/x86_64-linux-gnu/pkgconfig"
 
 type InstallInfo struct {
-	StatusCode     int    `json:"statusCode"`
-	Message        string `json:"message"`
-	OutputLocation string `json:"outputLocation"`
+	PackageName   string `json:"packageName"`
+	InputLocation string `json:"inputLocation"`
 }
 
-type InstallationInfo struct {
-	PackageName           string `json:"packageName"`
-	InstallationSucceeded bool   `json:"installationSucceeded"`
+type InstallResultInfo struct {
+	InstallInfo
+	Status int `json:"status"`
 }
 
 const (
-	InstallationStatusSucceeded = iota
-	InstallationStatusSkipped
-	InstallationStatusFailed
+	InstallResultInfoStatusSucceeded = iota
+	InstallResultInfoStatusSkipped
+	InstallResultInfoStatusFailed
 )
 
 func mkLibPathDir(temporalLibPath string) {
@@ -141,167 +139,25 @@ func executeInstallation(outputLocation string, packageName string) error {
 	return err
 }
 
-func installSinglePackage(
-	outputLocation string,
-	packageName string,
-	deps map[string][]string,
-	installedPackages map[string]string,
-	willUnlock map[string][]string,
-
-	message chan InstallationInfo,
-	guard chan struct{},
-	wgGlobal *sync.WaitGroup,
-	wgmap map[string]*sync.WaitGroup,
-	mutexWillUnlock *sync.RWMutex,
-	mutexInstalled *sync.RWMutex,
-	waitList map[string]bool,
-	currentInstallation map[string]bool,
-	mutexwaitList *sync.RWMutex,
-	mutexcurrentInstallation *sync.RWMutex,
-	mutexwgmap *sync.RWMutex,
-
-) {
-	defer wgGlobal.Done()
-	log.Tracef("Installing Single Package for package %s", packageName)
-	log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
-	dep := deps[packageName]
-	shouldWait := false
-	for _, d := range dep {
-		log.Warnf("0: %s", packageName)
-		mutexInstalled.RLock()
-		log.Warnf("1: %s", packageName)
-
-		_, ok := installedPackages[d]
-		if !ok {
-			//mutexWillUnlock.RLock()
-			willUnlock[d] = append(willUnlock[d], packageName)
-			//mutexWillUnlock.RUnlock()
-			log.Warnf("2: %s", packageName)
-			mutexwgmap.Lock()
-			log.Warnf("3: %s", packageName)
-
-			wg, ok := wgmap[packageName]
-			if ok {
-				log.Tracef("Raised by %s. Lock for package %s raise by %s. Dependencies on %v. It will unlock %v", d, packageName, d, dep, willUnlock[d])
-				wg.Add(1)
-				shouldWait = true
+func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
+	for {
+		select {
+		case installInfo := <-installChan:
+			executeInstallation(installInfo.InputLocation, installInfo.PackageName)
+			installResultChan <- InstallResultInfo{
+				InstallInfo: installInfo,
+				Status:      1,
 			}
-			log.Warnf("4: %s", packageName)
-			mutexwgmap.Unlock()
-		}
-		log.Warnf("5: %s", packageName)
-		mutexInstalled.RUnlock()
-		log.Warnf("5.1: %s", packageName)
-	}
-	log.Warnf("5.2: %s", packageName)
-	mutexwgmap.RLock()
-	log.Warnf("5.3: %s", packageName)
-	wg, ok := wgmap[packageName]
-	mutexwgmap.RUnlock()
-	log.Warnf("5.4: %s", packageName)
-	if ok && shouldWait {
-		log.Debugf("Installation for package %s needs to wait", packageName)
-		log.Warnf("5.5: %s", packageName)
-		mutexwaitList.Lock()
-		waitList[packageName] = true
-		log.Warnf("5.6: %s", packageName)
-		mutexwaitList.Unlock()
-		log.Warnf("5.7: %s", packageName)
-		log.Warnf("wg.Wait()")
-		log.Warnf("%s waitList: %v", packageName, waitList)
-		log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
-		log.Warnf("%s installedPackages: %v", packageName, installedPackages)
-		log.Warnf("%s willUnlock: %v", packageName, willUnlock)
-		log.Warnf("5.8: %s", packageName)
-		wg.Wait()
-		log.Warnf("5.9: %s", packageName)
-		mutexwaitList.Lock()
-		log.Warnf("5.10: %s", packageName)
-		delete(waitList, packageName)
-		log.Warnf("5.11: %s", packageName)
-		mutexwaitList.Unlock()
-	}
-	log.Warnf("5.12: %s", packageName)
-
-	log.Warnf("Installing package %s", packageName)
-
-	log.Warnf("6.1: %s", packageName)
-	mutexcurrentInstallation.Lock()
-	currentInstallation[packageName] = true
-	log.Warnf("6.2: %s", packageName)
-	mutexcurrentInstallation.Unlock()
-	log.Warnf("6.3: %s", packageName)
-
-	err := executeInstallation(outputLocation, packageName)
-	log.Warnf("6.4: %s", packageName)
-
-	mutexcurrentInstallation.Lock()
-	currentInstallation[packageName] = false
-	log.Warnf("6.5: %s", packageName)
-	mutexcurrentInstallation.Unlock()
-	log.Warnf("6.6: %s", packageName)
-
-	if err != nil {
-		log.Warnf("6.7: %s", packageName)
-		mutexInstalled.Lock()
-		installedPackages[packageName] = "v1"
-		log.Warnf("6.8: %s", packageName)
-		mutexInstalled.Unlock()
-		log.Warnf("6.9: %s", packageName)
-	}
-	log.Warnf("currentInstallation: %v", currentInstallation)
-
-	//installationSucceeded := err != nil
-	//message <- InstallationInfo{packageName, installationSucceeded}
-	//installedPackages[packageName] = "v1"
-
-	log.Tracef("Package %s has been installed. Now, it will unlock next packages", packageName)
-	log.Warnf("6.10: %s", packageName)
-	mutexWillUnlock.RLock()
-	log.Warnf("6.11: %s", packageName)
-	unlock, ok := willUnlock[packageName]
-	mutexWillUnlock.RUnlock()
-	log.Warnf("6.12: %s", packageName)
-	if ok {
-		for _, p := range unlock {
-			log.Warnf("6.13: %s", packageName)
-			mutexwgmap.RLock()
-			log.Warnf("6.14: %s", packageName)
-			wg, ok := wgmap[p]
-			if ok {
-				log.Tracef("Unlocking for package %s", p)
-				log.Warnf("6.15: %s", packageName)
-				mutexwaitList.RLock()
-				log.Warnf("6.16: %s", packageName)
-				log.Warnf("wg.Done() waitList: %v", waitList)
-				log.Warnf("6.17: %s", packageName)
-				mutexwaitList.RUnlock()
-				log.Warnf("6.18: %s", packageName)
-				mutexcurrentInstallation.RLock()
-				log.Warnf("6.19: %s", packageName)
-				log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
-				mutexcurrentInstallation.RUnlock()
-				log.Warnf("6.20: %s", packageName)
-				wg.Done()
-				log.Tracef("Unlocked for package %s", p)
-			}
-			mutexwgmap.RUnlock()
-			log.Warnf("6.21: %s", packageName)
 		}
 	}
-
-	log.Warnf("Installed Single Package for package %s", packageName)
-	log.Warnf("Installed Single Package waitList: %v", waitList)
-	log.Warnf("%s currentInstallation: %v", packageName, currentInstallation)
-	<-guard
 }
 
 func installResultReceiver(
-	message chan InstallationInfo,
+	message chan InstallInfo,
 	successfulInstallation *int,
 	failedInstallation *int,
 	totalPackages int,
-	allInstallationInfo *[]InstallationInfo,
+	allInstallationInfo *[]InstallInfo,
 	installWaiter chan struct{},
 ) {
 
@@ -320,12 +176,6 @@ func installResultReceiver(
 	for {
 		select {
 		case msg := <-message:
-
-			if msg.InstallationSucceeded {
-				*successfulInstallation++
-			} else {
-				*failedInstallation++
-			}
 			idleSeconds = 0
 			if interactive {
 				err := bar.Add(1)
@@ -353,29 +203,18 @@ func installResultReceiver(
 
 }
 
-func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
-	mkLibPathDir(temporalLibPath)
-
-	var installationInfo []InstallationInfo
-
-	packages := make([]string, 0, len(renvLock.Packages))
-	for _, p := range renvLock.Packages {
-		packages = append(packages, p.Package)
-	}
+func getOrderedDependencies(
+	renvLock Renvlock,
+	packagesLocation map[string]struct{ PackageType, Location string },
+	installedDeps map[string]string,
+) ([]string, map[string][]string) {
+	deps := make(map[string][]string)
+	var depsOrdered []string
 
 	var reposUrls []string
 	for _, v := range renvLock.R.Repositories {
 		reposUrls = append(reposUrls, v.URL)
 	}
-
-	packagesLocation := make(map[string]struct{ PackageType, Location string })
-	for _, v := range *allDownloadInfo {
-		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
-	}
-	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
-
-	deps := make(map[string][]string)
-	var depsOrdered []string
 
 	readFile := filepath.Join(temporalCacheDirectory, "deps.json")
 	if _, err := os.Stat(readFile); err == nil {
@@ -383,7 +222,8 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		jsonFile, _ := ioutil.ReadFile(readFile)
 		json.Unmarshal(jsonFile, &deps)
 	} else {
-		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, allDownloadInfo, reposUrls, packagesLocation)
+		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, reposUrls, packagesLocation)
+
 		for p, depAll := range depsAll {
 			if _, ok := packagesLocation[p]; ok {
 				dep := make([]string, 0)
@@ -401,6 +241,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		}
 		writeJSON(readFile, deps)
 	}
+	//defer os.Remove(readFile)
 
 	readFile = filepath.Join(temporalCacheDirectory, "depsOrdered.json")
 	if _, err := os.Stat(readFile); err == nil {
@@ -413,75 +254,102 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		log.Debugf("TSorted %d packages. Ordered %d packages", len(deps), len(depsOrdered))
 		writeJSON(readFile, depsOrdered)
 	}
+	//defer os.Remove(readFile)
 
-	messages := make(chan InstallationInfo)
-	defer close(messages)
-
-	maxDownloadRoutines := 10
-	guard := make(chan struct{}, maxDownloadRoutines)
-	defer close(guard)
-
-	var successfulDownloads, failedDownloads int
-	totalPackages := len(renvLock.Packages)
-	installWaiter := make(chan struct{})
-	defer close(installWaiter)
-
-	go installResultReceiver(
-		messages,
-		&successfulDownloads,
-		&failedDownloads,
-		totalPackages,
-		&installationInfo,
-		installWaiter,
-	)
-
-	wgGlobal := new(sync.WaitGroup)
-	wgmap := make(map[string]*sync.WaitGroup)
 	depsOrderedToInstall := make([]string, 0)
 	for _, packageName := range depsOrdered {
 		if _, ok := packagesLocation[packageName]; ok {
-			var waitgroup sync.WaitGroup
-			wgmap[packageName] = &waitgroup
 			depsOrderedToInstall = append(depsOrderedToInstall, packageName)
 		}
 	}
 
-	var mutexWillUnlock = sync.RWMutex{}
-	var mutexInstalled = sync.RWMutex{}
-	willUnlock := map[string][]string{}
-	waitList := map[string]bool{}
-	currentInstallation := map[string]bool{}
-	var mutexwaitList = sync.RWMutex{}
-	var mutexcurrentInstallation = sync.RWMutex{}
-	var mutexwgmap = sync.RWMutex{}
-	for i := 0; i < len(depsOrderedToInstall); i++ {
-		packageName := depsOrderedToInstall[i]
-		log.Tracef("Processing package %s", packageName)
+	log.Tracef("There are %d packages, but after cleaning it is %d", len(depsOrdered), len(depsOrderedToInstall))
+	return depsOrderedToInstall, deps
+}
 
-		if val, ok := packagesLocation[packageName]; ok {
-			_, ok := installedDeps[packageName]
-			if !ok {
-				guard <- struct{}{}
-				wgGlobal.Add(1)
-				go installSinglePackage(val.Location, packageName,
-					deps, installedDeps, willUnlock,
-					messages, guard,
-					wgGlobal, wgmap,
-					&mutexWillUnlock,
-					&mutexInstalled,
-					waitList,
-					currentInstallation,
-					&mutexwaitList,
-					&mutexcurrentInstallation,
-					&mutexwgmap,
-				)
-			} else {
-				log.Trace("Package " + packageName + " is already installed")
+func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
+	mkLibPathDir(temporalLibPath)
+
+	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
+	packagesLocation := make(map[string]struct{ PackageType, Location string })
+	for _, v := range *allDownloadInfo {
+		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
+	}
+
+	depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps)
+
+	installChan := make(chan InstallInfo)
+	defer close(installChan)
+	installResultChan := make(chan InstallResultInfo)
+	defer close(installResultChan)
+
+	for i := range depsOrderedToInstall {
+		log.Tracef("Starting installation worker #%d", i)
+		go installSinglePackageWorker(installChan, installResultChan)
+	}
+
+	installing := make(map[string]bool)
+	processed := make(map[string]bool)
+	for k := range installedDeps {
+		processed[k] = true
+	}
+
+	minI := 0
+	maxI := 20
+
+	// running packages which have no dependencies
+	counter := minI // number of currently installing packages in queue
+	for _, v := range depsOrderedToInstall {
+		log.Tracef("Checking %s", v)
+		_, ok := installedDeps[v]
+		if !ok {
+			if isDependencyFulfilled(v, deps, installedDeps) {
+				counter++
+				log.Tracef("Triggering %s", v)
+				installing[v] = true
+				installChan <- InstallInfo{v, packagesLocation[v].Location}
+			}
+			if counter >= maxI {
+				log.Warnf("All the rest packages have dependencies. Counter:%d", counter)
+				break
 			}
 		}
 	}
-	wgGlobal.Wait()
-	<-installWaiter
 
+	log.Tracef("running on channels")
+Loop:
+	for {
+		select {
+		case installationInfo := <-installResultChan:
+			installing[installationInfo.PackageName] = false
+			processed[installationInfo.PackageName] = true
+			installedDeps[installationInfo.PackageName] = ""
+			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
+				nextPackage := depsOrderedToInstall[i]
+				if !processed[nextPackage] {
+					if !installing[nextPackage] {
+						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
+							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location}
+							installing[nextPackage] = true
+							//} else {
+							//maxI++
+						}
+					}
+				} else {
+					if i == minI {
+						minI++
+						maxI++
+					}
+				}
+			}
+			if minI >= len(depsOrderedToInstall) {
+				log.Debugf("Installation is done")
+				installChan = nil
+				installResultChan = nil
+				break Loop
+			}
+			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installationInfo.PackageName, minI, maxI, installing, processed)
+		}
+	}
 	log.Info("Installation is done")
 }

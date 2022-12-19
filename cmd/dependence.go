@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -79,7 +81,7 @@ func request(url string) (string, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec
 	} // #nosec
 	client := &http.Client{Transport: tr}
-	log.Trace("Requesting" + url)
+	log.Tracef("Requesting %s" + url)
 	resp, err := client.Get(url)
 	checkError(err)
 
@@ -215,7 +217,7 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 			for k, v := range depsInChunk {
 				deps[k] = v
 			}
-
+			writeJSON("deps_crandb_inChunk"+strconv.Itoa(chunkCounter)+".json", depsInChunk)
 			chunkCounter++
 			chunkSize = 0
 			packagesWithVersionInChunk = make(map[string]string)
@@ -232,18 +234,24 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 	depsJson, _ := request(url)
 	var m map[string]map[string]map[string]string
 	json.Unmarshal([]byte(depsJson), &m)
+	writeJSON("deps_crandb_inChunk_unmarshal"+strconv.Itoa(rand.Intn(10000))+".json", m)
 	deps := make(map[string][]string)
-	for p := range packagesWithVersion {
+	for k, v := range packagesWithVersion {
+		p := k
+		if v != "" {
+			p += "-" + v
+		}
 		if m[p] != nil {
 			for _, df := range depsFields {
 				if m[p][df] != nil {
-					for k := range m[p][df] {
-						deps[p] = append(deps[p], k)
+					for d := range m[p][df] {
+						deps[k] = append(deps[k], d)
 					}
 				}
 			}
 		}
 	}
+	log.Tracef("Get getPackageDepsFromCrandb %v", deps)
 	return deps
 }
 
@@ -337,10 +345,8 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 }
 
 func getPackageDeps(
-	//packages []string,
 	rpackages map[string]Rpackage,
 	bioconductorVersion string,
-	allDownloadInfo *[]DownloadInfo,
 	reposUrls []string,
 	packagesLocation map[string]struct{ PackageType, Location string },
 ) map[string][]string {
@@ -360,7 +366,10 @@ func getPackageDeps(
 
 	depsRepos := getPackageDepsFromRepositoryURLs(reposUrls, packagesSet)
 	for k, v := range depsRepos {
-		deps[k] = v
+		// it will not overwrite if package already exists
+		if _, ok := deps[k]; !ok {
+			deps[k] = v
+		}
 	}
 
 	for pName, pInfo := range packagesLocation {
@@ -413,16 +422,12 @@ func sortByCounter(counter map[string]int, nodes []string) []string {
 }
 
 func isDependencyFulfilled(packageName string, dependency map[string][]string, installedPackagesWithVersion map[string]string) bool {
-	log.Debugf("Checking if package %s has fulfilled dependencies", packageName)
+	log.Tracef("Checking if package %s has fulfilled dependencies", packageName)
 	deps := dependency[packageName]
 	if len(deps) > 0 {
 		for _, dep := range deps {
-			if v, ok := installedPackagesWithVersion[dep]; ok {
-				if v == "" {
-					return false
-				}
-			} else {
-				log.Debugf("Not all dependencies are installed. Eg.:%s", dep)
+			if _, ok := installedPackagesWithVersion[dep]; !ok {
+				log.Tracef("Not all dependencies are installed for package %s. Eg.:%s", packageName, dep)
 				return false
 			}
 		}
