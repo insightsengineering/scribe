@@ -143,13 +143,8 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	}
 
 	if file != nil {
-		go func() {
-			_, errStdout = io.Copy(stdout, stdoutIn)
-		}()
-
-		go func() {
-			_, errStderr = io.Copy(stderr, stderrIn)
-		}()
+		_, errStdout = io.Copy(stdout, stdoutIn)
+		_, errStderr = io.Copy(stderr, stderrIn)
 
 		if errStdout != nil || errStderr != nil {
 			if showOutput {
