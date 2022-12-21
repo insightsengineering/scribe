@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -29,7 +29,8 @@ func Test_executeInstallation(t *testing.T) {
 }
 
 func Test_executeInstallationFromTargz(t *testing.T) {
-	os.MkdirAll("testdata/targz", os.ModePerm)
+	err := os.MkdirAll("testdata/targz", os.ModePerm)
+	checkError(err)
 	downloadFile(
 		"https://cran.r-project.org/src/contrib/Archive/OrdinalLogisticBiplot/OrdinalLogisticBiplot_0.4.tar.gz",
 		"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz",

@@ -16,9 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"os"
 	"strings"
 	"testing"
-	"os"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/slices"
@@ -108,7 +108,8 @@ func Test_removePackageVersionConstraints(t *testing.T) {
 }
 
 func Test_getPackageDepsFromTarGz(t *testing.T) {
-	os.MkdirAll("testdata/targz", os.ModePerm)
+	err := os.MkdirAll("testdata/targz", os.ModePerm)
+	checkError(err)
 	downloadFile(
 		"https://cran.r-project.org/src/contrib/Archive/OrdinalLogisticBiplot/OrdinalLogisticBiplot_0.4.tar.gz",
 		"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz",
