@@ -108,18 +108,18 @@ func Test_removePackageVersionConstraints(t *testing.T) {
 }
 
 func Test_getPackageDepsFromTarGz(t *testing.T) {
-	os.MkdirAll("cmd/testdata/targz", os.ModePerm)
+	os.MkdirAll("testdata/targz", os.ModePerm)
 	downloadFile(
 		"https://cran.r-project.org/src/contrib/Archive/OrdinalLogisticBiplot/OrdinalLogisticBiplot_0.4.tar.gz",
-		"cmd/testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz",
+		"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz",
 	)
 	downloadFile(
 		"https://cran.r-project.org/src/contrib/Archive/curl/curl_4.3.2.tar.gz",
-		"cmd/testdata/targz/curl_4.3.2.tar.gz",
+		"testdata/targz/curl_4.3.2.tar.gz",
 	)
 	cases := []struct{ targz, containsDep string }{
-		{"cmd/testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz", "NominalLogisticBiplot"},
-		{"cmd/testdata/targz/curl_4.3.2.tar.gz", "R"},
+		{"testdata/targz/OrdinalLogisticBiplot_0.4.tar.gz", "NominalLogisticBiplot"},
+		{"testdata/targz/curl_4.3.2.tar.gz", "R"},
 	}
 	for _, v := range cases {
 		deps := getPackageDepsFromTarGz(v.targz)
