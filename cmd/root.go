@@ -93,8 +93,6 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
-		writeJSON("allDownloadInfo.json", allDownloadInfo)
 
 		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
