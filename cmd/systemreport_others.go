@@ -1,3 +1,5 @@
+//go:build darwin || solaris || freebsd
+
 /*
 Copyright 2022 F. Hoffmann-La Roche AG
 
@@ -13,7 +15,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-//go:build darwin || solaris || freebsd
 package cmd
 
 // Getting system dependent information is not yet implemented for MacOS, Solaris or FreeBSD.
