@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.5725407" branch-rate="0" version="" timestamp="1672664364710" lines-covered="809" lines-valid="1413" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.5725407" branch-rate="0" version="" timestamp="1672667701068" lines-covered="809" lines-valid="1413" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -414,10 +414,10 @@
               <lines>
                 <line number="442" hits="1193"></line>
                 <line number="443" hits="1193"></line>
-                <line number="444" hits="11118"></line>
-                <line number="445" hits="11118"></line>
-                <line number="446" hits="11118"></line>
-                <line number="447" hits="16251"></line>
+                <line number="444" hits="10855"></line>
+                <line number="445" hits="10855"></line>
+                <line number="446" hits="10855"></line>
+                <line number="447" hits="16827"></line>
                 <line number="449" hits="1193"></line>
               </lines>
             </method>
@@ -756,10 +756,10 @@
             <line number="439" hits="4"></line>
             <line number="442" hits="1193"></line>
             <line number="443" hits="1193"></line>
-            <line number="444" hits="11118"></line>
-            <line number="445" hits="11118"></line>
-            <line number="446" hits="11118"></line>
-            <line number="447" hits="16251"></line>
+            <line number="444" hits="10855"></line>
+            <line number="445" hits="10855"></line>
+            <line number="446" hits="10855"></line>
+            <line number="447" hits="16827"></line>
             <line number="449" hits="1193"></line>
             <line number="452" hits="1"></line>
             <line number="453" hits="1"></line>
@@ -793,27 +793,27 @@
             </method>
             <method name="downloadFile" signature="" line-rate="0.95454544" branch-rate="0" complexity="0">
               <lines>
-                <line number="102" hits="8"></line>
-                <line number="103" hits="8"></line>
-                <line number="104" hits="8"></line>
-                <line number="105" hits="8"></line>
-                <line number="106" hits="8"></line>
-                <line number="107" hits="8"></line>
-                <line number="108" hits="8"></line>
-                <line number="109" hits="8"></line>
-                <line number="110" hits="8"></line>
-                <line number="111" hits="8"></line>
-                <line number="112" hits="8"></line>
-                <line number="113" hits="8"></line>
-                <line number="114" hits="8"></line>
-                <line number="115" hits="8"></line>
-                <line number="116" hits="8"></line>
-                <line number="117" hits="8"></line>
-                <line number="118" hits="8"></line>
-                <line number="119" hits="8"></line>
-                <line number="120" hits="8"></line>
-                <line number="121" hits="8"></line>
-                <line number="123" hits="8"></line>
+                <line number="102" hits="5"></line>
+                <line number="103" hits="5"></line>
+                <line number="104" hits="5"></line>
+                <line number="105" hits="5"></line>
+                <line number="106" hits="5"></line>
+                <line number="107" hits="5"></line>
+                <line number="108" hits="5"></line>
+                <line number="109" hits="5"></line>
+                <line number="110" hits="5"></line>
+                <line number="111" hits="5"></line>
+                <line number="112" hits="5"></line>
+                <line number="113" hits="5"></line>
+                <line number="114" hits="5"></line>
+                <line number="115" hits="5"></line>
+                <line number="116" hits="5"></line>
+                <line number="117" hits="5"></line>
+                <line number="118" hits="5"></line>
+                <line number="119" hits="5"></line>
+                <line number="120" hits="5"></line>
+                <line number="121" hits="5"></line>
+                <line number="123" hits="5"></line>
                 <line number="125" hits="0"></line>
               </lines>
             </method>
@@ -1318,27 +1318,27 @@
             <line number="95" hits="6"></line>
             <line number="96" hits="6"></line>
             <line number="98" hits="11"></line>
-            <line number="102" hits="8"></line>
-            <line number="103" hits="8"></line>
-            <line number="104" hits="8"></line>
-            <line number="105" hits="8"></line>
-            <line number="106" hits="8"></line>
-            <line number="107" hits="8"></line>
-            <line number="108" hits="8"></line>
-            <line number="109" hits="8"></line>
-            <line number="110" hits="8"></line>
-            <line number="111" hits="8"></line>
-            <line number="112" hits="8"></line>
-            <line number="113" hits="8"></line>
-            <line number="114" hits="8"></line>
-            <line number="115" hits="8"></line>
-            <line number="116" hits="8"></line>
-            <line number="117" hits="8"></line>
-            <line number="118" hits="8"></line>
-            <line number="119" hits="8"></line>
-            <line number="120" hits="8"></line>
-            <line number="121" hits="8"></line>
-            <line number="123" hits="8"></line>
+            <line number="102" hits="5"></line>
+            <line number="103" hits="5"></line>
+            <line number="104" hits="5"></line>
+            <line number="105" hits="5"></line>
+            <line number="106" hits="5"></line>
+            <line number="107" hits="5"></line>
+            <line number="108" hits="5"></line>
+            <line number="109" hits="5"></line>
+            <line number="110" hits="5"></line>
+            <line number="111" hits="5"></line>
+            <line number="112" hits="5"></line>
+            <line number="113" hits="5"></line>
+            <line number="114" hits="5"></line>
+            <line number="115" hits="5"></line>
+            <line number="116" hits="5"></line>
+            <line number="117" hits="5"></line>
+            <line number="118" hits="5"></line>
+            <line number="119" hits="5"></line>
+            <line number="120" hits="5"></line>
+            <line number="121" hits="5"></line>
+            <line number="123" hits="5"></line>
             <line number="125" hits="0"></line>
             <line number="137" hits="0"></line>
             <line number="138" hits="0"></line>
@@ -2773,7 +2773,7 @@
             </method>
             <method name="checkError" signature="" line-rate="1" branch-rate="0" complexity="0">
               <lines>
-                <line number="42" hits="65"></line>
+                <line number="42" hits="56"></line>
                 <line number="43" hits="5"></line>
                 <line number="44" hits="5"></line>
                 <line number="45" hits="5"></line>
@@ -2970,7 +2970,7 @@
             <line number="36" hits="3"></line>
             <line number="37" hits="3"></line>
             <line number="39" hits="1"></line>
-            <line number="42" hits="65"></line>
+            <line number="42" hits="56"></line>
             <line number="43" hits="5"></line>
             <line number="44" hits="5"></line>
             <line number="45" hits="5"></line>
