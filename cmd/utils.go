@@ -16,9 +16,18 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"sort"
+	"strings"
+	"unicode"
+
+	mapset "github.com/deckarep/golang-set/v2"
+	"golang.org/x/exp/slices"
 )
 
 func stringInSlice(a string, list []string) bool {
@@ -57,4 +66,183 @@ func writeJSON(filename string, j interface{}) int {
 	checkError(err)
 
 	return len(s)
+}
+
+func fillEnvFromSystem(envs []string) []string {
+	for i, env := range envs {
+		if env != "" && !strings.Contains(env, "=") {
+			value := os.Getenv(env)
+			envs[i] = env + "=" + value
+		}
+	}
+	return envs
+}
+
+// Execute a system command
+// nolint: gocyclo
+func execCommand(command string, showOutput bool, returnOutput bool, envs []string, file *os.File) (string, error) {
+	lastQuote := rune(0)
+	f := func(c rune) bool {
+		switch {
+		case c == lastQuote:
+			lastQuote = rune(0)
+			return false
+		case lastQuote != rune(0):
+			return false
+		case unicode.In(c, unicode.Quotation_Mark):
+			lastQuote = c
+			return false
+		default:
+			return unicode.IsSpace(c)
+		}
+	}
+
+	var parts []string
+	preParts := strings.FieldsFunc(command, f)
+	for i := range preParts {
+		part := preParts[i]
+		parts = append(parts, strings.ReplaceAll(part, "'", ""))
+	}
+
+	// nolint: gosec
+	cmd := exec.Command(parts[0], parts[1:]...)
+	cmd.Env = os.Environ()
+
+	for _, env := range fillEnvFromSystem(envs) {
+		if env != "" {
+			cmd.Env = append(cmd.Env, env)
+		}
+	}
+	if returnOutput {
+		data, err := cmd.Output()
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	stdoutIn, stdoutInErr := cmd.StdoutPipe()
+	if stdoutInErr != nil {
+		log.Errorf("Cannot create STDOUT pipe")
+	}
+	stderrIn, stderrInErr := cmd.StderrPipe()
+	if stderrInErr != nil {
+		log.Errorf("Cannot create STDERR pipe")
+	}
+
+	var errStdout, errStderr error
+	var stdout, stderr io.Writer
+	if file != nil {
+		stdout = io.MultiWriter(&stdoutBuf, file)
+		stderr = io.MultiWriter(&stderrBuf, file)
+	}
+	err := cmd.Start()
+	if err != nil {
+		log.Error(err)
+	}
+
+	if file != nil {
+		_, errStdout = io.Copy(stdout, stdoutIn)
+		_, errStderr = io.Copy(stderr, stderrIn)
+
+		if errStdout != nil || errStderr != nil {
+			if showOutput {
+				log.Fatalln("Failed to capture stdout or stderr!")
+			}
+			if errStdout != nil {
+				return "", errStdout
+			}
+			return "", errStderr
+		}
+
+		err = cmd.Wait()
+		outStr, errStr := stdoutBuf.String(), stderrBuf.String()
+		if err != nil {
+			if showOutput {
+				log.Println(errStr + outStr)
+			}
+			return errStr + outStr, err
+		}
+		if showOutput {
+			log.Println(outStr)
+		}
+	}
+	return "", nil
+}
+
+func tsort(graph map[string][]string) (resultOrder []string) {
+
+	allNodesSet := mapset.NewSet[string]()
+	revGraph := map[string][]string{}
+	for from, tos := range graph {
+		allNodesSet.Add(from)
+		if len(tos) == 0 {
+			resultOrder = append(resultOrder, from)
+		} else {
+			for _, to := range tos {
+				allNodesSet.Add(to)
+				revGraph[to] = append(revGraph[to], from)
+			}
+		}
+	}
+
+	allNodes := allNodesSet.ToSlice()
+	indegree := make(map[string]int)
+	outdegree := make(map[string]int)
+	for _, n := range allNodes {
+		indegree[n] = 0
+		outdegree[n] = 0
+	}
+	for from, tos := range graph {
+		outdegree[from] = len(tos)
+	}
+	for from, tos := range revGraph {
+		indegree[from] = len(tos)
+	}
+
+	sort.Strings(resultOrder)
+
+	stack := []string{}
+
+	var dfs func(node string, fvisited map[string]bool, fstack *[]string)
+	dfs = func(node string, fvisited map[string]bool, fstack *[]string) {
+		fvisited[node] = true
+		for _, to := range sortByCounter(outdegree, graph[node]) {
+			if !fvisited[to] {
+				dfs(to, fvisited, fstack)
+			}
+		}
+		*fstack = append(*fstack, node)
+	}
+
+	visited := make(map[string]bool)
+	for _, node := range resultOrder {
+		visited[node] = true
+	}
+
+	allNodes = sortByCounter(outdegree, allNodes)
+
+	for _, node := range allNodes {
+		if !visited[node] {
+			dfs(node, visited, &stack)
+		}
+
+	}
+
+	for i := 0; i < len(stack); i++ {
+		if !slices.Contains(resultOrder, stack[i]) {
+			resultOrder = append(resultOrder, stack[i])
+		}
+	}
+
+	return resultOrder
+}
+
+func toEmptyMapString(slice []string) map[string]string {
+	rmap := make(map[string]string)
+	for _, s := range slice {
+		rmap[s] = ""
+	}
+	return rmap
 }

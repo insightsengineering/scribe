@@ -16,8 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,6 +40,8 @@ var log = logrus.New()
 // GitHub repositories are cloned into github subdirectory
 // GitLab repositories are cloned into gitlab subdirectory
 const localOutputDirectory = "/tmp/scribe/downloaded_packages"
+
+const temporalCacheDirectory = "/tmp/scribe/cache"
 
 var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
@@ -89,7 +93,24 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		var allDownloadInfo []DownloadInfo
-		downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
+		if mkdirerr != nil {
+			log.Errorf("Cannot make dir %s %v", temporalCacheDirectory, mkdirerr)
+		}
+		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
+		if _, err := os.Stat(downloadInfoFile); err == nil {
+			log.Info("Reading", downloadInfoFile)
+			jsonFile, errr := os.ReadFile(downloadInfoFile)
+			checkError(errr)
+			errUnmarshal := json.Unmarshal(jsonFile, &allDownloadInfo)
+			checkError(errUnmarshal)
+		} else {
+			log.Infof("No %s", downloadInfoFile)
+			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+			writeJSON(downloadInfoFile, &allDownloadInfo)
+		}
+
+		InstallPackages(renvLock, &allDownloadInfo)
 	},
 }
 
