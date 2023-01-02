@@ -1,0 +1,18 @@
+Package: Rgraphviz
+Version: 2.36.0
+Depends: R (>= 2.6.0), methods, utils, graph, grid
+Imports: stats4, graphics, grDevices
+Suggests: RUnit, BiocGenerics, XML
+License: EPL
+MD5sum: 4c108dc2322a36b751bc9ecbfd79b715
+NeedsCompilation: yes
+
+Package: S4Vectors
+Version: 0.30.2
+Depends: R (>= 4.0.0), methods, utils, stats, stats4, BiocGenerics (>=
+        0.37.0)
+Suggests: IRanges, GenomicRanges, SummarizedExperiment, Matrix,
+        DelayedArray, ShortRead, graph, data.table, RUnit, BiocStyle
+License: Artistic-2.0
+MD5sum: 7f6216bf0994150690c6dbbe9202eb57
+NeedsCompilation: yes

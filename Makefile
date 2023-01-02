@@ -65,11 +65,15 @@ lint: devdeps spell ## Lint source code
 test: clean tidy devdeps spell ## Run unit tests and generate reports
 	@printf "Executing target: [$@] 🎯\n"
 	@touch coverage.out
-	@go test -json -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... 2>&1 > test-results.txt
+	@mkdir -p /tmp/scribe/installed_packages
+	@go test -json -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... 2>&1 > test-results.txt || cat test-results.txt
 	@cat test-results.txt | gotestdox
 	@cat test-results.txt | go-junit-report -parser gojson > junit-report.xml
 	@go tool cover -html=coverage.out -o coverage.html
 	@gocover-cobertura < coverage.out > coverage.xml
+
+testrun: build ## Run against renv.lock file
+	@time go run . --logLevel debug
 
 types: ## Examine Go types and their transitive dependencies
 	@printf "Executing target: [$@] 🎯\n"

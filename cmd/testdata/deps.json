@@ -1,0 +1,93 @@
+{
+  "BH": [
+    "R"
+  ],
+  "BMA": [
+    "survival",
+    "leaps",
+    "robustbase",
+    "inline",
+    "rrcov",
+    "methods"
+  ],
+  "Biobase": [
+    "R",
+    "BiocGenerics",
+    "utils",
+    "methods"
+  ],
+  "BiocBaseUtils": [
+    "R",
+    "methods",
+    "utils",
+    "knitr",
+    "rmarkdown",
+    "BiocStyle",
+    "tinytest"
+  ],
+  "BiocFileCache": [
+    "R",
+    "dbplyr",
+    "methods",
+    "stats",
+    "utils",
+    "dplyr",
+    "RSQLite",
+    "DBI",
+    "rappdirs",
+    "filelock",
+    "curl",
+    "httr"
+  ],
+  "BiocGenerics": [
+    "R",
+    "methods",
+    "utils",
+    "graphics",
+    "stats",
+    "parallel",
+    "methods",
+    "utils",
+    "graphics",
+    "stats",
+    "parallel"
+  ],
+  "BiocManager": [
+    "utils"
+  ],
+  "BiocParallel": [
+    "methods",
+    "stats",
+    "utils",
+    "futile.logger",
+    "parallel",
+    "snow"
+  ],
+  "BiocStyle": [
+    "bookdown",
+    "knitr",
+    "rmarkdown",
+    "stats",
+    "utils",
+    "yaml",
+    "BiocManager"
+  ],
+  "BiocVersion": [
+    "R"
+  ],
+  "Biostrings": [
+    "R",
+    "methods",
+    "BiocGenerics",
+    "S4Vectors",
+    "IRanges",
+    "XVector",
+    "GenomeInfoDb",
+    "methods",
+    "utils",
+    "grDevices",
+    "graphics",
+    "stats",
+    "crayon"
+  ]
+}
