@@ -106,3 +106,4 @@ downloadInfo**json
 *.log
 *.env
 __debug_bin
+targz/
