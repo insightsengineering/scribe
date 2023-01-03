@@ -100,6 +100,7 @@ var rootCmd = &cobra.Command{
 		}
 		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
 		if _, err := os.Stat(downloadInfoFile); err == nil {
+			// File with downloaded packages information is already present.
 			log.Info("Reading", downloadInfoFile)
 			jsonFile, errr := os.ReadFile(downloadInfoFile)
 			checkError(errr)
@@ -111,10 +112,13 @@ var rootCmd = &cobra.Command{
 			writeJSON(downloadInfoFile, &allDownloadInfo)
 		}
 		InstallPackages(renvLock, &allDownloadInfo)
-		// TODO fix this
-		readJSON("allDownloadInfo.json", &allDownloadInfo)
+
+		// Generate report.
+		readJSON(downloadInfoFile, &allDownloadInfo)
+		var allInstallInfo []InstallResultInfo
+		readJSON(temporalCacheDirectory+"/installResultInfos.json", &allInstallInfo)
 		var reportData ReportInfo
-		preprocessReportData(allDownloadInfo, &systemInfo, &reportData)
+		preprocessReportData(allDownloadInfo, allInstallInfo, &systemInfo, &reportData)
 		err := os.MkdirAll("outputReport", os.ModePerm)
 		checkError(err)
 		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")

@@ -69,6 +69,7 @@ func writeJSON(filename string, j interface{}) int {
 }
 
 func readJSON(filename string, j interface{}) {
+	log.Debug("Reading " + filename)
 	byteValue, err := os.ReadFile(filename)
 	checkError(err)
 

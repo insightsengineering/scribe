@@ -29,6 +29,7 @@ type PackagesData struct {
 	PackageName        string `json:"packageName"`
 	PackageVersion     string `json:"packageVersion"`
 	DownloadStatusText string `json:"downloadStatusText"`
+	InstallStatusText  string `json:"installStatusText"`
 	CheckStatusText    string `json:"checkStatusText"`
 }
 
@@ -37,11 +38,16 @@ type ReportInfo struct {
 	SystemInformation   *SystemInfo    `json:"systemInformation"`
 }
 
-func preprocessReportData(allDownloadInfo []DownloadInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
+const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
+
+func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
+	systemInfo *SystemInfo, reportOutput *ReportInfo) {
 	rand.Seed(time.Now().UnixNano())
-	var downloadStatusText string
-	var checkStatusText string
+	downloadStatuses := make(map[string]string)
+	installStatuses := make(map[string]string)
+	checkStatuses := make(map[string]string)
 	for _, p := range allDownloadInfo {
+		var downloadStatusText string
 		if p.StatusCode != http.StatusOK {
 			var statusDescription string
 			switch p.StatusCode {
@@ -58,14 +64,31 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, systemInfo *SystemInfo
 			}
 			downloadStatusText = "<span class=\"badge bg-danger\">" + statusDescription + "</span>"
 		} else {
-			downloadStatusText = "<span class=\"badge bg-success\">OK</span>"
+			downloadStatusText = HTMLStatusOK
 		}
+		downloadStatuses[p.PackageName] = downloadStatusText
+	}
+	for _, p := range allInstallInfo {
+		var checkStatusText string
+		switch p.Status {
+		case InstallResultInfoStatusSucceeded:
+			checkStatusText = HTMLStatusOK
+		case InstallResultInfoStatusSkipped:
+			checkStatusText = "<span class=\"badge bg-info text-dark\">skipped</span>"
+		case InstallResultInfoStatusFailed:
+			checkStatusText = "<span class=\"badge bg-danger\">failed</span>"
+		}
+		installStatuses[p.PackageName] = checkStatusText
+	}
+	// TODO this loop should eventually iterate through allCheckInfo
+	for _, p := range allInstallInfo {
+		var checkStatusText string
 		// TODO temporarily generate random check status
 		// This will have to be replaced by a real check status
 		badge := rand.Intn(4)
 		switch badge {
 		case 0:
-			checkStatusText = "<span class=\"badge bg-success\">OK</span>"
+			checkStatusText = HTMLStatusOK
 		case 1:
 			checkStatusText = "<span class=\"badge bg-info text-dark\">check note(s)</span>"
 		case 2:
@@ -73,9 +96,14 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, systemInfo *SystemInfo
 		case 3:
 			checkStatusText = "<span class=\"badge bg-danger\">check error(s)</span>"
 		}
+		checkStatuses[p.PackageName] = checkStatusText
+	}
+	// TODO can it happen that allDownloadInfo, allCheckInfo and allInstallInfo will have different sets of keys?
+	for _, p := range allDownloadInfo {
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
-			PackagesData{p.PackageName, p.PackageVersion, downloadStatusText, checkStatusText},
+			PackagesData{p.PackageName, p.PackageVersion, downloadStatuses[p.PackageName],
+				installStatuses[p.PackageName], checkStatuses[p.PackageName]},
 		)
 	}
 	reportOutput.SystemInformation = systemInfo
