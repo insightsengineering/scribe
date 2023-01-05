@@ -161,8 +161,8 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 		checkError(er)
 		// Checkout the branch or tag.
 		if branchOrTagName != "" && branchOrTagName != "HEAD" {
-			match, err := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
-			checkError(err)
+			match, err2 := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
+			checkError(err2)
 			var refName string
 			var checkoutRefName string
 			if match {

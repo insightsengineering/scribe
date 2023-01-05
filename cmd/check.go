@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"bufio"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -136,7 +135,7 @@ func runCmdCheck(cmdCheckChan chan string, packagePath string) {
 		}, logFile)
 	log.Info(output)
 	checkError(err)
-	cmdCheckChan <- string(output)
+	cmdCheckChan <- output
 }
 
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
@@ -178,7 +177,7 @@ func getCheckedPackages(checkExpression string, installationDirectory string) []
 		checkRegexp = strings.ReplaceAll(checkRegexp, "*", ".*")
 	}
 	log.Info("R CMD check will be performed on packages matching regexp ", checkRegexp)
-	files, err := ioutil.ReadDir(installationDirectory)
+	files, err := os.ReadDir(installationDirectory)
 	checkError(err)
 	for _, file := range files {
 		if file.IsDir() {
