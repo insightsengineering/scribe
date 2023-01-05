@@ -174,7 +174,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 				checkoutRefName = fmt.Sprintf("refs/heads/%s", branchOrTagName)
 				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
 			}
-			log.Info("Checking out branch or tag ", refName, " in ", gitDirectory)
+			log.Info("Checking out branch or tag ", checkoutRefName, " in ", gitDirectory)
 			refSpec := config.RefSpec(refName)
 			var fetchOptions *git.FetchOptions
 			if useEnvironmentCredentials {

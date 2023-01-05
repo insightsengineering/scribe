@@ -32,6 +32,7 @@ var logLevel string
 var interactive bool
 var maskedEnvVars string
 var renvLockFilename string
+var checkPackageExpression string
 
 var log = logrus.New()
 
@@ -92,6 +93,8 @@ var rootCmd = &cobra.Command{
 		var renvLock Renvlock
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
+		// TODO temporary
+		// checkPackages()
 		var allDownloadInfo []DownloadInfo
 		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
@@ -109,9 +112,9 @@ var rootCmd = &cobra.Command{
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 			writeJSON(downloadInfoFile, &allDownloadInfo)
 		}
-
-		InstallPackages(renvLock, &allDownloadInfo)
-		checkPackages()
+		installResultInfos := make([]InstallResultInfo, 0)
+		InstallPackages(renvLock, &allDownloadInfo, &installResultInfos)
+		checkPackages(installResultInfos)
 	},
 }
 
@@ -135,6 +138,8 @@ func init() {
 		"Regular expression for which environment variables should be masked in system information report")
 	rootCmd.PersistentFlags().StringVar(&renvLockFilename, "renvLockFilename", "renv.lock",
 		"Path to renv.lock file to be processed")
+	rootCmd.PersistentFlags().StringVar(&checkPackageExpression, "checkPackage", "",
+		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
