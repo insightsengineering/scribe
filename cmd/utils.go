@@ -130,7 +130,6 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	if errWriteString != nil {
 		return outStr, errWriteString
 	}
-	file.Sync()
 
 	return "", nil
 }

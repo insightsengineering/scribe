@@ -24,15 +24,15 @@ import (
 
 func Test_mkLibPathDir(t *testing.T) {
 	dirs := []string{"/tmp/scribe/testdir1", "/tmp/scribe/testdir2"}
-	dirs_con := ""
+	dirsCon := ""
 	for _, d := range dirs {
 		os.RemoveAll(d)
-		dirs_con += ":" + d
+		dirsCon += ":" + d
 		assert.NoDirExists(t, d)
 	}
 
-	assert.NotEmpty(t, dirs_con)
-	mkLibPathDir(dirs_con)
+	assert.NotEmpty(t, dirsCon)
+	mkLibPathDir(dirsCon)
 	for _, d := range dirs {
 		assert.DirExists(t, d)
 		os.RemoveAll(d)
