@@ -79,6 +79,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 				log.Errorf("libPath: %s Error: %v", libPath, err)
 			}
 			for _, f := range files {
+				log.Tracef("Checking dir %s", f)
 				if f.IsDir() {
 					descFilePath := filepath.Join(libPath, f.Name(), "DESCRIPTION")
 					log.Tracef("Checking file %s", descFilePath)
@@ -182,9 +183,7 @@ func getOrderedDependencies(
 						dep = append(dep, d)
 					}
 				}
-				if len(dep) > 0 {
-					deps[p] = dep
-				}
+				deps[p] = dep
 			}
 		}
 		writeJSON(readFile, deps)
@@ -223,6 +222,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	mkLibPathDir(packageLogPath)
 
 	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
+	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporalLibPath)
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
 	for _, v := range *allDownloadInfo {
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
@@ -285,7 +285,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 	Loop:
 		for installResultInfo := range installResultChan {
 			installResultInfos = append(installResultInfos, installResultInfo)
-			installing[installResultInfo.PackageName] = false
+			delete(installing, installResultInfo.PackageName)
 			processed[installResultInfo.PackageName] = true
 			installedDeps[installResultInfo.PackageName] = ""
 			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
