@@ -22,6 +22,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_getInstalledPackagesWithVersionWithBaseRPackages(t *testing.T) {
+	pkgs := getInstalledPackagesWithVersionWithBaseRPackages([]string{})
+	basePkgs := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base"}
+	for i := 0; i < len(basePkgs); i++ {
+		pkg := basePkgs[i]
+		assert.Contains(t, pkgs, pkg)
+	}
+}
+
 func Test_mkLibPathDir(t *testing.T) {
 	dirs := []string{"/tmp/scribe/testdir1", "/tmp/scribe/testdir2"}
 	dirsCon := ""
