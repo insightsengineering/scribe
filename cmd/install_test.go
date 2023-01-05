@@ -22,10 +22,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_mkLibPathDir(t *testing.T) {
+	dirs := []string{"/tmp/scribe/testdir1", "/tmp/scribe/testdir2"}
+	dirs_con := ""
+	for _, d := range dirs {
+		os.RemoveAll(d)
+		dirs_con += ":" + d
+		assert.NoDirExists(t, d)
+	}
+
+	assert.NotEmpty(t, dirs_con)
+	mkLibPathDir(dirs_con)
+	for _, d := range dirs {
+		assert.DirExists(t, d)
+		os.RemoveAll(d)
+	}
+}
+
 func Test_executeInstallation(t *testing.T) {
 	t.Skip("skipping integration test")
 	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out")
 	assert.NoError(t, err)
+}
+
+func Test_executeInstallation_with_wrong_logFilePath(t *testing.T) {
+	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "")
+	assert.Error(t, err)
+}
+
+func Test_executeInstallation_with_wrong_path_to_package(t *testing.T) {
+	err := executeInstallation("", "BiocBaseUtils", "test.out")
+	assert.Error(t, err)
 }
 
 func Test_executeInstallationFromTargz(t *testing.T) {

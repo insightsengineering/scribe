@@ -136,17 +136,20 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		packageVersion := ""
 		Status := InstallResultInfoStatusFailed
 		if err == nil {
+			log.Tracef("No Error after installation for package %s", installInfo.PackageName)
 			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
 			Status = InstallResultInfoStatusSucceeded
 		}
+		log.Tracef("Sending response from %s", installInfo.PackageName)
 		installResultChan <- InstallResultInfo{
 			InstallInfo:    installInfo,
 			Status:         Status,
 			PackageVersion: packageVersion,
 			LogFilePath:    logFilePath,
 		}
+		log.Tracef("Installation of package %s is done", installInfo.PackageName)
 	}
 }
 
@@ -264,7 +267,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 				installChan <- InstallInfo{p, packagesLocation[p].Location}
 			}
 			if counter >= maxI {
-				log.Warnf("All the rest packages have dependencies. Counter:%d", counter)
+				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
 				break
 			}
 		} else {
