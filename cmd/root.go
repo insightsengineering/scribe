@@ -94,7 +94,7 @@ var rootCmd = &cobra.Command{
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		// TODO temporary
-		// checkPackages()
+		checkPackages()
 		var allDownloadInfo []DownloadInfo
 		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
@@ -114,7 +114,7 @@ var rootCmd = &cobra.Command{
 		}
 		installResultInfos := make([]InstallResultInfo, 0)
 		InstallPackages(renvLock, &allDownloadInfo, &installResultInfos)
-		checkPackages(installResultInfos)
+		// checkPackages(installResultInfos)
 	},
 }
 

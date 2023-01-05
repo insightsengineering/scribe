@@ -133,7 +133,6 @@ func runCmdCheck(cmdCheckChan chan string, packagePath string) {
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
 		}, logFile)
-	log.Info(output)
 	checkError(err)
 	cmdCheckChan <- output
 }
@@ -173,8 +172,16 @@ func getCheckedPackages(checkExpression string, installationDirectory string) []
 	if checkExpression == "" {
 		checkRegexp = ".*"
 	} else {
-		checkRegexp = strings.ReplaceAll(checkExpression, `.`, `\.`)
-		checkRegexp = strings.ReplaceAll(checkRegexp, "*", ".*")
+		splitCheckRegexp := strings.Split(checkExpression, ",")
+		var allRegExpressions []string
+		// For each comma-separated wildcard expression convert "." and "*"
+		// characters to regexp equivalent.
+		for _, singleRegexp := range splitCheckRegexp {
+			singleRegexp = strings.ReplaceAll(singleRegexp, `.`, `\.`)
+			singleRegexp = strings.ReplaceAll(singleRegexp, "*", ".*")
+			allRegExpressions = append(allRegExpressions, "^"+singleRegexp+"$")
+		}
+		checkRegexp = strings.Join(allRegExpressions, "|")
 	}
 	log.Info("R CMD check will be performed on packages matching regexp ", checkRegexp)
 	files, err := os.ReadDir(installationDirectory)
@@ -197,8 +204,9 @@ func getCheckedPackages(checkExpression string, installationDirectory string) []
 	return checkPackageDirectories
 }
 
-func checkPackages(installResults []InstallResultInfo) {
-	// func checkPackages() {
+// func checkPackages(installResults []InstallResultInfo) {
+// TODO remove
+func checkPackages() {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	checkPackagesDirectories := getCheckedPackages(checkPackageExpression, temporalLibPath)
