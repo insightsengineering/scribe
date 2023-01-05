@@ -43,3 +43,53 @@ func Test_parseCheckOutput(t *testing.T) {
 	assert.Equal(t, allCheckInfo[4].CheckItemContent,
 		"* checking for unstated dependencies in ‘tests’ ... WARNING\n    Some error 4\n  Some error 5\nSome error 6\n")
 }
+
+func Test_getCheckedPackages(t *testing.T) {
+	var testRootDir = "testdata/getcheckedpackages"
+	for _, dirName := range []string{
+		"tern",
+		"teal",
+		"teal.slice",
+		"teal.modules.general",
+		"teal.modules.clinical",
+		"teal.reporter",
+		"Teal.Reporter",
+		"TERN",
+	} {
+		os.MkdirAll(testRootDir+"/"+dirName, os.ModePerm)
+	}
+	assert.Equal(t,
+		getCheckedPackages("", testRootDir),
+		[]string{
+			testRootDir + "/TERN",
+			testRootDir + "/Teal.Reporter",
+			testRootDir + "/teal",
+			testRootDir + "/teal.modules.clinical",
+			testRootDir + "/teal.modules.general",
+			testRootDir + "/teal.reporter",
+			testRootDir + "/teal.slice",
+			testRootDir + "/tern",
+		})
+	assert.Equal(t,
+		getCheckedPackages("teal", testRootDir),
+		[]string{testRootDir + "/teal"})
+	assert.Equal(t,
+		getCheckedPackages("te*", testRootDir),
+		[]string{
+			testRootDir + "/teal",
+			testRootDir + "/teal.modules.clinical",
+			testRootDir + "/teal.modules.general",
+			testRootDir + "/teal.reporter",
+			testRootDir + "/teal.slice",
+			testRootDir + "/tern",
+		})
+	assert.Equal(t,
+		getCheckedPackages("teal,teal.modules*,TERN",
+			testRootDir),
+		[]string{
+			testRootDir + "/TERN",
+			testRootDir + "/teal",
+			testRootDir + "/teal.modules.clinical",
+			testRootDir + "/teal.modules.general",
+		})
+}

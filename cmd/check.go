@@ -19,6 +19,7 @@ import (
 	"bufio"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -201,6 +202,7 @@ func getCheckedPackages(checkExpression string, installationDirectory string) []
 			}
 		}
 	}
+	sort.Strings(checkPackageDirectories)
 	return checkPackageDirectories
 }
 
