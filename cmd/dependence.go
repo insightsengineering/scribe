@@ -415,7 +415,7 @@ func getPackageDeps(
 	for k := range packagesNoDeps {
 		info := packagesLocation[k]
 		if info.PackageType == targzExtensionFile {
-			log.Debugf("Getting packages %s", k)
+			log.Debugf("Getting deps from tar.gz packages %s", k)
 			targzDeps := getPackageDepsFromTarGz(info.Location)
 			deps[k] = targzDeps
 		}

@@ -16,9 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -121,53 +119,18 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		return string(data), nil
 	}
 
-	var stdoutBuf, stderrBuf bytes.Buffer
-	stdoutIn, stdoutInErr := cmd.StdoutPipe()
-	if stdoutInErr != nil {
-		log.Errorf("Cannot create STDOUT pipe")
+	log.Tracef("CombinedOutput on command %v", cmd)
+	out, errCombinedOutput := cmd.CombinedOutput()
+	outStr := string(out)
+	if errCombinedOutput != nil {
+		return outStr, errCombinedOutput
 	}
-	stderrIn, stderrInErr := cmd.StderrPipe()
-	if stderrInErr != nil {
-		log.Errorf("Cannot create STDERR pipe")
-	}
-
-	var errStdout, errStderr error
-	var stdout, stderr io.Writer
-	if file != nil {
-		stdout = io.MultiWriter(&stdoutBuf, file)
-		stderr = io.MultiWriter(&stderrBuf, file)
-	}
-	err := cmd.Start()
-	if err != nil {
-		log.Error(err)
+	_, errWriteString := file.WriteString(string(out))
+	checkError(errWriteString)
+	if errWriteString != nil {
+		return outStr, errWriteString
 	}
 
-	if file != nil {
-		_, errStdout = io.Copy(stdout, stdoutIn)
-		_, errStderr = io.Copy(stderr, stderrIn)
-
-		if errStdout != nil || errStderr != nil {
-			if showOutput {
-				log.Fatalln("Failed to capture stdout or stderr!")
-			}
-			if errStdout != nil {
-				return "", errStdout
-			}
-			return "", errStderr
-		}
-
-		err = cmd.Wait()
-		outStr, errStr := stdoutBuf.String(), stderrBuf.String()
-		if err != nil {
-			if showOutput {
-				log.Println(errStr + outStr)
-			}
-			return errStr + outStr, err
-		}
-		if showOutput {
-			log.Println(outStr)
-		}
-	}
 	return "", nil
 }
 
