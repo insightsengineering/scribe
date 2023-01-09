@@ -94,8 +94,6 @@ var rootCmd = &cobra.Command{
 		var renvLock Renvlock
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
-		// TODO temporary
-		// checkPackages()
 		var allDownloadInfo []DownloadInfo
 		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
