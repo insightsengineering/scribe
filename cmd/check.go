@@ -35,8 +35,9 @@ type ItemCheckInfo struct {
 }
 
 type PackageCheckInfo struct {
-	PackagePath string
-	Info        []ItemCheckInfo
+	PackagePath  string
+	CheckLogFile string
+	Info         []ItemCheckInfo
 }
 
 func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo) {
@@ -119,11 +120,8 @@ results_receiver_loop:
 	}
 }
 
-func runCmdCheck(cmdCheckChan chan string, packagePath string) {
+func runCmdCheck(cmdCheckChan chan string, packagePath string, packageName string, logFilePath string) {
 	log.Info("Checking package ", packagePath)
-	packagePathSplit := strings.Split(packagePath, "/")
-	packageName := packagePathSplit[len(packagePathSplit)-1]
-	logFilePath := checkLogPath + "/" + packageName
 	log.Debug("Package ", packageName, " will have check output saved to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
@@ -141,7 +139,10 @@ func runCmdCheck(cmdCheckChan chan string, packagePath string) {
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packagePath string) {
 	cmdCheckChan := make(chan string)
-	go runCmdCheck(cmdCheckChan, packagePath)
+	packagePathSplit := strings.Split(packagePath, "/")
+	packageName := packagePathSplit[len(packagePathSplit)-1]
+	logFilePath := checkLogPath + "/" + packageName
+	go runCmdCheck(cmdCheckChan, packagePath, packageName, logFilePath)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
 	var totalWaitTime = 0
@@ -151,7 +152,7 @@ check_single_package_loop:
 		select {
 		case msg := <-cmdCheckChan:
 			parseCheckOutput(msg, &singlePackageCheckInfo)
-			messages <- PackageCheckInfo{packagePath, singlePackageCheckInfo}
+			messages <- PackageCheckInfo{packagePath, logFilePath, singlePackageCheckInfo}
 			<-guard
 			log.Info("R CMD check ", packagePath, " completed after ", totalWaitTime, "s")
 			break check_single_package_loop
@@ -170,12 +171,12 @@ check_single_package_loop:
 func getCheckedPackages(checkExpression string, checkAllPackages bool, installationDirectory string) []string {
 	var checkPackageDirectories []string
 	var checkRegexp string
-	if checkExpression == "" && checkAllPackages {
+	switch {
+	case checkExpression == "" && checkAllPackages:
 		checkRegexp = ".*"
-	} else if checkExpression == "" && !checkAllPackages {
-		// By default no packages are checked, unless requested.
+	case checkExpression == "" && !checkAllPackages:
 		return checkPackageDirectories
-	} else {
+	default:
 		splitCheckRegexp := strings.Split(checkExpression, ",")
 		var allRegExpressions []string
 		// For each comma-separated wildcard expression convert "." and "*"
@@ -222,13 +223,14 @@ func checkPackages() {
 	// Guard channel ensures that only a fixed number of concurrent goroutines are running.
 	guard := make(chan struct{}, maxCheckRoutines)
 
-	go checkResultsReceiver(messages, checkWaiter, len(checkPackagesDirectories))
-	log.Info("Number of packages to check ", len(checkPackagesDirectories))
-	for _, directory := range checkPackagesDirectories {
-		guard <- struct{}{}
-		go checkSinglePackage(messages, guard, directory)
+	log.Info("Number of packages to check: ", len(checkPackagesDirectories))
+	if len(checkPackagesDirectories) > 0 {
+		go checkResultsReceiver(messages, checkWaiter, len(checkPackagesDirectories))
+		for _, directory := range checkPackagesDirectories {
+			guard <- struct{}{}
+			go checkSinglePackage(messages, guard, directory)
+		}
+		<-checkWaiter
 	}
-
-	<-checkWaiter
 	log.Info("Finished checking all packages.")
 }
