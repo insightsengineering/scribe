@@ -33,6 +33,7 @@ var interactive bool
 var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
+var checkAllPackages bool
 
 var log = logrus.New()
 
@@ -140,6 +141,8 @@ func init() {
 		"Path to renv.lock file to be processed")
 	rootCmd.PersistentFlags().StringVar(&checkPackageExpression, "checkPackage", "",
 		"Expression with wildcards indicating which packages should be R CMD checked")
+	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
+		"Should R CMD check be run on all installed packages?")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

@@ -56,10 +56,12 @@ func Test_getCheckedPackages(t *testing.T) {
 		"Teal.Reporter",
 		"TERN",
 	} {
-		os.MkdirAll(testRootDir+"/"+dirName, os.ModePerm)
+		err := os.MkdirAll(testRootDir+"/"+dirName, os.ModePerm)
+		checkError(err)
 	}
 	assert.Equal(t,
-		getCheckedPackages("", testRootDir),
+		getCheckedPackages("", true, testRootDir),
+		// All packages returned.
 		[]string{
 			testRootDir + "/TERN",
 			testRootDir + "/Teal.Reporter",
@@ -71,10 +73,10 @@ func Test_getCheckedPackages(t *testing.T) {
 			testRootDir + "/tern",
 		})
 	assert.Equal(t,
-		getCheckedPackages("teal", testRootDir),
+		getCheckedPackages("teal", false, testRootDir),
 		[]string{testRootDir + "/teal"})
 	assert.Equal(t,
-		getCheckedPackages("te*", testRootDir),
+		getCheckedPackages("te*", false, testRootDir),
 		[]string{
 			testRootDir + "/teal",
 			testRootDir + "/teal.modules.clinical",
@@ -84,7 +86,7 @@ func Test_getCheckedPackages(t *testing.T) {
 			testRootDir + "/tern",
 		})
 	assert.Equal(t,
-		getCheckedPackages("teal,teal.modules*,TERN",
+		getCheckedPackages("teal,teal.modules*,TERN", false,
 			testRootDir),
 		[]string{
 			testRootDir + "/TERN",

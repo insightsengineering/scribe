@@ -30,8 +30,8 @@ var maxCheckRoutines = 5
 var checkLogPath = "/tmp/scribe/check_logs"
 
 type ItemCheckInfo struct {
-	CheckItemType    string
-	CheckItemContent string
+	CheckItemType    string // NOTE, WARNING or ERROR
+	CheckItemContent string // content of NOTE, WARNING or ERROR
 }
 
 type PackageCheckInfo struct {
@@ -145,7 +145,7 @@ func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
 	var totalWaitTime = 0
-	// Wait until R CMD check completes
+	// Wait until R CMD check completes.
 check_single_package_loop:
 	for {
 		select {
@@ -167,11 +167,14 @@ check_single_package_loop:
 
 // Returns list of paths to directories with installed packages, on which R CMD check should
 // be performed based on the wildcard expression from command line.
-func getCheckedPackages(checkExpression string, installationDirectory string) []string {
+func getCheckedPackages(checkExpression string, checkAllPackages bool, installationDirectory string) []string {
 	var checkPackageDirectories []string
 	var checkRegexp string
-	if checkExpression == "" {
+	if checkExpression == "" && checkAllPackages {
 		checkRegexp = ".*"
+	} else if checkExpression == "" && !checkAllPackages {
+		// By default no packages are checked, unless requested.
+		return checkPackageDirectories
 	} else {
 		splitCheckRegexp := strings.Split(checkExpression, ",")
 		var allRegExpressions []string
@@ -189,16 +192,17 @@ func getCheckedPackages(checkExpression string, installationDirectory string) []
 	checkError(err)
 	for _, file := range files {
 		if file.IsDir() {
-			match, err := regexp.MatchString(checkRegexp, file.Name())
+			fileName := file.Name()
+			match, err := regexp.MatchString(checkRegexp, fileName)
 			checkError(err)
 			if match {
-				log.Debug(file.Name() + " matches regexp " + checkRegexp)
+				log.Debug(fileName + " matches regexp " + checkRegexp)
 				checkPackageDirectories = append(
 					checkPackageDirectories,
-					installationDirectory+"/"+file.Name(),
+					installationDirectory+"/"+fileName,
 				)
 			} else {
-				log.Debug(file.Name() + " doesn't match regexp " + checkRegexp)
+				log.Debug(fileName + " doesn't match regexp " + checkRegexp)
 			}
 		}
 	}
@@ -211,7 +215,7 @@ func getCheckedPackages(checkExpression string, installationDirectory string) []
 func checkPackages() {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
-	checkPackagesDirectories := getCheckedPackages(checkPackageExpression, temporalLibPath)
+	checkPackagesDirectories := getCheckedPackages(checkPackageExpression, checkAllPackages, temporalLibPath)
 	// Channel to wait until all checks have completed.
 	checkWaiter := make(chan struct{})
 	messages := make(chan PackageCheckInfo)
