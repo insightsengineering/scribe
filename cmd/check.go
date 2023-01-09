@@ -211,9 +211,9 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, installat
 	return checkPackageDirectories
 }
 
-// func checkPackages(installResults []InstallResultInfo) {
-// TODO remove
-func checkPackages() {
+func checkPackages(installResults []InstallResultInfo) {
+	// TODO remove
+	// func checkPackages() {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	checkPackagesDirectories := getCheckedPackages(checkPackageExpression, checkAllPackages, temporalLibPath)
