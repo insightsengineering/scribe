@@ -121,12 +121,17 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 
 	log.Tracef("CombinedOutput on command %v", cmd)
 	out, errCombinedOutput := cmd.CombinedOutput()
+	checkError(errCombinedOutput)
+
 	outStr := string(out)
+
+	_, errWriteString := file.WriteString(outStr)
+	checkError(errWriteString)
+
 	if errCombinedOutput != nil {
 		return outStr, errCombinedOutput
 	}
-	_, errWriteString := file.WriteString(string(out))
-	checkError(errWriteString)
+
 	if errWriteString != nil {
 		return outStr, errWriteString
 	}
