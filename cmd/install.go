@@ -220,7 +220,7 @@ func getOrderedDependencies(
 }
 
 // nolint: gocyclo
-func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
+func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, installResultInfos *[]InstallResultInfo) {
 	mkLibPathDir(temporalLibPath)
 	mkLibPathDir(packageLogPath)
 
@@ -254,7 +254,6 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	// running packages which have no dependencies
 	counter := minI // number of currently installing packages in queue
-	installResultInfos := make([]InstallResultInfo, 0)
 
 	for _, p := range depsOrderedToInstall {
 		log.Tracef("Checking %s", p)
@@ -271,7 +270,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 				break
 			}
 		} else {
-			installResultInfos = append(installResultInfos, InstallResultInfo{
+			*installResultInfos = append(*installResultInfos, InstallResultInfo{
 				InstallInfo: InstallInfo{
 					PackageName:   p,
 					InputLocation: packagesLocation[p].Location,
@@ -283,11 +282,11 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		}
 	}
 
-	if len(installResultInfos) < len(depsOrderedToInstall) {
+	if len(*installResultInfos) < len(depsOrderedToInstall) {
 		log.Tracef("running on channels")
 	Loop:
 		for installResultInfo := range installResultChan {
-			installResultInfos = append(installResultInfos, installResultInfo)
+			*installResultInfos = append(*installResultInfos, installResultInfo)
 			delete(installing, installResultInfo.PackageName)
 			processed[installResultInfo.PackageName] = true
 			installedDeps[installResultInfo.PackageName] = ""
@@ -316,6 +315,6 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
 	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
-	writeJSON(installResultInfosFilePath, installResultInfos)
-	log.Infof("Installation for %d is done", len(installResultInfos))
+	writeJSON(installResultInfosFilePath, *installResultInfos)
+	log.Infof("Installation for %d is done", len(*installResultInfos))
 }

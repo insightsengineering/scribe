@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -127,14 +128,16 @@ func downloadFile(url string, outputFile string) (int, int64) {
 
 // Clones git repository and returns string with error value (empty if cloning was
 // successful) and approximate number of downloaded bytes.
-// If commitSha or branchName is specified, the respective commit or branch are checked out.
+// If commitSha or branchOrTagName is specified, the respective commit, branch or tag are checked out.
 // If useEnvironmentCredentials is true, this function expects username and token to be set in
 // GITLAB_USER and GITLAB_TOKEN environment variables.
 // This implementation assumes that RemoteSha renv.lock field contains commit SHA,
-// and that RemoteRef renv.lock field contains branch name.
-// If this assumption is not correct for some package, the default branch will be checked out.
+// and that RemoteRef renv.lock field contains branch name or tag name.
+// It is assumed that RemoteRef matching regex `v\d+(\.\d+)*` (where \d is a digit) is a tag name.
+// Otherwise, that it is a branch name.
+// If any of these assumptions are not correct for some package, the default branch will be checked out.
 func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool,
-	commitSha string, branchName string) (string, int64) {
+	commitSha string, branchOrTagName string) (string, int64) {
 	err := os.MkdirAll(gitDirectory, os.ModePerm)
 	checkError(err)
 	var gitCloneOptions *git.CloneOptions
@@ -156,20 +159,23 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 	if err == nil {
 		w, er := repository.Worktree()
 		checkError(er)
-		// Checkout the commit.
-		if commitSha != "" {
-			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
-			err = w.Checkout(&git.CheckoutOptions{
-				Hash: plumbing.NewHash(commitSha),
-			})
-			checkError(err)
-		}
-		// Checkout the branch.
-		if branchName != "" {
-			log.Info("Checking out branch ", branchName, " in ", gitDirectory)
-			refSpec := config.RefSpec(
-				fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName),
-			)
+		// Checkout the branch or tag.
+		if branchOrTagName != "" && branchOrTagName != "HEAD" {
+			match, err2 := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
+			checkError(err2)
+			var refName string
+			var checkoutRefName string
+			if match {
+				log.Debug(branchOrTagName + " matches tag name regexp.")
+				checkoutRefName = fmt.Sprintf("refs/tags/%s", branchOrTagName)
+				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
+			} else {
+				log.Debug(branchOrTagName, " doesn't match tag name regexp.")
+				checkoutRefName = fmt.Sprintf("refs/heads/%s", branchOrTagName)
+				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
+			}
+			log.Info("Checking out branch or tag ", checkoutRefName, " in ", gitDirectory)
+			refSpec := config.RefSpec(refName)
 			var fetchOptions *git.FetchOptions
 			if useEnvironmentCredentials {
 				fetchOptions = &git.FetchOptions{
@@ -187,7 +193,14 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 			err = repository.Fetch(fetchOptions)
 			checkError(err)
 			err = w.Checkout(&git.CheckoutOptions{
-				Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branchName)),
+				Branch: plumbing.ReferenceName(checkoutRefName),
+			})
+			checkError(err)
+		} else if commitSha != "" {
+			// Checkout the commit.
+			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash: plumbing.NewHash(commitSha),
 			})
 			checkError(err)
 		}
@@ -223,7 +236,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 	case repoURL == defaultCranMirrorURL:
 		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
 			"_" + packageVersion + ".tar.gz"
-		// Check if package is in current CRAN repository
+		// Check if package is in current CRAN repository.
 		var versionInCran string
 		packageInfo, ok := currentCranPackageInfo[packageName]
 		if ok {
@@ -594,22 +607,20 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	const localCranPackagesPath = localOutputDirectory + "/package_files/CRAN_PACKAGES"
 
 	currentCranPackageInfo := make(map[string]*PackageInfo)
-	for _, v := range renvLock.R.Repositories {
-
-		// In case any packages are downloaded from CRAN, prepare a map from package name to
-		// current versions of the packages and their checksums as read from PACKAGES file.
-		// This way, we'll know whether we should try to download the package from current repository
-		// or from archive, and if we should download the package at all (it may have been already
-		// downloaded to local cache).
-		if v.URL == defaultCranMirrorURL {
-			status, _ := downloadFileFunction(defaultCranMirrorURL+"/src/contrib/PACKAGES",
-				localCranPackagesPath)
-			if status == http.StatusOK {
-				parsePackagesFile(
-					localCranPackagesPath, currentCranPackageInfo,
-				)
-			}
-		}
+	// Prepare a map from package name to the current versions of the
+	// packages and their checksums as read from PACKAGES file.
+	// This way, we'll know whether we should try to download the package from current CRAN repository
+	// or from archive, and if we should download the package at all (it may have been already
+	// downloaded to local cache).
+	// This file is always downloaded because even if CRAN is not specified in renv.lock,
+	// it will be used as a fallback for packages that should be downloaded from a repository not
+	// defined in the Repositories section of renv.lock.
+	status, _ := downloadFileFunction(defaultCranMirrorURL+"/src/contrib/PACKAGES",
+		localCranPackagesPath)
+	if status == http.StatusOK {
+		parsePackagesFile(
+			localCranPackagesPath, currentCranPackageInfo,
+		)
 	}
 
 	// Before downloading any packages, check which packages have already been downloaded to the cache
