@@ -36,7 +36,7 @@ func parseEtcReleaseFile(path string) string {
 		newLine := scanner.Text()
 		if strings.HasPrefix(newLine, "PRETTY_NAME=") {
 			prettyName = strings.Split(newLine, "=")[1]
-			// Remove surrounding quotes
+			// Remove surrounding quotes.
 			prettyName = prettyName[1 : len(prettyName)-1]
 		}
 	}

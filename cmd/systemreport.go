@@ -42,8 +42,8 @@ func getSystemRVersion() string {
 	return strings.Split(string(out), "\n")[0]
 }
 
-// if regex is not equal to empty string, only environment variables
-// with names NOT matching the regex will be returned
+// If regex is not equal to empty string, only environment variables
+// with names NOT matching the regex will be returned.
 func getEnvironmentVariables(regex string) string {
 	r, err := regexp.Compile(regex)
 	checkError(err)

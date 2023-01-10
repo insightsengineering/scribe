@@ -79,6 +79,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 				log.Errorf("libPath: %s Error: %v", libPath, err)
 			}
 			for _, f := range files {
+				log.Tracef("Checking dir %s", f)
 				if f.IsDir() {
 					descFilePath := filepath.Join(libPath, f.Name(), "DESCRIPTION")
 					log.Tracef("Checking file %s", descFilePath)
@@ -135,17 +136,20 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		packageVersion := ""
 		Status := InstallResultInfoStatusFailed
 		if err == nil {
+			log.Tracef("No Error after installation for package %s", installInfo.PackageName)
 			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
 			Status = InstallResultInfoStatusSucceeded
 		}
+		log.Tracef("Sending response from %s", installInfo.PackageName)
 		installResultChan <- InstallResultInfo{
 			InstallInfo:    installInfo,
 			Status:         Status,
 			PackageVersion: packageVersion,
 			LogFilePath:    logFilePath,
 		}
+		log.Tracef("Installation of package %s is done", installInfo.PackageName)
 	}
 }
 
@@ -182,9 +186,7 @@ func getOrderedDependencies(
 						dep = append(dep, d)
 					}
 				}
-				if len(dep) > 0 {
-					deps[p] = dep
-				}
+				deps[p] = dep
 			}
 		}
 		writeJSON(readFile, deps)
@@ -218,11 +220,12 @@ func getOrderedDependencies(
 }
 
 // nolint: gocyclo
-func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
+func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, installResultInfos *[]InstallResultInfo) {
 	mkLibPathDir(temporalLibPath)
 	mkLibPathDir(packageLogPath)
 
 	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
+	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporalLibPath)
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
 	for _, v := range *allDownloadInfo {
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
@@ -251,7 +254,6 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	// running packages which have no dependencies
 	counter := minI // number of currently installing packages in queue
-	installResultInfos := make([]InstallResultInfo, 0)
 
 	for _, p := range depsOrderedToInstall {
 		log.Tracef("Checking %s", p)
@@ -264,11 +266,11 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 				installChan <- InstallInfo{p, packagesLocation[p].Location}
 			}
 			if counter >= maxI {
-				log.Warnf("All the rest packages have dependencies. Counter:%d", counter)
+				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
 				break
 			}
 		} else {
-			installResultInfos = append(installResultInfos, InstallResultInfo{
+			*installResultInfos = append(*installResultInfos, InstallResultInfo{
 				InstallInfo: InstallInfo{
 					PackageName:   p,
 					InputLocation: packagesLocation[p].Location,
@@ -280,12 +282,12 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 		}
 	}
 
-	if len(installResultInfos) < len(depsOrderedToInstall) {
+	if len(*installResultInfos) < len(depsOrderedToInstall) {
 		log.Tracef("running on channels")
 	Loop:
 		for installResultInfo := range installResultChan {
-			installResultInfos = append(installResultInfos, installResultInfo)
-			installing[installResultInfo.PackageName] = false
+			*installResultInfos = append(*installResultInfos, installResultInfo)
+			delete(installing, installResultInfo.PackageName)
 			processed[installResultInfo.PackageName] = true
 			installedDeps[installResultInfo.PackageName] = ""
 			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
@@ -313,6 +315,6 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo) {
 
 	installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
 	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
-	writeJSON(installResultInfosFilePath, installResultInfos)
-	log.Infof("Installation for %d is done", len(installResultInfos))
+	writeJSON(installResultInfosFilePath, *installResultInfos)
+	log.Infof("Installation for %d is done", len(*installResultInfos))
 }
