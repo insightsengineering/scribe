@@ -34,6 +34,7 @@ var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
 var checkAllPackages bool
+var numberOfWorkers uint
 
 var log = logrus.New()
 
@@ -141,6 +142,10 @@ func init() {
 		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Should R CMD check be run on all installed packages?")
+
+	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
+		"Number of simultaneous installation processes")
+
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

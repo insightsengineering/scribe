@@ -250,71 +250,75 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 	}
 
 	minI := 0
-	maxI := 20 // max number of parallel installing workers
+	maxI := int(numberOfWorkers) // max number of parallel installing workers
+	if maxI < 1 {
+		log.Fatal("Number of simultaneous installation processes should be greater than 0")
+	} else {
 
-	// running packages which have no dependencies
-	counter := minI // number of currently installing packages in queue
+		// running packages which have no dependencies
+		counter := minI // number of currently installing packages in queue
 
-	for _, p := range depsOrderedToInstall {
-		log.Tracef("Checking %s", p)
-		ver, ok := installedDeps[p]
-		if !ok {
-			if isDependencyFulfilled(p, deps, installedDeps) {
-				counter++
-				log.Tracef("Triggering %s", p)
-				installing[p] = true
-				installChan <- InstallInfo{p, packagesLocation[p].Location}
+		for _, p := range depsOrderedToInstall {
+			log.Tracef("Checking %s", p)
+			ver, ok := installedDeps[p]
+			if !ok {
+				if isDependencyFulfilled(p, deps, installedDeps) {
+					counter++
+					log.Tracef("Triggering %s", p)
+					installing[p] = true
+					installChan <- InstallInfo{p, packagesLocation[p].Location}
+				}
+				if counter >= maxI {
+					log.Infof("All the rest packages have dependencies. Counter:%d", counter)
+					break
+				}
+			} else {
+				*installResultInfos = append(*installResultInfos, InstallResultInfo{
+					InstallInfo: InstallInfo{
+						PackageName:   p,
+						InputLocation: packagesLocation[p].Location,
+					},
+					PackageVersion: ver,
+					LogFilePath:    "",
+					Status:         InstallResultInfoStatusSkipped,
+				})
 			}
-			if counter >= maxI {
-				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
-				break
-			}
-		} else {
-			*installResultInfos = append(*installResultInfos, InstallResultInfo{
-				InstallInfo: InstallInfo{
-					PackageName:   p,
-					InputLocation: packagesLocation[p].Location,
-				},
-				PackageVersion: ver,
-				LogFilePath:    "",
-				Status:         InstallResultInfoStatusSkipped,
-			})
 		}
-	}
 
-	if len(*installResultInfos) < len(depsOrderedToInstall) {
-		log.Tracef("running on channels")
-	Loop:
-		for installResultInfo := range installResultChan {
-			*installResultInfos = append(*installResultInfos, installResultInfo)
-			delete(installing, installResultInfo.PackageName)
-			processed[installResultInfo.PackageName] = true
-			installedDeps[installResultInfo.PackageName] = ""
-			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
-				nextPackage := depsOrderedToInstall[i]
-				if !processed[nextPackage] {
-					if !installing[nextPackage] {
-						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
-							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location}
-							installing[nextPackage] = true
+		if len(*installResultInfos) < len(depsOrderedToInstall) {
+			log.Tracef("running on channels")
+		Loop:
+			for installResultInfo := range installResultChan {
+				*installResultInfos = append(*installResultInfos, installResultInfo)
+				delete(installing, installResultInfo.PackageName)
+				processed[installResultInfo.PackageName] = true
+				installedDeps[installResultInfo.PackageName] = ""
+				for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
+					nextPackage := depsOrderedToInstall[i]
+					if !processed[nextPackage] {
+						if !installing[nextPackage] {
+							if isDependencyFulfilled(nextPackage, deps, installedDeps) {
+								installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location}
+								installing[nextPackage] = true
+							}
+						}
+					} else {
+						if i == minI {
+							minI++ // increment if package with index minI has been installed
+							maxI++
 						}
 					}
-				} else {
-					if i == minI {
-						minI++ // increment if package with index minI has been installed
-						maxI++
-					}
 				}
+				if minI >= len(depsOrderedToInstall) {
+					break Loop
+				}
+				log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
 			}
-			if minI >= len(depsOrderedToInstall) {
-				break Loop
-			}
-			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
 		}
-	}
 
-	installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
-	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
-	writeJSON(installResultInfosFilePath, *installResultInfos)
-	log.Infof("Installation for %d is done", len(*installResultInfos))
+		installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
+		log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
+		writeJSON(installResultInfosFilePath, *installResultInfos)
+		log.Infof("Installation for %d is done", len(*installResultInfos))
+	}
 }
