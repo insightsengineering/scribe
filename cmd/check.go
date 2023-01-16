@@ -29,6 +29,10 @@ import (
 var maxCheckRoutines = 5
 var checkLogPath = "/tmp/scribe/check_logs"
 
+const errConst = "ERROR"
+const warnConst = "WARNING"
+const noteConst = "NOTE"
+
 type ItemCheckInfo struct {
 	CheckItemType    string // NOTE, WARNING or ERROR
 	CheckItemContent string // content of NOTE, WARNING or ERROR
@@ -37,9 +41,9 @@ type ItemCheckInfo struct {
 type PackageCheckInfo struct {
 	PackagePath         string // path to directory where the package has been installed
 	PackageName         string
-	CheckLogFile        string // path to the file containing log of R CMD check for the pacakge
+	LogFilePath         string // path to the file containing log of R CMD check for the package
 	MostSevereCheckItem string // OK, NOTE, WARNING or ERROR
-	Info         []ItemCheckInfo
+	Info                []ItemCheckInfo
 }
 
 // Parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
@@ -61,23 +65,24 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 			trimmedNewLine := strings.TrimSpace(newLine)
 			switch {
 			case strings.HasSuffix(trimmedNewLine, "... NOTE"):
-				checkItemType = "NOTE"
+				checkItemType = noteConst
 			case strings.HasSuffix(trimmedNewLine, "... WARNING"):
-				checkItemType = "WARNING"
+				checkItemType = warnConst
 			case strings.HasSuffix(trimmedNewLine, "... ERROR"):
-				checkItemType = "ERROR"
+				checkItemType = errConst
 			default:
 				checkItemType = ""
 			}
 			// Check if this check item is more severe than ones already seen.
-			if checkItemType == "NOTE" && mostSevereCheckItem == "OK" {
-				mostSevereCheckItem = "NOTE"
-			} else if checkItemType == "WARNING" &&
-				(mostSevereCheckItem == "OK" || mostSevereCheckItem == "NOTE") {
-				mostSevereCheckItem = "WARNING"
-			} else if checkItemType == "ERROR" &&
-				(mostSevereCheckItem == "OK" || mostSevereCheckItem == "NOTE" || mostSevereCheckItem == "WARNING") {
-				mostSevereCheckItem = "ERROR"
+			switch {
+			case checkItemType == noteConst && mostSevereCheckItem == "OK":
+				mostSevereCheckItem = noteConst
+			case checkItemType == warnConst &&
+				(mostSevereCheckItem == "OK" || mostSevereCheckItem == noteConst):
+				mostSevereCheckItem = warnConst
+			case checkItemType == errConst &&
+				(mostSevereCheckItem == "OK" || mostSevereCheckItem == noteConst || mostSevereCheckItem == warnConst):
+				mostSevereCheckItem = errConst
 			}
 			if previousCheckItemType != "" {
 				*singlePackageCheckInfo = append(
@@ -96,7 +101,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 }
 
 func checkResultsReceiver(messages chan PackageCheckInfo,
-	checkWaiter chan struct{}, totalPackages int) {
+	checkWaiter chan struct{}, totalPackages int, outputFile string) {
 	var bar progressbar.ProgressBar
 	var allPackagesCheckInfo []PackageCheckInfo
 	if interactive {
@@ -123,7 +128,7 @@ results_receiver_loop:
 				err := bar.Add(1)
 				checkError(err)
 			}
-			writeJSON(temporalCacheDirectory+"/allPackagesCheckInfo.json", allPackagesCheckInfo)
+			writeJSON(outputFile, allPackagesCheckInfo)
 
 			if receivedResults == totalPackages {
 				checkWaiter <- struct{}{}
@@ -157,18 +162,19 @@ func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	cmdCheckChan := make(chan string)
 	packagePathSplit := strings.Split(packagePath, "/")
 	packageName := packagePathSplit[len(packagePathSplit)-1]
-	logFilePath := checkLogPath + "/" + packageName + ".txt"
+	logFilePath := checkLogPath + "/" + packageName + ".out"
 	go runCmdCheck(cmdCheckChan, packagePath, packageName, logFilePath)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
 	var totalWaitTime = 0
-	// Wait until R CMD check completes.
+	// Wait for message from runCmdCheck (until R CMD check completes).
 check_single_package_loop:
 	for {
 		select {
 		case msg := <-cmdCheckChan:
 			mostSevereCheckItem := parseCheckOutput(msg, &singlePackageCheckInfo)
-			messages <- PackageCheckInfo{packagePath, packageName, logFilePath, mostSevereCheckItem, singlePackageCheckInfo}
+			messages <- PackageCheckInfo{packagePath, packageName, logFilePath,
+				mostSevereCheckItem, singlePackageCheckInfo}
 			<-guard
 			log.Info("R CMD check ", packagePath, " completed after ", totalWaitTime, "s")
 			break check_single_package_loop
@@ -227,7 +233,7 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, installat
 	return checkPackageDirectories
 }
 
-func checkPackages(installResults []InstallResultInfo) {
+func checkPackages(installResults []InstallResultInfo, outputFile string) {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	checkPackagesDirectories := getCheckedPackages(checkPackageExpression, checkAllPackages, temporalLibPath)
@@ -239,7 +245,7 @@ func checkPackages(installResults []InstallResultInfo) {
 
 	log.Info("Number of packages to check: ", len(checkPackagesDirectories))
 	if len(checkPackagesDirectories) > 0 {
-		go checkResultsReceiver(messages, checkWaiter, len(checkPackagesDirectories))
+		go checkResultsReceiver(messages, checkWaiter, len(checkPackagesDirectories), outputFile)
 		for _, directory := range checkPackagesDirectories {
 			guard <- struct{}{}
 			go checkSinglePackage(messages, guard, directory)

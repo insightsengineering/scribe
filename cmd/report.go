@@ -40,6 +40,24 @@ type ReportInfo struct {
 
 const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
 
+// Copies all files from sourceDirectory to destinationDirectory.
+// Adds filePrefix prefix to each copied file name.
+func copyLogFiles(sourceDirectory string, filePrefix string, destinationDirectory string) {
+	files, err := os.ReadDir(sourceDirectory)
+	checkError(err)
+	for _, file := range files {
+		if !file.IsDir() {
+			oldFileName := sourceDirectory + "/" + filepath.Base(file.Name())
+			newFileName := destinationDirectory + "/" + filePrefix + filepath.Base(file.Name())
+			log.Debugf("Copying %s to %s.", oldFileName, newFileName)
+			data, err := os.ReadFile(oldFileName)
+			checkError(err)
+			err = os.WriteFile(newFileName, data, 0644) //#nosec
+			checkError(err)
+		}
+	}
+}
+
 func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
 	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
 	rand.Seed(time.Now().UnixNano())
@@ -70,30 +88,32 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []Insta
 	}
 	for _, p := range allInstallInfo {
 		var installStatusText string
+		filePath := "<a href=\"./logs/install-" + filepath.Base(p.LogFilePath) + "\">"
 		switch p.Status {
 		case InstallResultInfoStatusSucceeded:
-			installStatusText = HTMLStatusOK
+			installStatusText = filePath + HTMLStatusOK + "</a>"
 		case InstallResultInfoStatusSkipped:
-			installStatusText = "<span class=\"badge bg-info text-dark\">skipped</span>"
+			installStatusText = filePath + "<span class=\"badge bg-info text-dark\">skipped</span></a>"
 		case InstallResultInfoStatusFailed:
-			installStatusText = "<span class=\"badge bg-danger\">failed</span>"
+			installStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
 		}
 		installStatuses[p.PackageName] = installStatusText
 	}
 	for _, p := range allCheckInfo {
 		var checkStatusText string
+		filePath := "<a href=\"./logs/check-" + filepath.Base(p.LogFilePath) + "\">"
 		switch p.MostSevereCheckItem {
 		case "OK":
-			checkStatusText = "<a href=\"file:///" + p.CheckLogFile + "\">" + HTMLStatusOK + "</a>"
+			checkStatusText = filePath + HTMLStatusOK + "</a>"
 		case "NOTE":
-			checkStatusText = "<a href=\"file:///" + p.CheckLogFile +
-				"\"><span class=\"badge bg-info text-dark\">check note(s)</span>"
+			checkStatusText = filePath +
+				"<span class=\"badge bg-info text-dark\">check note(s)</span></a>"
 		case "WARNING":
-			checkStatusText = "<a href=\"file:///" + p.CheckLogFile +
-				"\"><span class=\"badge bg-warning text-dark\">check warning(s)</span>"
+			checkStatusText = filePath +
+				"<span class=\"badge bg-warning text-dark\">check warning(s)</span></a>"
 		case "ERROR":
-			checkStatusText = "<a href=\"file:///" + p.CheckLogFile +
-				"\"><span class=\"badge bg-danger\">check error(s)</span>"
+			checkStatusText = filePath +
+				"<span class=\"badge bg-danger\">check error(s)</span></a>"
 		}
 		checkStatuses[p.PackageName] = checkStatusText
 	}

@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,7 +42,7 @@ var log = logrus.New()
 // GitLab repositories are cloned into gitlab subdirectory
 const localOutputDirectory = "/tmp/scribe/downloaded_packages"
 
-const temporalCacheDirectory = "/tmp/scribe/cache"
+const tempCacheDirectory = "/tmp/scribe/cache"
 
 var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
@@ -94,40 +93,56 @@ var rootCmd = &cobra.Command{
 		var renvLock Renvlock
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
-		var allDownloadInfo []DownloadInfo
 
-		mkdirerr := os.MkdirAll(temporalCacheDirectory, os.ModePerm)
+		mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
-			log.Errorf("Cannot make dir %s %v", temporalCacheDirectory, mkdirerr)
+			log.Errorf("Cannot make dir %s %v", tempCacheDirectory, mkdirerr)
 		}
-		downloadInfoFile := filepath.Join(temporalCacheDirectory, "downloadInfo.json")
+
+		// Perform package download, except when cache contains JSON with previous
+		// download results.
+		downloadInfoFile := filepath.Join(tempCacheDirectory, "downloadInfo.json")
+		var allDownloadInfo []DownloadInfo
 		if _, err := os.Stat(downloadInfoFile); err == nil {
 			// File with downloaded packages information is already present.
-			log.Info("Reading", downloadInfoFile)
-			jsonFile, errr := os.ReadFile(downloadInfoFile)
-			checkError(errr)
-			errUnmarshal := json.Unmarshal(jsonFile, &allDownloadInfo)
-			checkError(errUnmarshal)
+			readJSON(downloadInfoFile, &allDownloadInfo)
 		} else {
-			log.Infof("No %s", downloadInfoFile)
+			log.Infof("%s doesn't exist.", downloadInfoFile)
 			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 			writeJSON(downloadInfoFile, &allDownloadInfo)
 		}
 
-		installResultInfos := make([]InstallResultInfo, 0)
-		InstallPackages(renvLock, &allDownloadInfo, &installResultInfos)
-		checkPackages(installResultInfos)
+		// Perform package installation, except when cache contains JSON with previous
+		// installation results.
+		installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfos.json")
+		var allInstallInfo []InstallResultInfo
+		if _, err := os.Stat(installInfoFile); err == nil {
+			readJSON(installInfoFile, &allInstallInfo)
+		} else {
+			log.Infof("%s doesn't exist.", installInfoFile)
+			installPackages(renvLock, &allDownloadInfo, &allInstallInfo)
+		}
+
+		// Perform R CMD check, except when cache contains JSON with previous check results.
+		checkInfoFile := filepath.Join(tempCacheDirectory, "checkInfo.json")
+		var allCheckInfo []PackageCheckInfo
+		if _, err := os.Stat(checkInfoFile); err == nil {
+			readJSON(checkInfoFile, &allCheckInfo)
+		} else {
+			log.Infof("%s doesn't exist.", checkInfoFile)
+			checkPackages(allInstallInfo, checkInfoFile)
+		}
 
 		// Generate report.
-		readJSON(downloadInfoFile, &allDownloadInfo)
-		var allInstallInfo []InstallResultInfo
-		readJSON(temporalCacheDirectory+"/installResultInfos.json", &allInstallInfo)
-		var allCheckInfo []PackageCheckInfo
-		readJSON(temporalCacheDirectory+"/allPackagesCheckInfo.json", &allCheckInfo)
 		var reportData ReportInfo
 		preprocessReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
-		err := os.MkdirAll("outputReport", os.ModePerm)
+		err := os.RemoveAll("outputReport/logs")
 		checkError(err)
+		err = os.MkdirAll("outputReport/logs", os.ModePerm)
+		checkError(err)
+		// Copy log files so that they can be accessed from the HTML report.
+		copyLogFiles(packageLogPath, "install-", "outputReport/logs")
+		copyLogFiles(checkLogPath, "check-", "outputReport/logs")
 		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")
 	},
 }
