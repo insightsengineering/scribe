@@ -252,7 +252,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 	minI := 0
 	maxI := int(numberOfWorkers) // max number of parallel installing workers
 	if maxI < 1 {
-		log.Fatal("Number of simultaneous installation processes should be greater than 0")
+		log.Error("Number of simultaneous installation processes should be greater than 0")
 	} else {
 
 		// running packages which have no dependencies
