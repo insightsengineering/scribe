@@ -135,14 +135,14 @@ var rootCmd = &cobra.Command{
 
 		// Generate report.
 		var reportData ReportInfo
-		preprocessReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
+		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
 		err := os.RemoveAll("outputReport/logs")
 		checkError(err)
 		err = os.MkdirAll("outputReport/logs", os.ModePerm)
 		checkError(err)
 		// Copy log files so that they can be accessed from the HTML report.
-		copyLogFiles(packageLogPath, "install-", "outputReport/logs")
-		copyLogFiles(checkLogPath, "check-", "outputReport/logs")
+		copyFiles(packageLogPath, "install-", "outputReport/logs")
+		copyFiles(checkLogPath, "check-", "outputReport/logs")
 		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")
 	},
 }

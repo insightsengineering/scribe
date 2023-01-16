@@ -46,6 +46,23 @@ type PackageCheckInfo struct {
 	Info                []ItemCheckInfo
 }
 
+// Check if this new check item is more severe than ones already seen.
+// If yes, return new one, otherwise return previously most severe.
+func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) string {
+	newMostSevereCheckItem := mostSevereCheckItem
+	switch {
+	case checkItemType == noteConst && mostSevereCheckItem == "OK":
+		newMostSevereCheckItem = noteConst
+	case checkItemType == warnConst &&
+		(mostSevereCheckItem == "OK" || mostSevereCheckItem == noteConst):
+		newMostSevereCheckItem = warnConst
+	case checkItemType == errConst &&
+		(mostSevereCheckItem == "OK" || mostSevereCheckItem == noteConst || mostSevereCheckItem == warnConst):
+		newMostSevereCheckItem = errConst
+	}
+	return newMostSevereCheckItem
+}
+
 // Parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
 // Returns most severe of statuses found (OK, NOTE, WARNING, ERROR).
 func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo) string {
@@ -73,17 +90,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 			default:
 				checkItemType = ""
 			}
-			// Check if this check item is more severe than ones already seen.
-			switch {
-			case checkItemType == noteConst && mostSevereCheckItem == "OK":
-				mostSevereCheckItem = noteConst
-			case checkItemType == warnConst &&
-				(mostSevereCheckItem == "OK" || mostSevereCheckItem == noteConst):
-				mostSevereCheckItem = warnConst
-			case checkItemType == errConst &&
-				(mostSevereCheckItem == "OK" || mostSevereCheckItem == noteConst || mostSevereCheckItem == warnConst):
-				mostSevereCheckItem = errConst
-			}
+			mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
 			if previousCheckItemType != "" {
 				*singlePackageCheckInfo = append(
 					*singlePackageCheckInfo,

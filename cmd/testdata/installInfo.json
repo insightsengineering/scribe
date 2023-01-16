@@ -1,0 +1,23 @@
+[
+  {
+    "packageName": "Matrix",
+    "inputLocation": "/tmp/scribe/downloaded_packages/package_archives/Matrix_1.5-1.tar.gz",
+    "packageVersion": "1.5-1",
+    "status": 0,
+    "logFilePath": "/tmp/scribe/installed_logs/Matrix.out"
+  },
+  {
+    "packageName": "package1",
+    "inputLocation": "",
+    "packageVersion": "",
+    "status": 1,
+    "logFilePath": "/tmp/scribe/installed_logs/package1.out"
+  },
+  {
+    "packageName": "package2",
+    "inputLocation": "",
+    "packageVersion": "",
+    "status": 2,
+    "logFilePath": "/tmp/scribe/installed_logs/package2.out"
+  }
+]

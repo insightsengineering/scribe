@@ -17,12 +17,10 @@ package cmd
 
 import (
 	"html/template"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type PackagesData struct {
@@ -40,9 +38,9 @@ type ReportInfo struct {
 
 const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
 
-// Copies all files from sourceDirectory to destinationDirectory.
+// Copies all files from sourceDirectory to destinationDirectory (not recursively).
 // Adds filePrefix prefix to each copied file name.
-func copyLogFiles(sourceDirectory string, filePrefix string, destinationDirectory string) {
+func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory string) {
 	files, err := os.ReadDir(sourceDirectory)
 	checkError(err)
 	for _, file := range files {
@@ -58,12 +56,8 @@ func copyLogFiles(sourceDirectory string, filePrefix string, destinationDirector
 	}
 }
 
-func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
-	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
-	rand.Seed(time.Now().UnixNano())
+func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	downloadStatuses := make(map[string]string)
-	installStatuses := make(map[string]string)
-	checkStatuses := make(map[string]string)
 	for _, p := range allDownloadInfo {
 		var downloadStatusText string
 		if p.StatusCode != http.StatusOK {
@@ -86,6 +80,11 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []Insta
 		}
 		downloadStatuses[p.PackageName] = downloadStatusText
 	}
+	return downloadStatuses
+}
+
+func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
+	installStatuses := make(map[string]string)
 	for _, p := range allInstallInfo {
 		var installStatusText string
 		filePath := "<a href=\"./logs/install-" + filepath.Base(p.LogFilePath) + "\">"
@@ -99,6 +98,11 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []Insta
 		}
 		installStatuses[p.PackageName] = installStatusText
 	}
+	return installStatuses
+}
+
+func processCheckInfo(allCheckInfo []PackageCheckInfo) map[string]string {
+	checkStatuses := make(map[string]string)
 	for _, p := range allCheckInfo {
 		var checkStatusText string
 		filePath := "<a href=\"./logs/check-" + filepath.Base(p.LogFilePath) + "\">"
@@ -117,6 +121,16 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []Insta
 		}
 		checkStatuses[p.PackageName] = checkStatusText
 	}
+	return checkStatuses
+}
+
+func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
+	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
+
+	downloadStatuses := processDownloadInfo(allDownloadInfo)
+	installStatuses := processInstallInfo(allInstallInfo)
+	checkStatuses := processCheckInfo(allCheckInfo)
+
 	// TODO can it happen that allDownloadInfo, allCheckInfo and allInstallInfo will have different sets of keys?
 	for _, p := range allDownloadInfo {
 		reportOutput.PackagesInformation = append(

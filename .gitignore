@@ -101,7 +101,6 @@ junit-report.xml
 test-results.txt
 dist/
 
-downloadInfo**json
 
 *.log
 *.env
