@@ -134,8 +134,6 @@ var rootCmd = &cobra.Command{
 			readJSON(checkInfoFile, &allCheckInfo)
 		}
 
-
-
 		// Generate report.
 		var reportData ReportInfo
 		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
