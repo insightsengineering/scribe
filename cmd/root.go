@@ -131,7 +131,10 @@ var rootCmd = &cobra.Command{
 		} else {
 			log.Infof("%s doesn't exist.", checkInfoFile)
 			checkPackages(allInstallInfo, checkInfoFile)
+			readJSON(checkInfoFile, &allCheckInfo)
 		}
+
+
 
 		// Generate report.
 		var reportData ReportInfo
