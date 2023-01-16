@@ -90,6 +90,11 @@ var rootCmd = &cobra.Command{
 	Version: scribeVersion,
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
+
+		if int(numberOfWorkers) < 1 {
+			log.Error("Number of simultaneous installation processes should be greater than 0")
+			return
+		}
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
 		var renvLock Renvlock
@@ -142,10 +147,8 @@ func init() {
 		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Should R CMD check be run on all installed packages?")
-
 	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
 		"Number of simultaneous installation processes")
-
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
