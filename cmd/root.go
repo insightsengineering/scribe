@@ -122,8 +122,10 @@ var rootCmd = &cobra.Command{
 		readJSON(downloadInfoFile, &allDownloadInfo)
 		var allInstallInfo []InstallResultInfo
 		readJSON(temporalCacheDirectory+"/installResultInfos.json", &allInstallInfo)
+		var allCheckInfo []PackageCheckInfo
+		readJSON(temporalCacheDirectory+"/allPackagesCheckInfo.json", &allCheckInfo)
 		var reportData ReportInfo
-		preprocessReportData(allDownloadInfo, allInstallInfo, &systemInfo, &reportData)
+		preprocessReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
 		err := os.MkdirAll("outputReport", os.ModePerm)
 		checkError(err)
 		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")

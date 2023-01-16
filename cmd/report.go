@@ -41,7 +41,7 @@ type ReportInfo struct {
 const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
 
 func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
-	systemInfo *SystemInfo, reportOutput *ReportInfo) {
+	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
 	rand.Seed(time.Now().UnixNano())
 	downloadStatuses := make(map[string]string)
 	installStatuses := make(map[string]string)
@@ -69,32 +69,31 @@ func preprocessReportData(allDownloadInfo []DownloadInfo, allInstallInfo []Insta
 		downloadStatuses[p.PackageName] = downloadStatusText
 	}
 	for _, p := range allInstallInfo {
-		var checkStatusText string
+		var installStatusText string
 		switch p.Status {
 		case InstallResultInfoStatusSucceeded:
-			checkStatusText = HTMLStatusOK
+			installStatusText = HTMLStatusOK
 		case InstallResultInfoStatusSkipped:
-			checkStatusText = "<span class=\"badge bg-info text-dark\">skipped</span>"
+			installStatusText = "<span class=\"badge bg-info text-dark\">skipped</span>"
 		case InstallResultInfoStatusFailed:
-			checkStatusText = "<span class=\"badge bg-danger\">failed</span>"
+			installStatusText = "<span class=\"badge bg-danger\">failed</span>"
 		}
-		installStatuses[p.PackageName] = checkStatusText
+		installStatuses[p.PackageName] = installStatusText
 	}
-	// TODO this loop should eventually iterate through allCheckInfo
-	for _, p := range allInstallInfo {
+	for _, p := range allCheckInfo {
 		var checkStatusText string
-		// TODO temporarily generate random check status
-		// This will have to be replaced by a real check status
-		badge := rand.Intn(4)
-		switch badge {
-		case 0:
-			checkStatusText = HTMLStatusOK
-		case 1:
-			checkStatusText = "<span class=\"badge bg-info text-dark\">check note(s)</span>"
-		case 2:
-			checkStatusText = "<span class=\"badge bg-warning text-dark\">check warning(s)</span>"
-		case 3:
-			checkStatusText = "<span class=\"badge bg-danger\">check error(s)</span>"
+		switch p.MostSevereCheckItem {
+		case "OK":
+			checkStatusText = "<a href=\"file:///" + p.CheckLogFile + "\">" + HTMLStatusOK + "</a>"
+		case "NOTE":
+			checkStatusText = "<a href=\"file:///" + p.CheckLogFile +
+				"\"><span class=\"badge bg-info text-dark\">check note(s)</span>"
+		case "WARNING":
+			checkStatusText = "<a href=\"file:///" + p.CheckLogFile +
+				"\"><span class=\"badge bg-warning text-dark\">check warning(s)</span>"
+		case "ERROR":
+			checkStatusText = "<a href=\"file:///" + p.CheckLogFile +
+				"\"><span class=\"badge bg-danger\">check error(s)</span>"
 		}
 		checkStatuses[p.PackageName] = checkStatusText
 	}
