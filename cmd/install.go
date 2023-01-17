@@ -250,7 +250,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 	}
 
 	minI := 0
-	maxI := 20 // max number of parallel installing workers
+	maxI := int(numberOfWorkers) // max number of parallel installing workers
 
 	// running packages which have no dependencies
 	counter := minI // number of currently installing packages in queue

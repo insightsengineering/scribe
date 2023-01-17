@@ -33,9 +33,13 @@ var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
 var checkAllPackages bool
+<<<<<<< HEAD
 var maxDownloadRoutines int
 var maxCheckRoutines int
 var outputReportDirectory string
+=======
+var numberOfWorkers uint
+>>>>>>> main
 
 var log = logrus.New()
 
@@ -99,6 +103,10 @@ var rootCmd = &cobra.Command{
 		if maxCheckRoutines < 1 {
 			log.Warn("Maximum number of R CMD check routines set to less than 1. Setting the number to default value of 5.")
 			maxCheckRoutines = 5
+		}
+		if int(numberOfWorkers) < 1 {
+			log.Error("Number of simultaneous installation processes should be greater than 0")
+			return
 		}
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
@@ -187,12 +195,17 @@ func init() {
 		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Should R CMD check be run on all installed packages?")
+<<<<<<< HEAD
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
 		"The name of directory where the output report should be saved")
 	rootCmd.PersistentFlags().IntVar(&maxDownloadRoutines, "maxDownloadRoutines", 40,
 		"Maximum number of concurrently running download goroutines")
 	rootCmd.PersistentFlags().IntVar(&maxCheckRoutines, "maxCheckRoutines", 5,
 		"Maximum number of concurrently running R CMD check goroutines")
+=======
+	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
+		"Number of simultaneous installation processes")
+>>>>>>> main
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
