@@ -1,0 +1,65 @@
+[
+  {
+    "PackagePath": "/tmp/scribe/installed_packages/package1",
+    "PackageName": "package1",
+    "LogFilePath": "/tmp/scribe/check_logs/package1.out",
+    "MostSevereCheckItem": "ERROR",
+    "Info": [
+      {
+        "CheckItemType": "ERROR",
+        "CheckItemContent": "some error description"
+      },
+      {
+        "CheckItemType": "ERROR",
+        "CheckItemContent": "some error description 2"
+      },
+      {
+        "CheckItemType": "WARNING",
+        "CheckItemContent": "some warning description"
+      },
+      {
+        "CheckItemType": "NOTE",
+        "CheckItemContent": "some note description"
+      }
+    ]
+  },
+  {
+    "PackagePath": "/tmp/scribe/installed_packages/package2",
+    "PackageName": "package2",
+    "LogFilePath": "/tmp/scribe/check_logs/package2.out",
+    "MostSevereCheckItem": "WARNING",
+    "Info": [
+      {
+        "CheckItemType": "WARNING",
+        "CheckItemContent": "some warning description"
+      },
+      {
+        "CheckItemType": "NOTE",
+        "CheckItemContent": "some note description"
+      }
+    ]
+  },
+  {
+    "PackagePath": "/tmp/scribe/installed_packages/package3",
+    "PackageName": "package3",
+    "LogFilePath": "/tmp/scribe/check_logs/package3.out",
+    "MostSevereCheckItem": "OK",
+    "Info": []
+  },
+  {
+    "PackagePath": "/tmp/scribe/installed_packages/package4",
+    "PackageName": "package4",
+    "LogFilePath": "/tmp/scribe/check_logs/package4.out",
+    "MostSevereCheckItem": "NOTE",
+    "Info": [
+      {
+        "CheckItemType": "NOTE",
+        "CheckItemContent": "some note description 1"
+      },
+      {
+        "CheckItemType": "NOTE",
+        "CheckItemContent": "some note description 2"
+      }
+    ]
+  }
+]

@@ -166,7 +166,7 @@ func getOrderedDependencies(
 		reposURLs = append(reposURLs, v.URL)
 	}
 
-	readFile := filepath.Join(temporalCacheDirectory, "deps.json")
+	readFile := filepath.Join(tempCacheDirectory, "deps.json")
 	if _, err := os.Stat(readFile); err == nil {
 		log.Info("Reading", readFile)
 		jsonFile, errr := os.ReadFile(readFile)
@@ -193,7 +193,7 @@ func getOrderedDependencies(
 	}
 	defer os.Remove(readFile)
 
-	readFile = filepath.Join(temporalCacheDirectory, "depsOrdered.json")
+	readFile = filepath.Join(tempCacheDirectory, "depsOrdered.json")
 	if _, err := os.Stat(readFile); err == nil {
 		log.Infof("Reading %s", readFile)
 		jsonFile, errr := os.ReadFile(readFile)
@@ -220,7 +220,7 @@ func getOrderedDependencies(
 }
 
 // nolint: gocyclo
-func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, installResultInfos *[]InstallResultInfo) {
+func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, installResultInfos *[]InstallResultInfo) {
 	mkLibPathDir(temporalLibPath)
 	mkLibPathDir(packageLogPath)
 
@@ -313,7 +313,7 @@ func InstallPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 		}
 	}
 
-	installResultInfosFilePath := filepath.Join(temporalCacheDirectory, "installResultInfos.json")
+	installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfos.json")
 	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
 	writeJSON(installResultInfosFilePath, *installResultInfos)
 	log.Infof("Installation for %d is done", len(*installResultInfos))

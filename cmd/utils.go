@@ -66,6 +66,15 @@ func writeJSON(filename string, j interface{}) int {
 	return len(s)
 }
 
+func readJSON(filename string, j interface{}) {
+	log.Debug("Reading " + filename)
+	byteValue, err := os.ReadFile(filename)
+	checkError(err)
+
+	err = json.Unmarshal(byteValue, j)
+	checkError(err)
+}
+
 func fillEnvFromSystem(envs []string) []string {
 	for i, env := range envs {
 		if env != "" && !strings.Contains(env, "=") {

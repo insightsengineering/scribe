@@ -1,0 +1,72 @@
+[
+  {
+    "statusCode": -4,
+    "message": "https://cloud.r-project.org/src/contrib/Archive/httpuv/httpuv_1.6.7.tar.gz",
+    "contentLength": 0,
+    "outputLocation": "",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "tar.gz",
+    "packageName": "httpuv",
+    "packageVersion": "1.6.7"
+  },
+  {
+    "statusCode": 404,
+    "message": "https://cloud.r-project.org/src/contrib/covr_3.6.1.tar.gz",
+    "contentLength": 0,
+    "outputLocation": "",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "tar.gz",
+    "packageName": "covr",
+    "packageVersion": "3.6.1"
+  },
+  {
+    "statusCode": 200,
+    "message": "https://github.com/insightsengineering/scda",
+    "contentLength": 5,
+    "outputLocation": "/tmp/scribe/downloaded_packages/github/insightsengineering/scda",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "git",
+    "packageName": "scda",
+    "packageVersion": ""
+  },
+  {
+    "statusCode": 200,
+    "message": "https://cloud.r-project.org/src/contrib/formatters_0.3.2.tar.gz",
+    "contentLength": 2,
+    "outputLocation": "/tmp/scribe/downloaded_packages/package_archives/formatters_0.3.2.tar.gz",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "tar.gz",
+    "packageName": "formatters",
+    "packageVersion": "0.3.2"
+  },
+  {
+    "statusCode": -2,
+    "message": "https://github.com/insightsengineering/teal.reporter",
+    "contentLength": 3,
+    "outputLocation": "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.reporter",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "git",
+    "packageName": "teal.reporter",
+    "packageVersion": ""
+  },
+  {
+    "statusCode": -3,
+    "message": "https://github.com/insightsengineering/teal.widgets",
+    "contentLength": 4,
+    "outputLocation": "/tmp/scribe/downloaded_packages/github/insightsengineering/teal.widgets",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "git",
+    "packageName": "teal.widgets",
+    "packageVersion": ""
+  },
+  {
+    "statusCode": -1,
+    "message": "https://cloud.r-project.org/src/contrib/httr_1.4.4.tar.gz",
+    "contentLength": 0,
+    "outputLocation": "",
+    "savedBandwidth": 0,
+    "downloadedPackageType": "bioconductor",
+    "packageName": "httr",
+    "packageVersion": "1.4.4"
+  }
+]

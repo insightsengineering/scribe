@@ -26,7 +26,8 @@ func Test_parseCheckOutput(t *testing.T) {
 	var allCheckInfo []ItemCheckInfo
 	checkOutput, err := os.ReadFile("testdata/r_cmd_check.txt")
 	checkError(err)
-	parseCheckOutput(string(checkOutput), &allCheckInfo)
+	maximumSeverity := parseCheckOutput(string(checkOutput), &allCheckInfo)
+	assert.Equal(t, maximumSeverity, "ERROR")
 	assert.Equal(t, allCheckInfo[0].CheckItemType, "WARNING")
 	assert.Equal(t, allCheckInfo[0].CheckItemContent,
 		"* checking Rd metadata ... WARNING\nSome warning 1\n  Some warning 2\n")
