@@ -33,6 +33,9 @@ var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
 var checkAllPackages bool
+var maxDownloadRoutines int
+var maxCheckRoutines int
+var outputReportDirectory string
 
 var log = logrus.New()
 
@@ -88,6 +91,15 @@ var rootCmd = &cobra.Command{
 	Version: scribeVersion,
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
+
+		if maxDownloadRoutines < 1 {
+			log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
+			maxDownloadRoutines = 40
+		}
+		if maxCheckRoutines < 1 {
+			log.Warn("Maximum number of R CMD check routines set to less than 1. Setting the number to default value of 5.")
+			maxCheckRoutines = 5
+		}
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
 		var renvLock Renvlock
@@ -137,14 +149,14 @@ var rootCmd = &cobra.Command{
 		// Generate report.
 		var reportData ReportInfo
 		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
-		err := os.RemoveAll("outputReport/logs")
+		err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 		checkError(err)
-		err = os.MkdirAll("outputReport/logs", os.ModePerm)
+		err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
 		checkError(err)
 		// Copy log files so that they can be accessed from the HTML report.
-		copyFiles(packageLogPath, "install-", "outputReport/logs")
-		copyFiles(checkLogPath, "check-", "outputReport/logs")
-		writeReport(reportData, "outputReport/index.html", "cmd/report/index.html")
+		copyFiles(packageLogPath, "install-", filepath.Join(outputReportDirectory, "logs"))
+		copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
+		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"), "cmd/report/index.html")
 	},
 }
 
@@ -168,10 +180,19 @@ func init() {
 		"Regular expression for which environment variables should be masked in system information report")
 	rootCmd.PersistentFlags().StringVar(&renvLockFilename, "renvLockFilename", "renv.lock",
 		"Path to renv.lock file to be processed")
+	// checkPackage argument follows the pattern: expression1,expression2,...
+	// where expressionN follows pattern: literal package name and/or * symbol(s) meaning any set of characters.
+	// For example: package*,*abc,a*b,someOtherPackage
 	rootCmd.PersistentFlags().StringVar(&checkPackageExpression, "checkPackage", "",
 		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Should R CMD check be run on all installed packages?")
+	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
+		"The name of directory where the output report should be saved")
+	rootCmd.PersistentFlags().IntVar(&maxDownloadRoutines, "maxDownloadRoutines", 40,
+		"Maximum number of concurrently running download goroutines")
+	rootCmd.PersistentFlags().IntVar(&maxCheckRoutines, "maxCheckRoutines", 5,
+		"Maximum number of concurrently running R CMD check goroutines")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

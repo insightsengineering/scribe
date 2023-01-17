@@ -56,6 +56,8 @@ func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory s
 	}
 }
 
+// For each item from download info JSON, generate HTML code for badge in the report corresponding to the package.
+// Returns map from package name to HTML code.
 func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	downloadStatuses := make(map[string]string)
 	for _, p := range allDownloadInfo {
@@ -83,6 +85,8 @@ func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	return downloadStatuses
 }
 
+// For each item from installation info JSON, generate HTML code for badge in the report corresponding to the package.
+// Returns map from package name to HTML code.
 func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	installStatuses := make(map[string]string)
 	for _, p := range allInstallInfo {
@@ -101,6 +105,8 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	return installStatuses
 }
 
+// For each item from R CMD check info JSON, generate HTML code for badge in the report corresponding to the package.
+// Returns map from package name to HTML code.
 func processCheckInfo(allCheckInfo []PackageCheckInfo) map[string]string {
 	checkStatuses := make(map[string]string)
 	for _, p := range allCheckInfo {
@@ -124,6 +130,8 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) map[string]string {
 	return checkStatuses
 }
 
+// Returns processed download, installation and check information in a structure that
+// can be consumed by Go templating engine.
 func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
 	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
 
@@ -131,7 +139,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	installStatuses := processInstallInfo(allInstallInfo)
 	checkStatuses := processCheckInfo(allCheckInfo)
 
-	// TODO can it happen that allDownloadInfo, allCheckInfo and allInstallInfo will have different sets of keys?
+	// Iterating through download info because it is a superset of install info and check info.
 	for _, p := range allDownloadInfo {
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,

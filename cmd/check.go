@@ -26,7 +26,6 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-var maxCheckRoutines = 5
 var checkLogPath = "/tmp/scribe/check_logs"
 
 const errConst = "ERROR"
@@ -46,7 +45,7 @@ type PackageCheckInfo struct {
 	Info                []ItemCheckInfo
 }
 
-// Check if this new check item is more severe than ones already seen.
+// Check if checkItemType is more severe than currently most severe (mostSevereCheckItem).
 // If yes, return new one, otherwise return previously most severe.
 func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) string {
 	newMostSevereCheckItem := mostSevereCheckItem
@@ -107,6 +106,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 	return mostSevereCheckItem
 }
 
+// Go routine receiving data from go routines performing R CMD checks on the packages.
 func checkResultsReceiver(messages chan PackageCheckInfo,
 	checkWaiter chan struct{}, totalPackages int, outputFile string) {
 	var bar progressbar.ProgressBar

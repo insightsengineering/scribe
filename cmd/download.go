@@ -44,9 +44,6 @@ const cache = "cache"
 const download = "download"
 const targzExtensionFile = "tar.gz"
 
-// Maximum number of concurrently running download goroutines.
-const maxDownloadRoutines = 40
-
 type DownloadInfo struct {
 	// if statusCode > 0 it is identical to HTTP status code from download, or 200 in case of successful
 	// git repository clone
