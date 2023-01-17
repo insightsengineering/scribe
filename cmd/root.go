@@ -33,13 +33,10 @@ var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
 var checkAllPackages bool
-<<<<<<< HEAD
 var maxDownloadRoutines int
 var maxCheckRoutines int
 var outputReportDirectory string
-=======
 var numberOfWorkers uint
->>>>>>> main
 
 var log = logrus.New()
 
@@ -195,17 +192,14 @@ func init() {
 		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Should R CMD check be run on all installed packages?")
-<<<<<<< HEAD
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
 		"The name of directory where the output report should be saved")
 	rootCmd.PersistentFlags().IntVar(&maxDownloadRoutines, "maxDownloadRoutines", 40,
 		"Maximum number of concurrently running download goroutines")
 	rootCmd.PersistentFlags().IntVar(&maxCheckRoutines, "maxCheckRoutines", 5,
 		"Maximum number of concurrently running R CMD check goroutines")
-=======
 	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
 		"Number of simultaneous installation processes")
->>>>>>> main
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
