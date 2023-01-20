@@ -16,6 +16,19 @@ Simply download the project for your distribution from the [releases](https://gi
 scribe --help
 ```
 
+Example usage with multiple flags:
+```bash
+scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150
+```
+
+## Cache
+
+`scribe` uses cache stored in `/tmp/scribe` for various purposes.
+
+The results of download, installation, build and check stages are stored in `/tmp/scribe/cache`. When `scribe` detects presence of files with such results, it skips respective stages.
+
+In order to run the download, installation, build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually. Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
+
 ## Development
 
 This project is built with the [Go programming language](https://go.dev/).

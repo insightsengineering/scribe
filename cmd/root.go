@@ -178,28 +178,34 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
-		"Logging level (trace, debug, info, warn, error)")
+		"Logging level (trace, debug, info, warn, error). "+
+			"Typically info log level is used for relevant information. "+
+			"Use debug or trace for more detailed debugging information.")
+	// TODO this should probably be reversed: the flag called --noninteractive
+	// and the flag would be used in CI or when user wants to see whole output.
 	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
-		"Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
+		"Use this flag if you want to see only progress bars for downloading, installing, etc. "+
+			"If this flag is not used (e.g. in CI pipeline), detailed progress output is shown.")
 	rootCmd.PersistentFlags().StringVar(&maskedEnvVars, "maskedEnvVars", "",
-		"Regular expression for which environment variables should be masked in system information report")
+		"Regular expression defining which environment variables should be masked in the output report. "+
+			"Typically variables with sensitive data should be masked. Example: "+`'sensitiveValue1|sensitiveValue2'`)
 	rootCmd.PersistentFlags().StringVar(&renvLockFilename, "renvLockFilename", "renv.lock",
 		"Path to renv.lock file to be processed")
-	// checkPackage argument follows the pattern: expression1,expression2,...
-	// where expressionN follows pattern: literal package name and/or * symbol(s) meaning any set of characters.
-	// For example: package*,*abc,a*b,someOtherPackage
 	rootCmd.PersistentFlags().StringVar(&checkPackageExpression, "checkPackage", "",
-		"Expression with wildcards indicating which packages should be R CMD checked")
+		"Expression with wildcards indicating which packages should be R CMD checked. "+
+			"The expression follows the pattern: \"expression1,expression2,...\" where \"expressionN\" can be: "+
+			"literal package name and/or * symbol(s) meaning any set of characters. Example: "+
+			`'package*,*abc,a*b,someOtherPackage'`)
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
-		"Should R CMD check be run on all installed packages?")
+		"Use this flag to check all installed packages.")
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
-		"The name of directory where the output report should be saved")
+		"The name of directory where the output report should be saved.")
 	rootCmd.PersistentFlags().IntVar(&maxDownloadRoutines, "maxDownloadRoutines", 40,
-		"Maximum number of concurrently running download goroutines")
+		"Maximum number of concurrently running download goroutines.")
 	rootCmd.PersistentFlags().IntVar(&maxCheckRoutines, "maxCheckRoutines", 5,
-		"Maximum number of concurrently running R CMD check goroutines")
+		"Maximum number of concurrently running R CMD check goroutines.")
 	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
-		"Number of simultaneous installation processes")
+		"Number of simultaneous installation processes.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
