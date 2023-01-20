@@ -16,6 +16,34 @@ Simply download the project for your distribution from the [releases](https://gi
 scribe --help
 ```
 
+### Flags description
+|Flag|Default value|Description|Example value|
+|---|---|---|---|
+|`interactive`|unset|Use this flag if you want to see only progress bars for downloading, installing, etc. and not detailed progress output. (This is work in progress.)||
+|`logLevel`|`info`|Typically `info` log level is used for relevant information. Use `debug` or `trace` for more detailed debugging information.||
+|`maskedEnvVars`|empty|Regular expression defining which environment variables should be masked in the output report. Typically variables with sensitive data should be masked.|`sensitiveValue1\|sensitiveValue2`|
+|`renvLockFilename`|`renv.lock`|Path to renv lock file.||
+|`checkPackage`|empty|Expression with wildcards indicating which packages should be R CMD checked. The expression follows the pattern: `expression1,expression2,...` where `expressionN` can be: literal package name and/or `*` symbol(s) meaning any set of characters.|`package*,*abc,a*b,someOtherPackage`|
+|`checkAllPackages`|unset|Use this flag to check all installed packages.|
+|`reportDir`|`outputReport`|The name of directory where the output report should be saved.||
+|`maxDownloadRoutines`|40|Maximum number of concurrently running download goroutines.|
+|`maxCheckRoutines`|5|Maximum number of concurrently running R CMD check goroutines.|
+|`numberOfWorkers`|20|Number of simultaneous installation processes.|
+
+
+Example usage with multiple flags:
+```bash
+scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150
+```
+
+## Cache
+
+`scribe` uses cache stored in `/tmp/scribe` for various purposes.
+
+The results of download, installation, build and check stages are stored in `/tmp/scribe/cache`. When `scribe` detects presence of files with such results, it skips respective stages.
+
+In order to run the download, installation build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually. Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
+
 ## Development
 
 This project is built with the [Go programming language](https://go.dev/).

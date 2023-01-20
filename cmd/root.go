@@ -179,15 +179,14 @@ func init() {
 		"config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
 		"Logging level (trace, debug, info, warn, error)")
+	// TODO this should probably be reversed: the flag called --noninteractive
+	// and the flag would be used in CI or when user wants to see whole output.
 	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
 		"Is scribe running in interactive environment (as opposed to e.g. CI pipeline)?")
 	rootCmd.PersistentFlags().StringVar(&maskedEnvVars, "maskedEnvVars", "",
-		"Regular expression for which environment variables should be masked in system information report")
+		"Regular expression defining which environment variables should be masked in the output report")
 	rootCmd.PersistentFlags().StringVar(&renvLockFilename, "renvLockFilename", "renv.lock",
 		"Path to renv.lock file to be processed")
-	// checkPackage argument follows the pattern: expression1,expression2,...
-	// where expressionN follows pattern: literal package name and/or * symbol(s) meaning any set of characters.
-	// For example: package*,*abc,a*b,someOtherPackage
 	rootCmd.PersistentFlags().StringVar(&checkPackageExpression, "checkPackage", "",
 		"Expression with wildcards indicating which packages should be R CMD checked")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
