@@ -178,24 +178,24 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
-		"Logging level (trace, debug, info, warn, error). " +
-		"Typically info log level is used for relevant information. " +
-		"Use debug or trace for more detailed debugging information.")
+		"Logging level (trace, debug, info, warn, error). "+
+			"Typically info log level is used for relevant information. "+
+			"Use debug or trace for more detailed debugging information.")
 	// TODO this should probably be reversed: the flag called --noninteractive
 	// and the flag would be used in CI or when user wants to see whole output.
 	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
-		"Use this flag if you want to see only progress bars for downloading, installing, etc. " +
-		"If this flag is not used (e.g. in CI pipeline), detailed progress output is shown.")
+		"Use this flag if you want to see only progress bars for downloading, installing, etc. "+
+			"If this flag is not used (e.g. in CI pipeline), detailed progress output is shown.")
 	rootCmd.PersistentFlags().StringVar(&maskedEnvVars, "maskedEnvVars", "",
-		"Regular expression defining which environment variables should be masked in the output report. " +
-		"Typically variables with sensitive data should be masked. Example: " + `'sensitiveValue1|sensitiveValue2'`)
+		"Regular expression defining which environment variables should be masked in the output report. "+
+			"Typically variables with sensitive data should be masked. Example: "+`'sensitiveValue1|sensitiveValue2'`)
 	rootCmd.PersistentFlags().StringVar(&renvLockFilename, "renvLockFilename", "renv.lock",
 		"Path to renv.lock file to be processed")
 	rootCmd.PersistentFlags().StringVar(&checkPackageExpression, "checkPackage", "",
-		"Expression with wildcards indicating which packages should be R CMD checked. " +
-		"The expression follows the pattern: \"expression1,expression2,...\" where \"expressionN\" can be: " +
-		"literal package name and/or * symbol(s) meaning any set of characters. Example: " +
-		`'package*,*abc,a*b,someOtherPackage'`)
+		"Expression with wildcards indicating which packages should be R CMD checked. "+
+			"The expression follows the pattern: \"expression1,expression2,...\" where \"expressionN\" can be: "+
+			"literal package name and/or * symbol(s) meaning any set of characters. Example: "+
+			`'package*,*abc,a*b,someOtherPackage'`)
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Use this flag to check all installed packages.")
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
