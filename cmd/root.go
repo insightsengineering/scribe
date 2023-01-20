@@ -179,7 +179,7 @@ func init() {
 		"config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
 		"Logging level (trace, debug, info, warn, error). " +
-		"Typically `info` log level is used for relevant information. " +
+		"Typically info log level is used for relevant information. " +
 		"Use debug or trace for more detailed debugging information.")
 	// TODO this should probably be reversed: the flag called --noninteractive
 	// and the flag would be used in CI or when user wants to see whole output.
