@@ -42,7 +42,7 @@ scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockF
 
 The results of download, installation, build and check stages are stored in `/tmp/scribe/cache`. When `scribe` detects presence of files with such results, it skips respective stages.
 
-In order to run the download, installation build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually. Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
+In order to run the download, installation, build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually. Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
 
 ## Development
 
