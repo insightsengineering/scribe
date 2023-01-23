@@ -21,6 +21,7 @@ import (
 
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -106,7 +107,25 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	return res
 }
 
-func executeInstallation(outputLocation, packageName, logFilePath, packageType string) error {
+// Returns tar.gz file name where built package is saved.
+// If not found, returns empty string.
+func getBuiltPackageFileName(packageName string) string {
+	files, err := os.ReadDir(".")
+	checkError(err)
+	for _, file := range files {
+		if !file.IsDir() {
+			fileName := file.Name()
+			match, err := regexp.MatchString("^"+packageName+`.*\.tar\.gz$`, fileName)
+			checkError(err)
+			if match {
+				return fileName
+			}
+		}
+	}
+	return ""
+}
+
+func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string) error {
 	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if logFileErr != nil {
@@ -116,7 +135,34 @@ func executeInstallation(outputLocation, packageName, logFilePath, packageType s
 	defer logFile.Close()
 
 	if packageType == "git" {
-		log.Infof("Package %s is a source package so it has to be build first.")
+		log.Infof("Package %s located in %s is a source package so it has to be build first.", packageName, outputLocation)
+		cmd := "R CMD build " + outputLocation
+		log.Trace("execCommand:" + cmd)
+		buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+		if buildLogFileErr != nil {
+			log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, buildLogFileErr, buildLogFilePath)
+			return buildLogFileErr
+		}
+		defer logFile.Close()
+		output, err := execCommand(cmd, false, false,
+			[]string{
+				"R_LIBS=" + rLibsPaths,
+				"LANG=en_US.UTF-8",
+			}, buildLogFile)
+		if err != nil {
+			log.Error(cmd)
+			log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
+			return err
+		}
+		log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
+		builtPackageName := getBuiltPackageFileName(packageName)
+		if builtPackageName != "" {
+			// Build succeeded.
+			log.Infof("Built package is stored in %s", builtPackageName)
+			// Install tar.gz file instead of directory with git source code of the package.
+			outputLocation = builtPackageName
+		}
+		// TODO information about buildLogFilePath has to be returned and processed by report
 	}
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
@@ -137,7 +183,8 @@ func executeInstallation(outputLocation, packageName, logFilePath, packageType s
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
 	for installInfo := range installChan {
 		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
-		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath, installInfo.PackageType)
+		buildLogFilePath := filepath.Join(packageLogPath, "build-"+installInfo.PackageName+".out")
+		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath, buildLogFilePath, installInfo.PackageType)
 		packageVersion := ""
 		Status := InstallResultInfoStatusFailed
 		if err == nil {

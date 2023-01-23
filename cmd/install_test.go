@@ -50,17 +50,17 @@ func Test_mkLibPathDir(t *testing.T) {
 
 func Test_executeInstallation(t *testing.T) {
 	t.Skip("skipping integration test")
-	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out")
+	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out", "build-test.out", "tar.gz")
 	assert.NoError(t, err)
 }
 
 func Test_executeInstallation_with_wrong_logFilePath(t *testing.T) {
-	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "")
+	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "", "", "tar.gz")
 	assert.Error(t, err)
 }
 
 func Test_executeInstallation_with_wrong_path_to_package(t *testing.T) {
-	err := executeInstallation("", "BiocBaseUtils", "test.out")
+	err := executeInstallation("", "BiocBaseUtils", "test.out", "build-test.out", "tar.gz")
 	assert.Error(t, err)
 }
 
@@ -85,7 +85,7 @@ func Test_executeInstallationFromTargz(t *testing.T) {
 		{"testdata/targz/tripack_1.3-9.tar.gz", "tripack"},
 	}
 	for _, v := range cases {
-		err := executeInstallation(v.targz, v.packageName, v.packageName+".out")
+		err := executeInstallation(v.targz, v.packageName, v.packageName+".out", "build-"+v.packageName+".out", "tar.gz")
 		assert.NoError(t, err)
 	}
 }

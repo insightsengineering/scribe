@@ -188,18 +188,24 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 				}
 			}
 			err = repository.Fetch(fetchOptions)
-			checkError(err)
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: plumbing.ReferenceName(checkoutRefName),
 			})
-			checkError(err)
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
 		} else if commitSha != "" {
 			// Checkout the commit.
 			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
 			err = w.Checkout(&git.CheckoutOptions{
 				Hash: plumbing.NewHash(commitSha),
 			})
-			checkError(err)
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
 		}
 		// The number of bytes downloaded is approximated by the size of repository directory.
 		var gitRepoSize int64
