@@ -32,6 +32,7 @@ const packageLogPath = "/tmp/scribe/installed_logs"
 type InstallInfo struct {
 	PackageName   string `json:"packageName"`
 	InputLocation string `json:"inputLocation"`
+	PackageType   string `json:"packageType"`
 }
 
 type InstallResultInfo struct {
@@ -105,7 +106,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	return res
 }
 
-func executeInstallation(outputLocation, packageName, logFilePath string) error {
+func executeInstallation(outputLocation, packageName, logFilePath, packageType string) error {
 	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if logFileErr != nil {
@@ -113,6 +114,10 @@ func executeInstallation(outputLocation, packageName, logFilePath string) error 
 		return logFileErr
 	}
 	defer logFile.Close()
+
+	if packageType == "git" {
+		log.Infof("Package %s is a source package so it has to be build first.")
+	}
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
@@ -132,7 +137,7 @@ func executeInstallation(outputLocation, packageName, logFilePath string) error 
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
 	for installInfo := range installChan {
 		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
-		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath)
+		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath, installInfo.PackageType)
 		packageVersion := ""
 		Status := InstallResultInfoStatusFailed
 		if err == nil {
@@ -263,7 +268,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				counter++
 				log.Tracef("Triggering %s", p)
 				installing[p] = true
-				installChan <- InstallInfo{p, packagesLocation[p].Location}
+				installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
 			}
 			if counter >= maxI {
 				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
@@ -274,6 +279,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				InstallInfo: InstallInfo{
 					PackageName:   p,
 					InputLocation: packagesLocation[p].Location,
+					PackageType:   packagesLocation[p].PackageType,
 				},
 				PackageVersion: ver,
 				LogFilePath:    "",
@@ -295,7 +301,8 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				if !processed[nextPackage] {
 					if !installing[nextPackage] {
 						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
-							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location}
+							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location,
+								packagesLocation[nextPackage].PackageType}
 							installing[nextPackage] = true
 						}
 					}
