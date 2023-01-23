@@ -58,7 +58,7 @@ func parseDescription(description string) map[string]string {
 	m := make(map[string]string)
 	err := yaml.Unmarshal([]byte(cleaned), &m)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		log.Fatalf("error in parseDescription: %v", err)
 	}
 	return m
 }
@@ -197,8 +197,8 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 				name := header.Name
 				if name != "" && strings.HasSuffix(name, "DESCRIPTION") {
 					if header.Typeflag == tar.TypeReg {
-						data := make([]byte, header.Size)
 						for {
+							data := make([]byte, header.Size)
 							_, err := tarReader.Read(data)
 							res += strings.Trim(string(data), "\x00")
 							if err != nil {
@@ -321,7 +321,7 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 			m := make(map[string]string)
 			err := yaml.Unmarshal([]byte(linegroup), &m)
 			if err != nil {
-				log.Fatalf("error: %v", err)
+				log.Fatalf("error in getPackageDepsFromPackagesFileContent: %v", err)
 			} else if len(m) > 1 {
 				packageDep := make([]string, 0)
 				for _, field := range depFields {
