@@ -126,9 +126,13 @@ func getBuiltPackageFileName(packageName string) string {
 	for _, file := range files {
 		if !file.IsDir() {
 			fileName := file.Name()
-			match, err := regexp.MatchString("^"+packageName+`.*\.tar\.gz$`, fileName)
+			match1, err := regexp.MatchString("^"+packageName+`.*\.tar\.gz$`, fileName)
 			checkError(err)
-			if match {
+			// Match filename also in such a way that there's underscore immediately after package name.
+			// This way e.g. scda.2022 won't be returned while looking for scda.
+			match2, err := regexp.MatchString("^"+packageName+`\_`, fileName)
+			checkError(err)
+			if match1 && match2 {
 				return fileName
 			}
 		}
