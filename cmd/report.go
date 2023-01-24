@@ -137,6 +137,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 
 	downloadStatuses := processDownloadInfo(allDownloadInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
+	// TODO add processing build statuses based on allInstallInfo
 	checkStatuses := processCheckInfo(allCheckInfo)
 
 	// Iterating through download info because it is a superset of install info and check info.
@@ -156,20 +157,20 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 		"\n", "<br />")
 }
 
-func writeReport(reportData ReportInfo, outputFile string, templateFile string) {
+func writeReport(reportData ReportInfo, outputFile string) {
 	funcMap := template.FuncMap{
 		// Function required for inserting HTML code into the template.
 		"safe": func(s string) template.HTML {
 			return template.HTML(s) // #nosec
 		},
 	}
-	tmpl, err := template.New(filepath.Base(templateFile)).Funcs(funcMap).ParseFiles(templateFile)
+	tmpl, err := template.New("report_template").Funcs(funcMap).Parse(HTMLReportTemplate)
 	checkError(err)
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	checkError(err)
 	reportFile, err := os.Create(outputFile)
 	checkError(err)
 	defer reportFile.Close()
-	err = tmpl.ExecuteTemplate(reportFile, filepath.Base(templateFile), reportData)
+	err = tmpl.ExecuteTemplate(reportFile, "report_template", reportData)
 	checkError(err)
 }

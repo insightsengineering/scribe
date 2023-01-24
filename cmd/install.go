@@ -29,6 +29,7 @@ const temporalLibPath = "/tmp/scribe/installed_packages"
 const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
 
 const packageLogPath = "/tmp/scribe/installed_logs"
+const buildLogPath = "/tmp/scribe/build_logs"
 
 type InstallInfo struct {
 	PackageName   string `json:"packageName"`
@@ -41,12 +42,19 @@ type InstallResultInfo struct {
 	PackageVersion string `json:"packageVersion"`
 	Status         int    `json:"status"`
 	LogFilePath    string `json:"logFilePath"`
+	BuildStatus    int    `json:"buildStatus"`
 }
 
 const (
 	InstallResultInfoStatusSucceeded = iota
 	InstallResultInfoStatusSkipped
 	InstallResultInfoStatusFailed
+)
+
+const (
+	buildStatusSucceeded = iota
+	buildStatusFailed
+	buildStatusNotBuilt
 )
 
 func mkLibPathDir(temporalLibPath string) {
@@ -125,23 +133,25 @@ func getBuiltPackageFileName(packageName string) string {
 	return ""
 }
 
-func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string) error {
+// Returns error and build status (succeeded, failed or package not built).
+func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string) (int, error) {
 	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if logFileErr != nil {
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, logFileErr, logFilePath)
-		return logFileErr
+		return buildStatusNotBuilt, logFileErr
 	}
 	defer logFile.Close()
 
 	if packageType == "git" {
-		log.Infof("Package %s located in %s is a source package so it has to be build first.", packageName, outputLocation)
-		cmd := "R CMD build " + outputLocation
+		log.Infof("Package %s located in %s is a source package so it has to be built first.", packageName, outputLocation)
+		// TODO --no-build-vignettes
+		cmd := "R CMD build --no-build-vignettes " + outputLocation
 		log.Trace("execCommand:" + cmd)
 		buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 		if buildLogFileErr != nil {
 			log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, buildLogFileErr, buildLogFilePath)
-			return buildLogFileErr
+			return buildStatusFailed, buildLogFileErr
 		}
 		defer logFile.Close()
 		output, err := execCommand(cmd, false, false,
@@ -152,7 +162,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		if err != nil {
 			log.Error(cmd)
 			log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
-			return err
+			return buildStatusFailed, err
 		}
 		log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
 		builtPackageName := getBuiltPackageFileName(packageName)
@@ -162,7 +172,6 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 			// Install tar.gz file instead of directory with git source code of the package.
 			outputLocation = builtPackageName
 		}
-		// TODO information about buildLogFilePath has to be returned and processed by report
 	}
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
@@ -177,14 +186,18 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
 	}
 	log.Infof("Executed Installation step on package %s located in %s", packageName, outputLocation)
-	return err
+	if packageType == "git" {
+		return buildStatusSucceeded, err
+	}
+	return buildStatusNotBuilt, err
 }
 
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
 	for installInfo := range installChan {
 		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
-		buildLogFilePath := filepath.Join(packageLogPath, "build-"+installInfo.PackageName+".out")
-		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath, buildLogFilePath, installInfo.PackageType)
+		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".out")
+		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
+			logFilePath, buildLogFilePath, installInfo.PackageType)
 		packageVersion := ""
 		Status := InstallResultInfoStatusFailed
 		if err == nil {
@@ -200,6 +213,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 			Status:         Status,
 			PackageVersion: packageVersion,
 			LogFilePath:    logFilePath,
+			BuildStatus:    buildStatus,
 		}
 		log.Tracef("Installation of package %s is done", installInfo.PackageName)
 	}
