@@ -29,6 +29,7 @@ type PackagesData struct {
 	DownloadStatusText string `json:"downloadStatusText"`
 	InstallStatusText  string `json:"installStatusText"`
 	CheckStatusText    string `json:"checkStatusText"`
+	BuildStatusText    string `json:"buildStatusText"`
 }
 
 type ReportInfo struct {
@@ -85,8 +86,8 @@ func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	return downloadStatuses
 }
 
-// For each item from installation info JSON, generate HTML code for badge in the report corresponding to the package.
-// Returns map from package name to HTML code.
+// For each item from installation info JSON, generate HTML code for badge in the report corresponding
+// to the installation status of the package. Returns map from package name to HTML code.
 func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	installStatuses := make(map[string]string)
 	for _, p := range allInstallInfo {
@@ -99,10 +100,30 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 			installStatusText = filePath + "<span class=\"badge bg-info text-dark\">skipped</span></a>"
 		case InstallResultInfoStatusFailed:
 			installStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
+		case InstallResultInfoStatusBuildFailed:
+			installStatusText = "<span class=\"badge bg-danger\">build failed</span>"
 		}
 		installStatuses[p.PackageName] = installStatusText
 	}
 	return installStatuses
+}
+
+// For each item from installation info JSON, generate HTML code for badge in the report corresponding
+// to the build status of the package. Returns map from package name to HTML code.
+func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
+	buildStatuses := make(map[string]string)
+	for _, p := range allInstallInfo {
+		var buildStatusText string
+		filePath := "<a href=\"./logs/build-" + filepath.Base(p.BuildLogFilePath) + "\">"
+		switch p.BuildStatus {
+		case buildStatusSucceeded:
+			buildStatusText = filePath + HTMLStatusOK + "</a>"
+		case buildStatusFailed:
+			buildStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
+		}
+		buildStatuses[p.PackageName] = buildStatusText
+	}
+	return buildStatuses
 }
 
 // For each item from R CMD check info JSON, generate HTML code for badge in the report corresponding to the package.
@@ -137,7 +158,8 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 
 	downloadStatuses := processDownloadInfo(allDownloadInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
-	// TODO add processing build statuses based on allInstallInfo
+	// Builiding packages is done as part of install step, so build status is stored in installation info structure.
+	buildStatuses := processBuildInfo(allInstallInfo)
 	checkStatuses := processCheckInfo(allCheckInfo)
 
 	// Iterating through download info because it is a superset of install info and check info.
@@ -145,7 +167,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
 			PackagesData{p.PackageName, p.PackageVersion, downloadStatuses[p.PackageName],
-				installStatuses[p.PackageName], checkStatuses[p.PackageName]},
+				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName]},
 		)
 	}
 	reportOutput.SystemInformation = systemInfo

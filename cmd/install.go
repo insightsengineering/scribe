@@ -30,6 +30,7 @@ const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library
 
 const packageLogPath = "/tmp/scribe/installed_logs"
 const buildLogPath = "/tmp/scribe/build_logs"
+const gitConst = "git"
 
 type InstallInfo struct {
 	PackageName   string `json:"packageName"`
@@ -39,16 +40,18 @@ type InstallInfo struct {
 
 type InstallResultInfo struct {
 	InstallInfo
-	PackageVersion string `json:"packageVersion"`
-	Status         int    `json:"status"`
-	LogFilePath    string `json:"logFilePath"`
-	BuildStatus    int    `json:"buildStatus"`
+	PackageVersion   string `json:"packageVersion"`
+	Status           int    `json:"status"`
+	LogFilePath      string `json:"logFilePath"`
+	BuildStatus      int    `json:"buildStatus"`
+	BuildLogFilePath string `json:"buildLogFilePath"`
 }
 
 const (
 	InstallResultInfoStatusSucceeded = iota
 	InstallResultInfoStatusSkipped
 	InstallResultInfoStatusFailed
+	InstallResultInfoStatusBuildFailed
 )
 
 const (
@@ -143,10 +146,9 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	}
 	defer logFile.Close()
 
-	if packageType == "git" {
+	if packageType == gitConst {
 		log.Infof("Package %s located in %s is a source package so it has to be built first.", packageName, outputLocation)
-		// TODO --no-build-vignettes
-		cmd := "R CMD build --no-build-vignettes " + outputLocation
+		cmd := "R CMD build " + outputLocation
 		log.Trace("execCommand:" + cmd)
 		buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 		if buildLogFileErr != nil {
@@ -186,7 +188,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
 	}
 	log.Infof("Executed Installation step on package %s located in %s", packageName, outputLocation)
-	if packageType == "git" {
+	if packageType == gitConst {
 		return buildStatusSucceeded, err
 	}
 	return buildStatusNotBuilt, err
@@ -199,21 +201,27 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
 			logFilePath, buildLogFilePath, installInfo.PackageType)
 		packageVersion := ""
-		Status := InstallResultInfoStatusFailed
-		if err == nil {
+		var status int
+		switch {
+		case err == nil:
 			log.Tracef("No Error after installation for package %s", installInfo.PackageName)
 			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
-			Status = InstallResultInfoStatusSucceeded
+			status = InstallResultInfoStatusSucceeded
+		case buildStatus == buildStatusFailed:
+			status = InstallResultInfoStatusBuildFailed
+		default:
+			status = InstallResultInfoStatusFailed
 		}
 		log.Tracef("Sending response from %s", installInfo.PackageName)
 		installResultChan <- InstallResultInfo{
-			InstallInfo:    installInfo,
-			Status:         Status,
-			PackageVersion: packageVersion,
-			LogFilePath:    logFilePath,
-			BuildStatus:    buildStatus,
+			InstallInfo:      installInfo,
+			Status:           status,
+			PackageVersion:   packageVersion,
+			LogFilePath:      logFilePath,
+			BuildStatus:      buildStatus,
+			BuildLogFilePath: buildLogFilePath,
 		}
 		log.Tracef("Installation of package %s is done", installInfo.PackageName)
 	}

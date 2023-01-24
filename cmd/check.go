@@ -153,8 +153,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	log.Debug("Package ", packageName, " will have check output saved to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
-	// TODO --ignore-vignettes
-	cmd := "R CMD check --ignore-vignettes -l " + temporalLibPath + " " + packageFile
+	cmd := "R CMD check " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
@@ -214,7 +213,7 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, installat
 		for _, singleRegexp := range splitCheckRegexp {
 			singleRegexp = strings.ReplaceAll(singleRegexp, `.`, `\.`)
 			singleRegexp = strings.ReplaceAll(singleRegexp, "*", ".*")
-			allRegExpressions = append(allRegExpressions, "^"+singleRegexp+`\.tar\.gz$`)
+			allRegExpressions = append(allRegExpressions, "^"+singleRegexp+`\_.*\.tar\.gz$`)
 		}
 		checkRegexp = strings.Join(allRegExpressions, "|")
 	}
