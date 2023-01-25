@@ -29,6 +29,7 @@ type PackagesData struct {
 	DownloadStatusText string `json:"downloadStatusText"`
 	InstallStatusText  string `json:"installStatusText"`
 	CheckStatusText    string `json:"checkStatusText"`
+	BuildStatusText    string `json:"buildStatusText"`
 }
 
 type ReportInfo struct {
@@ -85,8 +86,8 @@ func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	return downloadStatuses
 }
 
-// For each item from installation info JSON, generate HTML code for badge in the report corresponding to the package.
-// Returns map from package name to HTML code.
+// For each item from installation info JSON, generate HTML code for badge in the report corresponding
+// to the installation status of the package. Returns map from package name to HTML code.
 func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	installStatuses := make(map[string]string)
 	for _, p := range allInstallInfo {
@@ -99,10 +100,31 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 			installStatusText = filePath + "<span class=\"badge bg-info text-dark\">skipped</span></a>"
 		case InstallResultInfoStatusFailed:
 			installStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
+		case InstallResultInfoStatusBuildFailed:
+			// If build failed, there is no link to installation logs.
+			installStatusText = "<span class=\"badge bg-danger\">build failed</span>"
 		}
 		installStatuses[p.PackageName] = installStatusText
 	}
 	return installStatuses
+}
+
+// For each item from installation info JSON, generate HTML code for badge in the report corresponding
+// to the build status of the package. Returns map from package name to HTML code.
+func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
+	buildStatuses := make(map[string]string)
+	for _, p := range allInstallInfo {
+		var buildStatusText string
+		filePath := "<a href=\"./logs/build-" + filepath.Base(p.BuildLogFilePath) + "\">"
+		switch p.BuildStatus {
+		case buildStatusSucceeded:
+			buildStatusText = filePath + HTMLStatusOK + "</a>"
+		case buildStatusFailed:
+			buildStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
+		}
+		buildStatuses[p.PackageName] = buildStatusText
+	}
+	return buildStatuses
 }
 
 // For each item from R CMD check info JSON, generate HTML code for badge in the report corresponding to the package.
@@ -137,6 +159,8 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 
 	downloadStatuses := processDownloadInfo(allDownloadInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
+	// Builiding packages is done as part of install step, so build status is stored in installation info structure.
+	buildStatuses := processBuildInfo(allInstallInfo)
 	checkStatuses := processCheckInfo(allCheckInfo)
 
 	// Iterating through download info because it is a superset of install info and check info.
@@ -144,7 +168,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
 			PackagesData{p.PackageName, p.PackageVersion, downloadStatuses[p.PackageName],
-				installStatuses[p.PackageName], checkStatuses[p.PackageName]},
+				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName]},
 		)
 	}
 	reportOutput.SystemInformation = systemInfo
@@ -156,20 +180,20 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 		"\n", "<br />")
 }
 
-func writeReport(reportData ReportInfo, outputFile string, templateFile string) {
+func writeReport(reportData ReportInfo, outputFile string) {
 	funcMap := template.FuncMap{
 		// Function required for inserting HTML code into the template.
 		"safe": func(s string) template.HTML {
 			return template.HTML(s) // #nosec
 		},
 	}
-	tmpl, err := template.New(filepath.Base(templateFile)).Funcs(funcMap).ParseFiles(templateFile)
+	tmpl, err := template.New("report_template").Funcs(funcMap).Parse(HTMLReportTemplate)
 	checkError(err)
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	checkError(err)
 	reportFile, err := os.Create(outputFile)
 	checkError(err)
 	defer reportFile.Close()
-	err = tmpl.ExecuteTemplate(reportFile, filepath.Base(templateFile), reportData)
+	err = tmpl.ExecuteTemplate(reportFile, "report_template", reportData)
 	checkError(err)
 }

@@ -21,6 +21,7 @@ import (
 
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -28,23 +29,35 @@ const temporalLibPath = "/tmp/scribe/installed_packages"
 const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
 
 const packageLogPath = "/tmp/scribe/installed_logs"
+const buildLogPath = "/tmp/scribe/build_logs"
+const gitConst = "git"
 
 type InstallInfo struct {
 	PackageName   string `json:"packageName"`
 	InputLocation string `json:"inputLocation"`
+	PackageType   string `json:"packageType"`
 }
 
 type InstallResultInfo struct {
 	InstallInfo
-	PackageVersion string `json:"packageVersion"`
-	Status         int    `json:"status"`
-	LogFilePath    string `json:"logFilePath"`
+	PackageVersion   string `json:"packageVersion"`
+	Status           int    `json:"status"`
+	LogFilePath      string `json:"logFilePath"`
+	BuildStatus      int    `json:"buildStatus"`
+	BuildLogFilePath string `json:"buildLogFilePath"`
 }
 
 const (
 	InstallResultInfoStatusSucceeded = iota
 	InstallResultInfoStatusSkipped
 	InstallResultInfoStatusFailed
+	InstallResultInfoStatusBuildFailed
+)
+
+const (
+	buildStatusSucceeded = iota
+	buildStatusFailed
+	buildStatusNotBuilt
 )
 
 func mkLibPathDir(temporalLibPath string) {
@@ -105,14 +118,80 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 	return res
 }
 
-func executeInstallation(outputLocation, packageName, logFilePath string) error {
+// Returns tar.gz file name where built package is saved.
+// Searches for tar.gz file in current working directory.
+// If not found, returns empty string.
+func getBuiltPackageFileName(packageName string) string {
+	files, err := os.ReadDir(".")
+	checkError(err)
+	for _, file := range files {
+		if !file.IsDir() {
+			fileName := file.Name()
+			match1, err := regexp.MatchString("^"+packageName+`.*\.tar\.gz$`, fileName)
+			checkError(err)
+			// Match filename also in such a way that there's underscore immediately after package name.
+			// This way e.g. scda.2022 won't be returned while looking for scda.
+			match2, err := regexp.MatchString("^"+packageName+`\_`, fileName)
+			checkError(err)
+			if match1 && match2 {
+				return fileName
+			}
+		}
+	}
+	return ""
+}
+
+func buildPackage(packageName, outputLocation, buildLogFilePath string) (int, string, error) {
+	log.Infof("Package %s located in %s is a source package so it has to be built first.", packageName, outputLocation)
+	cmd := "R CMD build " + outputLocation
+	log.Trace("execCommand:" + cmd)
+	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if buildLogFileErr != nil {
+		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, buildLogFileErr, buildLogFilePath)
+		return buildStatusFailed, outputLocation, buildLogFileErr
+	}
+	defer buildLogFile.Close()
+	output, err := execCommand(cmd, false, false,
+		[]string{
+			"R_LIBS=" + rLibsPaths,
+			"LANG=en_US.UTF-8",
+		}, buildLogFile)
+	if err != nil {
+		log.Error(cmd)
+		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
+		return buildStatusFailed, outputLocation, err
+	}
+	log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
+	builtPackageName := getBuiltPackageFileName(packageName)
+	if builtPackageName != "" {
+		// Build succeeded.
+		log.Infof("Built package is stored in %s", builtPackageName)
+		// Install tar.gz file instead of directory with git source code of the package.
+		return buildStatusSucceeded, builtPackageName, err
+	}
+	return buildStatusSucceeded, outputLocation, err
+}
+
+// Returns error and build status (succeeded, failed or package not built).
+func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string) (int, error) {
 	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	buildStatus := buildStatusNotBuilt
+	var err error
 	if logFileErr != nil {
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, logFileErr, logFilePath)
-		return logFileErr
+		return buildStatus, logFileErr
 	}
 	defer logFile.Close()
+
+	if packageType == gitConst {
+		// By default previous outputLocation will be returned, except if package is successfully built.
+		// In the latter case, tar.gz package name will be returned as outputLocation.
+		buildStatus, outputLocation, err = buildPackage(packageName, outputLocation, buildLogFilePath)
+		if err != nil {
+			return buildStatus, err
+		}
+	}
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
@@ -126,28 +205,37 @@ func executeInstallation(outputLocation, packageName, logFilePath string) error 
 		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
 	}
 	log.Infof("Executed Installation step on package %s located in %s", packageName, outputLocation)
-	return err
+	return buildStatus, err
 }
 
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
 	for installInfo := range installChan {
 		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
-		err := executeInstallation(installInfo.InputLocation, installInfo.PackageName, logFilePath)
+		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".out")
+		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
+			logFilePath, buildLogFilePath, installInfo.PackageType)
 		packageVersion := ""
-		Status := InstallResultInfoStatusFailed
-		if err == nil {
+		var status int
+		switch {
+		case err == nil:
 			log.Tracef("No Error after installation for package %s", installInfo.PackageName)
 			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
-			Status = InstallResultInfoStatusSucceeded
+			status = InstallResultInfoStatusSucceeded
+		case buildStatus == buildStatusFailed:
+			status = InstallResultInfoStatusBuildFailed
+		default:
+			status = InstallResultInfoStatusFailed
 		}
 		log.Tracef("Sending response from %s", installInfo.PackageName)
 		installResultChan <- InstallResultInfo{
-			InstallInfo:    installInfo,
-			Status:         Status,
-			PackageVersion: packageVersion,
-			LogFilePath:    logFilePath,
+			InstallInfo:      installInfo,
+			Status:           status,
+			PackageVersion:   packageVersion,
+			LogFilePath:      logFilePath,
+			BuildStatus:      buildStatus,
+			BuildLogFilePath: buildLogFilePath,
 		}
 		log.Tracef("Installation of package %s is done", installInfo.PackageName)
 	}
@@ -263,7 +351,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				counter++
 				log.Tracef("Triggering %s", p)
 				installing[p] = true
-				installChan <- InstallInfo{p, packagesLocation[p].Location}
+				installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
 			}
 			if counter >= maxI {
 				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
@@ -274,6 +362,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				InstallInfo: InstallInfo{
 					PackageName:   p,
 					InputLocation: packagesLocation[p].Location,
+					PackageType:   packagesLocation[p].PackageType,
 				},
 				PackageVersion: ver,
 				LogFilePath:    "",
@@ -295,7 +384,8 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				if !processed[nextPackage] {
 					if !installing[nextPackage] {
 						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
-							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location}
+							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location,
+								packagesLocation[nextPackage].PackageType}
 							installing[nextPackage] = true
 						}
 					}

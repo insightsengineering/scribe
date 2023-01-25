@@ -401,7 +401,7 @@ func getPackageDeps(
 	}
 
 	for pName, pInfo := range packagesLocation {
-		if pInfo.PackageType == "git" {
+		if pInfo.PackageType == gitConst {
 			if _, err := os.Stat(pInfo.Location); !os.IsNotExist(err) {
 				packageDeps := getPackageDepsFromSinglePackageLocation(pInfo.Location, true)
 				deps[pName] = packageDeps

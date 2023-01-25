@@ -124,7 +124,7 @@ func downloadFile(url string, outputFile string) (int, int64) {
 }
 
 // Clones git repository and returns string with error value (empty if cloning was
-// successful) and approximate number of downloaded bytes.
+// successful), approximate number of downloaded bytes, and cloned version of the package (tag, branch or commit SHA).
 // If commitSha or branchOrTagName is specified, the respective commit, branch or tag are checked out.
 // If useEnvironmentCredentials is true, this function expects username and token to be set in
 // GITLAB_USER and GITLAB_TOKEN environment variables.
@@ -134,7 +134,7 @@ func downloadFile(url string, outputFile string) (int, int64) {
 // Otherwise, that it is a branch name.
 // If any of these assumptions are not correct for some package, the default branch will be checked out.
 func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool,
-	commitSha string, branchOrTagName string) (string, int64) {
+	commitSha string, branchOrTagName string) (string, int64, string) {
 	err := os.MkdirAll(gitDirectory, os.ModePerm)
 	checkError(err)
 	var gitCloneOptions *git.CloneOptions
@@ -154,9 +154,11 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 
 	repository, err := git.PlainClone(gitDirectory, false, gitCloneOptions)
 	if err == nil {
+		var packageVersion string
 		w, er := repository.Worktree()
 		checkError(er)
 		// Checkout the branch or tag.
+		packageVersion = "HEAD"
 		if branchOrTagName != "" && branchOrTagName != "HEAD" {
 			match, err2 := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
 			checkError(err2)
@@ -188,27 +190,35 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 				}
 			}
 			err = repository.Fetch(fetchOptions)
-			checkError(err)
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: plumbing.ReferenceName(checkoutRefName),
 			})
-			checkError(err)
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
+			packageVersion = branchOrTagName
 		} else if commitSha != "" {
 			// Checkout the commit.
 			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
 			err = w.Checkout(&git.CheckoutOptions{
 				Hash: plumbing.NewHash(commitSha),
 			})
-			checkError(err)
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
+			packageVersion = commitSha
 		}
 		// The number of bytes downloaded is approximated by the size of repository directory.
 		var gitRepoSize int64
 		gitRepoSize, err = dirSize(gitDirectory)
 		checkError(err)
 		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
-		return "", gitRepoSize
+		return "", gitRepoSize, packageVersion
 	}
-	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0
+	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""
 }
 
 // Returns:
@@ -347,7 +357,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo,
 	downloadFileFunction func(string, string) (int, int64),
-	gitCloneFunction func(string, string, bool, string, string) (string, int64),
+	gitCloneFunction func(string, string, bool, string, string) (string, int64, string),
 	messages chan DownloadInfo, guard chan struct{}) {
 
 	// Determine whether to download the package as tar.gz file, or from git repository.
@@ -400,18 +410,18 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
 			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, ""}
 	case "github":
-		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, false,
+		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, false,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, ""}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, ""}
 		}
 	case "gitlab":
-		message, gitRepoSize := gitCloneFunction(outputLocation, packageURL, true,
+		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, true,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, ""}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion}
 		} else {
 			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, ""}
 		}
@@ -575,7 +585,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 // Download packages from renv.lock file, saves download result structs to allDownloadInfo.
 func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	downloadFileFunction func(string, string) (int, int64),
-	gitCloneFunction func(string, string, bool, string, string) (string, int64)) {
+	gitCloneFunction func(string, string, bool, string, string) (string, int64, string)) {
 
 	// Clean up any previous downloaded data, except tar.gz packages.
 	// We'll later calculate checksums for tar.gz files and compare them with checksums in

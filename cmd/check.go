@@ -148,12 +148,12 @@ results_receiver_loop:
 	}
 }
 
-func runCmdCheck(cmdCheckChan chan string, packagePath string, packageName string, logFilePath string) {
-	log.Info("Checking package ", packagePath)
+func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName string, logFilePath string) {
+	log.Info("Checking package ", packageFile)
 	log.Debug("Package ", packageName, " will have check output saved to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
-	cmd := "R CMD check --no-lock -l " + temporalLibPath + " " + packagePath
+	cmd := "R CMD check " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
@@ -165,12 +165,11 @@ func runCmdCheck(cmdCheckChan chan string, packagePath string, packageName strin
 }
 
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
-	packagePath string) {
+	packageFile string) {
 	cmdCheckChan := make(chan string)
-	packagePathSplit := strings.Split(packagePath, "/")
-	packageName := packagePathSplit[len(packagePathSplit)-1]
+	packageName := strings.Split(packageFile, "_")[0]
 	logFilePath := checkLogPath + "/" + packageName + ".out"
-	go runCmdCheck(cmdCheckChan, packagePath, packageName, logFilePath)
+	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
 	var totalWaitTime = 0
@@ -180,14 +179,14 @@ check_single_package_loop:
 		select {
 		case msg := <-cmdCheckChan:
 			mostSevereCheckItem := parseCheckOutput(msg, &singlePackageCheckInfo)
-			messages <- PackageCheckInfo{packagePath, packageName, logFilePath,
+			messages <- PackageCheckInfo{packageFile, packageName, logFilePath,
 				mostSevereCheckItem, singlePackageCheckInfo}
 			<-guard
-			log.Info("R CMD check ", packagePath, " completed after ", totalWaitTime, "s")
+			log.Info("R CMD check ", packageFile, " completed after ", totalWaitTime, "s")
 			break check_single_package_loop
 		default:
 			if totalWaitTime%5 == 0 {
-				log.Info("R CMD check ", packagePath, "... [", totalWaitTime, "s elapsed]")
+				log.Info("R CMD check ", packageFile, "... [", totalWaitTime, "s elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
 			totalWaitTime += waitInterval
@@ -195,16 +194,18 @@ check_single_package_loop:
 	}
 }
 
-// Returns list of paths to directories with installed packages, on which R CMD check should
-// be performed based on the wildcard expression from command line.
-func getCheckedPackages(checkExpression string, checkAllPackages bool, installationDirectory string) []string {
-	var checkPackageDirectories []string
+// Returns list of package names coming from tarballs with built packages.
+// The packages are filtered based on the wildcard expression from command line.
+// R CMD check should be performed on the returned list of packages.
+func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPackagesDirectory string) []string {
+	var checkPackageFiles []string
 	var checkRegexp string
 	switch {
 	case checkExpression == "" && checkAllPackages:
-		checkRegexp = ".*"
+		checkRegexp = `.*\.tar\.gz$`
 	case checkExpression == "" && !checkAllPackages:
-		return checkPackageDirectories
+		// No packages are checked unless explicitly specified.
+		return checkPackageFiles
 	default:
 		splitCheckRegexp := strings.Split(checkExpression, ",")
 		var allRegExpressions []string
@@ -213,49 +214,53 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, installat
 		for _, singleRegexp := range splitCheckRegexp {
 			singleRegexp = strings.ReplaceAll(singleRegexp, `.`, `\.`)
 			singleRegexp = strings.ReplaceAll(singleRegexp, "*", ".*")
-			allRegExpressions = append(allRegExpressions, "^"+singleRegexp+"$")
+			allRegExpressions = append(allRegExpressions, "^"+singleRegexp+`\_.*\.tar\.gz$`)
 		}
 		checkRegexp = strings.Join(allRegExpressions, "|")
 	}
 	log.Info("R CMD check will be performed on packages matching regexp ", checkRegexp)
-	files, err := os.ReadDir(installationDirectory)
+	files, err := os.ReadDir(builtPackagesDirectory)
 	checkError(err)
 	for _, file := range files {
-		if file.IsDir() {
+		if !file.IsDir() {
 			fileName := file.Name()
+			// Matching packageName_packageVersion.tar.gz
 			match, err := regexp.MatchString(checkRegexp, fileName)
 			checkError(err)
 			if match {
 				log.Debug(fileName + " matches regexp " + checkRegexp)
-				checkPackageDirectories = append(
-					checkPackageDirectories,
-					installationDirectory+"/"+fileName,
+				checkPackageFiles = append(
+					checkPackageFiles,
+					fileName,
 				)
 			} else {
 				log.Debug(fileName + " doesn't match regexp " + checkRegexp)
 			}
 		}
 	}
-	sort.Strings(checkPackageDirectories)
-	return checkPackageDirectories
+	sort.Strings(checkPackageFiles)
+	return checkPackageFiles
 }
 
 func checkPackages(installResults []InstallResultInfo, outputFile string) {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
-	checkPackagesDirectories := getCheckedPackages(checkPackageExpression, checkAllPackages, temporalLibPath)
+	// Built packages are stored in current directory.
+	// The assumption in the whole check component is that tar.gz packages that should be checked
+	// have been previously built and saved to current working directory.
+	checkPackagesFiles := getCheckedPackages(checkPackageExpression, checkAllPackages, ".")
 	// Channel to wait until all checks have completed.
 	checkWaiter := make(chan struct{})
 	messages := make(chan PackageCheckInfo)
 	// Guard channel ensures that only a fixed number of concurrent goroutines are running.
 	guard := make(chan struct{}, maxCheckRoutines)
 
-	log.Info("Number of packages to check: ", len(checkPackagesDirectories))
-	if len(checkPackagesDirectories) > 0 {
-		go checkResultsReceiver(messages, checkWaiter, len(checkPackagesDirectories), outputFile)
-		for _, directory := range checkPackagesDirectories {
+	log.Info("Number of packages to check: ", len(checkPackagesFiles))
+	if len(checkPackagesFiles) > 0 {
+		go checkResultsReceiver(messages, checkWaiter, len(checkPackagesFiles), outputFile)
+		for _, packageFile := range checkPackagesFiles {
 			guard <- struct{}{}
-			go checkSinglePackage(messages, guard, directory)
+			go checkSinglePackage(messages, guard, packageFile)
 		}
 		<-checkWaiter
 	}

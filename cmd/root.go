@@ -131,6 +131,8 @@ var rootCmd = &cobra.Command{
 
 		// Perform package installation, except when cache contains JSON with previous
 		// installation results.
+		err2 := os.MkdirAll(buildLogPath, os.ModePerm)
+		checkError(err2)
 		installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfos.json")
 		var allInstallInfo []InstallResultInfo
 		if _, err := os.Stat(installInfoFile); err == nil {
@@ -160,8 +162,9 @@ var rootCmd = &cobra.Command{
 		checkError(err)
 		// Copy log files so that they can be accessed from the HTML report.
 		copyFiles(packageLogPath, "install-", filepath.Join(outputReportDirectory, "logs"))
+		copyFiles(buildLogPath, "build-", filepath.Join(outputReportDirectory, "logs"))
 		copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
-		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"), "cmd/report/index.html")
+		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"))
 	},
 }
 

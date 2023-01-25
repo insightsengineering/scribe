@@ -50,17 +50,17 @@ func Test_mkLibPathDir(t *testing.T) {
 
 func Test_executeInstallation(t *testing.T) {
 	t.Skip("skipping integration test")
-	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out")
+	_, err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out", "build-test.out", "tar.gz")
 	assert.NoError(t, err)
 }
 
 func Test_executeInstallation_with_wrong_logFilePath(t *testing.T) {
-	err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "")
+	_, err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "", "", "tar.gz")
 	assert.Error(t, err)
 }
 
 func Test_executeInstallation_with_wrong_path_to_package(t *testing.T) {
-	err := executeInstallation("", "BiocBaseUtils", "test.out")
+	_, err := executeInstallation("", "BiocBaseUtils", "test.out", "build-test.out", "tar.gz")
 	assert.Error(t, err)
 }
 
@@ -85,7 +85,7 @@ func Test_executeInstallationFromTargz(t *testing.T) {
 		{"testdata/targz/tripack_1.3-9.tar.gz", "tripack"},
 	}
 	for _, v := range cases {
-		err := executeInstallation(v.targz, v.packageName, v.packageName+".out")
+		_, err := executeInstallation(v.targz, v.packageName, v.packageName+".out", "build-"+v.packageName+".out", "tar.gz")
 		assert.NoError(t, err)
 	}
 }
@@ -94,4 +94,32 @@ func Test_getInstalledPackagesWithVersion(t *testing.T) {
 	t.Skip("skipping integration test")
 	pkgVer := getInstalledPackagesWithVersion([]string{"/usr/lib/R/site-library"})
 	assert.NotEmpty(t, pkgVer)
+}
+
+func Test_getBuiltPackageFileName(t *testing.T) {
+	for _, fileName := range []string{
+		"tern_0.0.1.tar.gz",
+		"teal_0.0.2.tar.gz",
+		"teal.slice_0.0.3.tar.gz",
+		"teal.modules.general_1.0.tar.gz",
+		"teal.modules.clinical_1.1.tar.gz",
+		"teal.reporter_1.2.tar.gz",
+		"Teal.Reporter_1.2.3.tar.gz",
+		"TERN_1.2.3.4.tar.gz",
+		"tern_0.0.1",
+		"teal_0.0.2",
+		"teal.slice_0.0.3",
+		"teal.modules.general_1.0",
+		"teal.modules.clinical_1.1",
+		"teal.reporter_1.2",
+		"Teal.Reporter_1.2.3",
+		"TERN_1.2.3.4",
+	} {
+		_, err := os.OpenFile(fileName, os.O_RDONLY|os.O_CREATE, 0644)
+		checkError(err)
+	}
+	assert.Equal(t, getBuiltPackageFileName("tern"), "tern_0.0.1.tar.gz")
+	assert.Equal(t, getBuiltPackageFileName("teal"), "teal_0.0.2.tar.gz")
+	assert.Equal(t, getBuiltPackageFileName("TERN"), "TERN_1.2.3.4.tar.gz")
+	assert.Equal(t, getBuiltPackageFileName("teal.modules.clinical"), "teal.modules.clinical_1.1.tar.gz")
 }
