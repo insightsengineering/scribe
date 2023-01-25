@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.5684327" branch-rate="0" version="" timestamp="1674652635756" lines-covered="1030" lines-valid="1812" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.5684327" branch-rate="0" version="" timestamp="1674656467088" lines-covered="1030" lines-valid="1812" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -818,10 +818,10 @@
               <lines>
                 <line number="442" hits="114"></line>
                 <line number="443" hits="114"></line>
-                <line number="444" hits="444"></line>
-                <line number="445" hits="444"></line>
-                <line number="446" hits="444"></line>
-                <line number="447" hits="176"></line>
+                <line number="444" hits="438"></line>
+                <line number="445" hits="438"></line>
+                <line number="446" hits="438"></line>
+                <line number="447" hits="212"></line>
                 <line number="449" hits="114"></line>
               </lines>
             </method>
@@ -1160,10 +1160,10 @@
             <line number="439" hits="4"></line>
             <line number="442" hits="114"></line>
             <line number="443" hits="114"></line>
-            <line number="444" hits="444"></line>
-            <line number="445" hits="444"></line>
-            <line number="446" hits="444"></line>
-            <line number="447" hits="176"></line>
+            <line number="444" hits="438"></line>
+            <line number="445" hits="438"></line>
+            <line number="446" hits="438"></line>
+            <line number="447" hits="212"></line>
             <line number="449" hits="114"></line>
             <line number="452" hits="1"></line>
             <line number="453" hits="1"></line>
