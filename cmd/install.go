@@ -109,7 +109,7 @@ func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
 				if _, ok := res[packageName]; !ok {
 					res[packageName] = packageVersion
 				} else {
-					log.Tracef("Duplicated package %s with version %s under %s libPath", packageName, packageVersion, libPath)
+					log.Warnf("Duplicate package %s with version %s under %s libPath", packageName, packageVersion, libPath)
 				}
 			}
 		}
@@ -157,8 +157,7 @@ func buildPackage(packageName, outputLocation, buildLogFilePath string) (int, st
 			"LANG=en_US.UTF-8",
 		}, buildLogFile)
 	if err != nil {
-		log.Error(cmd)
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
+		log.Errorf("Error with build: %s . Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
 		return buildStatusFailed, outputLocation, err
 	}
 	log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
@@ -174,12 +173,12 @@ func buildPackage(packageName, outputLocation, buildLogFilePath string) (int, st
 
 // Returns error and build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string) (int, error) {
-	log.Infof("Executing Installation step on package %s located in %s", packageName, outputLocation)
+	log.Infof("Executing installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
 	var err error
 	if logFileErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, logFileErr, logFilePath)
+		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, logFileErr, logFilePath)
 		return buildStatus, logFileErr
 	}
 	defer logFile.Close()
@@ -194,7 +193,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	}
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
-	log.Trace("execCommand:" + cmd)
+	log.Trace("Executing command:" + cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
@@ -202,7 +201,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		}, logFile)
 	if err != nil {
 		log.Error(cmd)
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\noutput:%s", outputLocation, packageName, err, output)
+		log.Errorf("Error running: %s. Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
 	}
 	log.Infof("Executed Installation step on package %s located in %s", packageName, outputLocation)
 	return buildStatus, err
@@ -218,7 +217,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		var status int
 		switch {
 		case err == nil:
-			log.Tracef("No Error after installation for package %s", installInfo.PackageName)
+			log.Tracef("No error after installation of %s", installInfo.PackageName)
 			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
@@ -256,7 +255,7 @@ func getOrderedDependencies(
 
 	readFile := filepath.Join(tempCacheDirectory, "deps.json")
 	if _, err := os.Stat(readFile); err == nil {
-		log.Info("Reading", readFile)
+		log.Info("Reading file ", readFile)
 		jsonFile, errr := os.ReadFile(readFile)
 		checkError(errr)
 		errunmarshal := json.Unmarshal(jsonFile, &deps)
@@ -289,9 +288,9 @@ func getOrderedDependencies(
 		errUnmarshal := json.Unmarshal(jsonFile, &depsOrdered)
 		checkError(errUnmarshal)
 	} else {
-		log.Debugf("TSorting %d packages", len(deps))
+		log.Debugf("Running a topological sort on %d packages", len(deps))
 		depsOrdered = tsort(deps)
-		log.Debugf("TSorted %d packages. Ordered %d packages", len(deps), len(depsOrdered))
+		log.Debugf("Success running topological sort on %d packages. Ordering complete for %d packages", len(deps), len(depsOrdered))
 		writeJSON(readFile, depsOrdered)
 	}
 	defer os.Remove(readFile)
@@ -302,7 +301,7 @@ func getOrderedDependencies(
 			depsOrderedToInstall = append(depsOrderedToInstall, packageName)
 		}
 	}
-
+	// TODO: What does this mean?
 	log.Tracef("There are %d packages, but after cleaning it is %d", len(depsOrdered), len(depsOrderedToInstall))
 	return depsOrderedToInstall, deps
 }
@@ -354,6 +353,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 				installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
 			}
 			if counter >= maxI {
+				// TODO: What does this mean?
 				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
 				break
 			}
@@ -372,7 +372,8 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 	}
 
 	if len(*installResultInfos) < len(depsOrderedToInstall) {
-		log.Tracef("running on channels")
+		// TODO: What does this mean?
+		log.Tracef("Running on channels")
 	Loop:
 		for installResultInfo := range installResultChan {
 			*installResultInfos = append(*installResultInfos, installResultInfo)
@@ -399,6 +400,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 			if minI >= len(depsOrderedToInstall) {
 				break Loop
 			}
+			// TODO: What does this mean?
 			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
 		}
 	}

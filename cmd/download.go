@@ -215,7 +215,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 		var gitRepoSize int64
 		gitRepoSize, err = dirSize(gitDirectory)
 		checkError(err)
-		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize, " bytes")
+		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize/1024, " KiB")
 		return "", gitRepoSize, packageVersion
 	}
 	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""
