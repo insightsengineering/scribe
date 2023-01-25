@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.56952906" branch-rate="0" version="" timestamp="1674648498855" lines-covered="1028" lines-valid="1805" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.56952906" branch-rate="0" version="" timestamp="1674649047018" lines-covered="1028" lines-valid="1805" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -821,7 +821,7 @@
                 <line number="444" hits="435"></line>
                 <line number="445" hits="435"></line>
                 <line number="446" hits="435"></line>
-                <line number="447" hits="178"></line>
+                <line number="447" hits="188"></line>
                 <line number="449" hits="114"></line>
               </lines>
             </method>
@@ -1163,7 +1163,7 @@
             <line number="444" hits="435"></line>
             <line number="445" hits="435"></line>
             <line number="446" hits="435"></line>
-            <line number="447" hits="178"></line>
+            <line number="447" hits="188"></line>
             <line number="449" hits="114"></line>
             <line number="452" hits="1"></line>
             <line number="453" hits="1"></line>
@@ -1575,7 +1575,7 @@
                 <line number="533" hits="0"></line>
                 <line number="534" hits="1"></line>
                 <line number="535" hits="1"></line>
-                <line number="536" hits="26"></line>
+                <line number="536" hits="27"></line>
                 <line number="537" hits="6"></line>
                 <line number="538" hits="5"></line>
                 <line number="539" hits="5"></line>
@@ -1609,9 +1609,9 @@
                 <line number="568" hits="0"></line>
                 <line number="569" hits="0"></line>
                 <line number="570" hits="0"></line>
-                <line number="571" hits="20"></line>
-                <line number="572" hits="20"></line>
-                <line number="573" hits="20"></line>
+                <line number="571" hits="21"></line>
+                <line number="572" hits="21"></line>
+                <line number="573" hits="21"></line>
                 <line number="577" hits="1"></line>
                 <line number="578" hits="1"></line>
                 <line number="582" hits="1"></line>
@@ -2091,7 +2091,7 @@
             <line number="533" hits="0"></line>
             <line number="534" hits="1"></line>
             <line number="535" hits="1"></line>
-            <line number="536" hits="26"></line>
+            <line number="536" hits="27"></line>
             <line number="537" hits="6"></line>
             <line number="538" hits="5"></line>
             <line number="539" hits="5"></line>
@@ -2125,9 +2125,9 @@
             <line number="568" hits="0"></line>
             <line number="569" hits="0"></line>
             <line number="570" hits="0"></line>
-            <line number="571" hits="20"></line>
-            <line number="572" hits="20"></line>
-            <line number="573" hits="20"></line>
+            <line number="571" hits="21"></line>
+            <line number="572" hits="21"></line>
+            <line number="573" hits="21"></line>
             <line number="577" hits="1"></line>
             <line number="578" hits="1"></line>
             <line number="582" hits="1"></line>
