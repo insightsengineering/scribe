@@ -197,13 +197,14 @@ check_single_package_loop:
 // Returns list of package names coming from tarballs with built packages.
 // The packages are filtered based on the wildcard expression from command line.
 // R CMD check should be performed on the returned list of packages.
-func getCheckedPackages(checkExpression string, checkAllPackages bool, installationDirectory string) []string {
+func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPackagesDirectory string) []string {
 	var checkPackageFiles []string
 	var checkRegexp string
 	switch {
 	case checkExpression == "" && checkAllPackages:
-		checkRegexp = ".*"
+		checkRegexp = `.*\.tar\.gz$`
 	case checkExpression == "" && !checkAllPackages:
+		// No packages are checked unless explicitly specified.
 		return checkPackageFiles
 	default:
 		splitCheckRegexp := strings.Split(checkExpression, ",")
@@ -218,7 +219,7 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, installat
 		checkRegexp = strings.Join(allRegExpressions, "|")
 	}
 	log.Info("R CMD check will be performed on packages matching regexp ", checkRegexp)
-	files, err := os.ReadDir(installationDirectory)
+	files, err := os.ReadDir(builtPackagesDirectory)
 	checkError(err)
 	for _, file := range files {
 		if !file.IsDir() {

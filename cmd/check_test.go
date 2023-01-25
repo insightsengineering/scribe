@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,52 +48,54 @@ func Test_parseCheckOutput(t *testing.T) {
 
 func Test_getCheckedPackages(t *testing.T) {
 	var testRootDir = "testdata/getcheckedpackages"
-	for _, dirName := range []string{
-		"tern",
-		"teal",
-		"teal.slice",
-		"teal.modules.general",
-		"teal.modules.clinical",
-		"teal.reporter",
-		"Teal.Reporter",
-		"TERN",
+	err := os.MkdirAll(testRootDir, os.ModePerm)
+	checkError(err)
+	for _, fileName := range []string{
+		"tern_0.0.1.tar.gz",
+		"teal_0.0.2.tar.gz",
+		"teal.slice_0.0.3.tar.gz",
+		"teal.modules.general_1.0.tar.gz",
+		"teal.modules.clinical_1.1.tar.gz",
+		"teal.reporter_1.2.tar.gz",
+		"Teal.Reporter_1.2.3.tar.gz",
+		"TERN_1.2.3.4.tar.gz",
 	} {
-		err := os.MkdirAll(testRootDir+"/"+dirName, os.ModePerm)
+		_, err := os.OpenFile(filepath.Join(testRootDir, fileName), os.O_RDONLY|os.O_CREATE, 0644)
 		checkError(err)
 	}
 	assert.Equal(t,
 		getCheckedPackages("", true, testRootDir),
 		// All packages returned.
 		[]string{
-			testRootDir + "/TERN",
-			testRootDir + "/Teal.Reporter",
-			testRootDir + "/teal",
-			testRootDir + "/teal.modules.clinical",
-			testRootDir + "/teal.modules.general",
-			testRootDir + "/teal.reporter",
-			testRootDir + "/teal.slice",
-			testRootDir + "/tern",
+			"TERN_1.2.3.4.tar.gz",
+			"Teal.Reporter_1.2.3.tar.gz",
+			"teal.modules.clinical_1.1.tar.gz",
+			"teal.modules.general_1.0.tar.gz",
+			"teal.reporter_1.2.tar.gz",
+			"teal.slice_0.0.3.tar.gz",
+			"teal_0.0.2.tar.gz",
+			"tern_0.0.1.tar.gz",
 		})
 	assert.Equal(t,
 		getCheckedPackages("teal", false, testRootDir),
-		[]string{testRootDir + "/teal"})
+		[]string{"teal_0.0.2.tar.gz"})
 	assert.Equal(t,
 		getCheckedPackages("te*", false, testRootDir),
 		[]string{
-			testRootDir + "/teal",
-			testRootDir + "/teal.modules.clinical",
-			testRootDir + "/teal.modules.general",
-			testRootDir + "/teal.reporter",
-			testRootDir + "/teal.slice",
-			testRootDir + "/tern",
+			"teal.modules.clinical_1.1.tar.gz",
+			"teal.modules.general_1.0.tar.gz",
+			"teal.reporter_1.2.tar.gz",
+			"teal.slice_0.0.3.tar.gz",
+			"teal_0.0.2.tar.gz",
+			"tern_0.0.1.tar.gz",
 		})
 	assert.Equal(t,
 		getCheckedPackages("teal,teal.modules*,TERN", false,
 			testRootDir),
 		[]string{
-			testRootDir + "/TERN",
-			testRootDir + "/teal",
-			testRootDir + "/teal.modules.clinical",
-			testRootDir + "/teal.modules.general",
+			"TERN_1.2.3.4.tar.gz",
+			"teal.modules.clinical_1.1.tar.gz",
+			"teal.modules.general_1.0.tar.gz",
+			"teal_0.0.2.tar.gz",
 		})
 }

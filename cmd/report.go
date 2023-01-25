@@ -101,6 +101,7 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 		case InstallResultInfoStatusFailed:
 			installStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
 		case InstallResultInfoStatusBuildFailed:
+			// If build failed, there is no link to installation logs.
 			installStatusText = "<span class=\"badge bg-danger\">build failed</span>"
 		}
 		installStatuses[p.PackageName] = installStatusText
