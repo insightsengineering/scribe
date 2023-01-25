@@ -178,7 +178,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 	res := ""
 	f, err := os.Open(tarGzFilePath)
 	if err != nil {
-		log.Error("Cannot open %s", tarGzFilePath, ". Error:", err)
+		log.Tracef("Cannot open %s", tarGzFilePath)
 		log.Error(err)
 	} else {
 		defer f.Close()
