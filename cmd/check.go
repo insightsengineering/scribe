@@ -127,7 +127,7 @@ results_receiver_loop:
 			for _, problem := range msg.Info {
 				log.Debug(
 					msg.PackagePath, " has problem of type ", problem.CheckItemType,
-					", problem content = ", problem.CheckItemContent,
+					", problem content: \n", problem.CheckItemContent,
 				)
 			}
 			allPackagesCheckInfo = append(allPackagesCheckInfo, msg)
@@ -150,7 +150,7 @@ results_receiver_loop:
 
 func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName string, logFilePath string) {
 	log.Info("Checking package ", packageFile)
-	log.Debug("Package ", packageName, " will have check output saved to ", logFilePath, ".")
+	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
 	cmd := "R CMD check " + packageFile

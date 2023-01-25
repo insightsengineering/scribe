@@ -67,7 +67,7 @@ func writeJSON(filename string, j interface{}) int {
 }
 
 func readJSON(filename string, j interface{}) {
-	log.Debug("Reading " + filename)
+	log.Debug("Reading ", filename)
 	byteValue, err := os.ReadFile(filename)
 	checkError(err)
 
@@ -128,7 +128,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 		return string(data), nil
 	}
 
-	log.Tracef("CombinedOutput on command %v", cmd)
+	log.Tracef("Command to execute: %v", cmd)
 	out, errCombinedOutput := cmd.CombinedOutput()
 	checkError(errCombinedOutput)
 

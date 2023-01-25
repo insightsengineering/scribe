@@ -54,6 +54,7 @@ func setLogLevel() {
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	log.SetFormatter(customFormatter)
+	log.SetReportCaller(true)
 	customFormatter.FullTimestamp = true
 	fmt.Println("Loglevel =", logLevel)
 	switch logLevel {
@@ -77,7 +78,7 @@ func setLogLevel() {
 			log.Out = file
 		} else {
 			log.Out = os.Stdout
-			log.Info("Failed to log to file, using default stdout")
+			log.Info("Failed to write logs to file, using stdout as the default log stream.")
 		}
 	}
 }
@@ -102,8 +103,8 @@ var rootCmd = &cobra.Command{
 			maxCheckRoutines = 5
 		}
 		if int(numberOfWorkers) < 1 {
-			log.Error("Number of simultaneous installation processes should be greater than 0")
-			return
+			log.Warn("Number of simultaneous installation processes should be greater than 0. Setting the default number of workers to 20.")
+			numberOfWorkers = 20
 		}
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)

@@ -58,7 +58,7 @@ func parseDescription(description string) map[string]string {
 	m := make(map[string]string)
 	err := yaml.Unmarshal([]byte(cleaned), &m)
 	if err != nil {
-		log.Fatalf("error in parseDescription: %v", err)
+		log.Fatalf("Error in parseDescription: %v", err)
 	}
 	return m
 }
@@ -146,7 +146,7 @@ func getPackageDepsFromDescriptionFileContent(descriptionFileContent string, inc
 			}
 		}
 	} else {
-		log.Warnf("Cannot get Package dependencies from empty string")
+		log.Warnf("Cannot get package dependencies from empty string")
 	}
 	return deps
 }
@@ -161,6 +161,7 @@ func getPackageDepsFromSinglePackageLocation(repoLocation string, includeSuggest
 		}
 		deps = getPackageDepsFromDescriptionFileContent(string(descriptionFileData), includeSuggests)
 	}
+	// TODO: What does this mean?
 	log.Tracef("Filled %d packages with dependencies from SinglePackageLocation", len(deps))
 	return deps
 }
@@ -177,20 +178,20 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 	res := ""
 	f, err := os.Open(tarGzFilePath)
 	if err != nil {
-		log.Tracef("Cannot open file %s", tarGzFilePath)
+		log.Tracef("Cannot open %s", tarGzFilePath)
 		log.Error(err)
 	} else {
 		defer f.Close()
 		gzf, err := gzip.NewReader(f)
 		if err != nil {
-			log.Tracef("Cannot read tar.gz %v file", f)
+			log.Tracef("Cannot read %v", f)
 			log.Error(err)
 		} else {
 			tarReader := tar.NewReader(gzf)
 			for {
 				header, err := tarReader.Next()
 				if err == io.EOF || err != nil {
-					log.Tracef("Got to EOF for %v  %s file", tarReader, tarGzFilePath)
+					log.Tracef("Reached EOF for %v %s", tarReader, tarGzFilePath)
 					log.Error(err)
 					break
 				}
@@ -203,7 +204,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 							res += strings.Trim(string(data), "\x00")
 							if err != nil {
 								if err != io.EOF {
-									log.Tracef("Cannot read DESCRIPTION file from zipped %s file", tarGzFilePath)
+									log.Tracef("Cannot read DESCRIPTION file from %s", tarGzFilePath)
 									log.Error(err)
 								}
 								return res
@@ -218,7 +219,7 @@ func getDescriptionFileContentFromTargz(tarGzFilePath string) string {
 }
 
 func getPackageDepsFromTarGz(tarGzFilePath string) []string {
-	log.Tracef("Getting dependencies from file %s", tarGzFilePath)
+	log.Tracef("Getting dependencies from %s", tarGzFilePath)
 	descContent := getDescriptionFileContentFromTargz(tarGzFilePath)
 	return getPackageDepsFromDescriptionFileContent(descContent, false)
 }
@@ -237,7 +238,7 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 		chunkSize++
 
 		if chunkSize >= chunkMaxSize || (lastChunkNumber == chunkCounter && lastChunkSize == chunkSize) {
-			log.Tracef("Getting deps from Crandb service. Chunk #%d. Packages: %d", chunkCounter, len(packagesWithVersionInChunk))
+			log.Tracef("Getting deps from CRANDB service. Chunk #%d. Packages: %d", chunkCounter, len(packagesWithVersionInChunk))
 			depsInChunk := getPackageDepsFromCrandb(packagesWithVersionInChunk)
 			for k, v := range depsInChunk {
 				deps[k] = v
@@ -247,6 +248,7 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 			packagesWithVersionInChunk = make(map[string]string)
 		}
 	}
+	// TODO: What does this mean?
 	log.Tracef("Filled %d packages with dependencies from CrandbWithChunk", len(deps))
 	return deps
 }
@@ -254,7 +256,7 @@ func getPackageDepsFromCrandbWithChunk(packagesWithVersion map[string]string) ma
 func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string][]string {
 	depsFields := getDependenciesFields(false)
 	url := getCrandbURL(packagesWithVersion)
-	log.Trace("Request for package deps from CranDB on URL: " + url)
+	log.Trace("Requesting dependency info from: ", url)
 	depsJSON, err := request(url)
 	checkError(err)
 	deps := make(map[string][]string)
@@ -279,6 +281,7 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string) map[string]
 			}
 		}
 	}
+	// TODO: Clean this up
 	log.Tracef("Get getPackageDepsFromCrandb %v", deps)
 	return deps
 }
@@ -291,6 +294,7 @@ func getPackageDepsFromRepositoryURLs(repositoryURLs []string, packages map[stri
 			deps[k] = v
 		}
 	}
+	// TODO: What does this mean?
 	log.Tracef("Filled %d packages with dependencies from Repository URLs", len(deps))
 	return deps
 }
@@ -321,6 +325,7 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 			m := make(map[string]string)
 			err := yaml.Unmarshal([]byte(linegroup), &m)
 			if err != nil {
+				// TODO: Clean this up
 				log.Fatalf("error in getPackageDepsFromPackagesFileContent: %v", err)
 			} else if len(m) > 1 {
 				packageDep := make([]string, 0)
@@ -337,6 +342,7 @@ func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages 
 			}
 		}
 	}
+	// TODO: What does this mean?
 	log.Tracef("Filled %d packages with dependencies from PackagesFileContent", len(deps))
 	return deps
 }
@@ -359,7 +365,7 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 		if _, err := os.Stat(packageFileLocation); !os.IsNotExist(err) {
 			depsBiocCategory = getPackageDepsFromPackagesFile(packageFileLocation, packages)
 		} else {
-			log.Warnf("File %s doesn't exists", packageFileLocation)
+			log.Warnf("File %s does not exist", packageFileLocation)
 			url := bioConductorURL + "/" + bioconductorVersion + "/" + biocCategory
 			depsBiocCategory = getPackageDepsFromRepositoryURL(url, packages)
 		}
@@ -368,6 +374,7 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 			deps[k] = depsBiocCategory[k]
 		}
 	}
+	// TODO: What does this mean?
 	log.Tracef("Filled %d packages with dependencies from Bioconductor", len(deps))
 	return deps
 }
@@ -378,7 +385,7 @@ func getPackageDeps(
 	reposURLs []string,
 	packagesLocation map[string]struct{ PackageType, Location string },
 ) map[string][]string {
-	log.Debugf("Getting Package dependencies for %d packages", len(rpackages))
+	log.Debugf("Getting package dependencies for %d packages", len(rpackages))
 	packagesSet := make(map[string]bool)
 	packagesWithVersion := make(map[string]string)
 	for k, v := range rpackages {
@@ -415,12 +422,13 @@ func getPackageDeps(
 	for k := range packagesNoDeps {
 		info := packagesLocation[k]
 		if info.PackageType == targzExtensionFile {
-			log.Debugf("Getting deps from tar.gz packages %s", k)
+			log.Debug("Getting dependencies for ", k, " packages")
 			targzDeps := getPackageDepsFromTarGz(info.Location)
 			deps[k] = targzDeps
 		}
 	}
-	log.Debugf("Find %d packages with dependencies", len(deps))
+	// TODO: What does this mean?
+	log.Debugf("Found %d packages with dependencies", len(deps))
 	return deps
 }
 
@@ -450,12 +458,13 @@ func sortByCounter(counter map[string]int, nodes []string) []string {
 }
 
 func isDependencyFulfilled(packageName string, dependency map[string][]string, installedPackagesWithVersion map[string]string) bool {
+	// TODO: What does this mean?
 	log.Tracef("Checking if package %s has fulfilled dependencies", packageName)
 	deps := dependency[packageName]
 	if len(deps) > 0 {
 		for _, dep := range deps {
 			if _, ok := installedPackagesWithVersion[dep]; !ok {
-				log.Tracef("Not all dependencies are installed for package %s. Eg.:%s", packageName, dep)
+				log.Tracef("Not all dependencies are installed for package %s. Dependency not installed: %s", packageName, dep)
 				return false
 			}
 		}
