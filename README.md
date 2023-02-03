@@ -27,6 +27,7 @@ If you'd like to set the above options in a configuration file, by default `scri
 If this file exists, `scribe` uses options defined there, unless they are overridden by command line flags.
 
 You can also specify custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
+When using custom configuration file, if you specify command line flags, the latter will still take precedence.
 
 Example contents of configuration file:
 
