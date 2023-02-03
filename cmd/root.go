@@ -265,7 +265,8 @@ func initializeConfig(cmd *cobra.Command) {
 		// Helpful project where it's explained:
 		// https://github.com/carolynvs/stingoftheviper
 		if !cmd.PersistentFlags().Lookup(v).Changed && viper.IsSet(v) {
-			cmd.PersistentFlags().Set(v, fmt.Sprintf("%v", viper.Get(v)))
+			err := cmd.PersistentFlags().Set(v, fmt.Sprintf("%v", viper.Get(v)))
+			checkError(err)
 		}
 	}
 }
