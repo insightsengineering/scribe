@@ -97,9 +97,9 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 		case packageFields.Source == GitHub &&
 			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" ||
 				packageFields.RemoteRepo == "" || packageFields.RemoteUsername == "" ||
-				packageFields.RemoteRef == "" || packageFields.RemoteSha == ""):
+				(packageFields.RemoteRef == "" && packageFields.RemoteSha == "")):
 			log.Warn("Package ", packageName, " with source ", packageFields.Source,
-				"doesn't have the required Remote details provided.")
+				" doesn't have the required Remote details provided.")
 			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {
