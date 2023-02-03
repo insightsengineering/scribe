@@ -40,15 +40,22 @@ const HTMLReportTemplate = `<!doctype html>
         $(document).ready($(function () {
             $('#systemInfo').hide();
             $('#statusPage').show();
+            $('#renvInfo').hide();
             $('#navbarSystemInformation').click(function () {
                 $('#statusPage').hide();
+                $('#renvInfo').hide();
                 $('#systemInfo').show();
             });
             $('#navbarReport').click(function () {
                 $('#systemInfo').hide();
+                $('#renvInfo').hide();
                 $('#statusPage').show();
             });
-
+            $('#navbarRenvInformation').click(function () {
+                $('#systemInfo').hide();
+                $('#renvInfo').show();
+                $('#statusPage').hide();
+            });
         }));
     </script>
     <nav class="navbar navbar-expand-lg bg-dark navbar-dark sticky-top">
@@ -61,10 +68,37 @@ const HTMLReportTemplate = `<!doctype html>
                     <li class="nav-item">
                         <a class="nav-link" href="#" id="navbarSystemInformation">System information</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navbarRenvInformation">Renv information</a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+    <div id="renvInfo">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                renv.lock filename
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                    {{.RenvInformation.RenvFilename}}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                renv.lock contents
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                    {{.RenvInformation.RenvContents | safe}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="statusPage">
         <table id="packagesTable" class="display">
             <thead>

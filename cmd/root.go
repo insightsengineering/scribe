@@ -151,12 +151,17 @@ var rootCmd = &cobra.Command{
 		} else {
 			log.Infof("%s doesn't exist.", checkInfoFile)
 			checkPackages(allInstallInfo, checkInfoFile)
-			readJSON(checkInfoFile, &allCheckInfo)
+			// If no packages were checked (because of e.g. not matching the CLI parameter)
+			// the file with check results will not be generated, so we're checking
+			// its existence once again.
+			if _, err := os.Stat(checkInfoFile); err == nil {
+				readJSON(checkInfoFile, &allCheckInfo)
+			}
 		}
 
 		// Generate report.
 		var reportData ReportInfo
-		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
+		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData, renvLock)
 		err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 		checkError(err)
 		err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
