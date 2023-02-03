@@ -18,7 +18,31 @@ scribe --help
 
 Example usage with multiple flags:
 ```bash
-scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150
+scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150 --clearCache
+```
+
+## Configuration file
+
+If you'd like to set the above options in a configuration file, by default `scribe` checks the `~/.scribe` file.
+If this file exists, `scribe` uses options defined there, unless they are overridden by command line flags.
+
+You can also specify custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
+When using custom configuration file, if you specify command line flags, the latter will still take precedence.
+
+Example contents of configuration file:
+
+```yaml
+logLevel: trace
+checkPackage: teal*
+interactive: true
+maskedEnvVars: secret-variable-name
+renvLockFilename: custom-renv.lock
+checkAllPackages: true
+outputReport: someDirectoryName
+maxDownloadRoutines: 30
+maxCheckRoutines: 31
+numberOfWorkers: 32
+clearCache: true
 ```
 
 ## Cache

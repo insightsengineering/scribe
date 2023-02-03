@@ -37,6 +37,7 @@ var maxDownloadRoutines int
 var maxCheckRoutines int
 var outputReportDirectory string
 var numberOfWorkers uint
+var clearCache bool
 
 var log = logrus.New()
 
@@ -91,8 +92,22 @@ var rootCmd = &cobra.Command{
 	for a collection of R packages that are defined in an
 	[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
 	Version: scribeVersion,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initializeConfig(cmd)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
+		fmt.Println("cfgfile =", cfgFile)
+		fmt.Println("interactive =", interactive)
+		fmt.Println("maskedEnvVars =", maskedEnvVars)
+		fmt.Println("renvLockFilename =", renvLockFilename)
+		fmt.Println("checkPackage =", checkPackageExpression)
+		fmt.Println("checkAllPackages =", checkAllPackages)
+		fmt.Println("reportDir =", outputReportDirectory)
+		fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
+		fmt.Println("maxCheckRoutines =", maxCheckRoutines)
+		fmt.Println("numberOfWorkers =", numberOfWorkers)
+		fmt.Println("clearCache =", clearCache)
 
 		if maxDownloadRoutines < 1 {
 			log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -106,6 +121,11 @@ var rootCmd = &cobra.Command{
 			log.Warn("Number of simultaneous installation processes should be greater than 0. Setting the default number of workers to 20.")
 			numberOfWorkers = 20
 		}
+
+		if clearCache {
+			clearCachedData()
+		}
+
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
 		var renvLock Renvlock
@@ -151,12 +171,17 @@ var rootCmd = &cobra.Command{
 		} else {
 			log.Infof("%s doesn't exist.", checkInfoFile)
 			checkPackages(allInstallInfo, checkInfoFile)
-			readJSON(checkInfoFile, &allCheckInfo)
+			// If no packages were checked (because of e.g. not matching the CLI parameter)
+			// the file with check results will not be generated, so we're checking
+			// its existence once again.
+			if _, err := os.Stat(checkInfoFile); err == nil {
+				readJSON(checkInfoFile, &allCheckInfo)
+			}
 		}
 
 		// Generate report.
 		var reportData ReportInfo
-		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData)
+		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData, renvLock)
 		err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 		checkError(err)
 		err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
@@ -210,10 +235,12 @@ func init() {
 		"Maximum number of concurrently running R CMD check goroutines.")
 	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
 		"Number of simultaneous installation processes.")
+	rootCmd.PersistentFlags().BoolVar(&clearCache, "clearCache", false,
+		"Use this flag if you want to clear scribe internal cache directory structure. This will cause "+
+			"all packages to be downloaded, installed, built, and checked from scratch.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
 		// Use config file from the flag.
@@ -228,11 +255,28 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".scribe")
 	}
-
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	} else {
+		fmt.Println(err)
+	}
+}
+
+func initializeConfig(cmd *cobra.Command) {
+	for _, v := range []string{"logLevel", "interactive", "maskedEnvVars", "renvLockFilename",
+		"checkPackage", "checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines",
+		"numberOfWorkers", "clearCache"} {
+		// If the flag has not been set in init() and it has been set in initConfig().
+		// In other words: if it's not been provided in command line, but has been
+		// provided in config file.
+		// Helpful project where it's explained:
+		// https://github.com/carolynvs/stingoftheviper
+		if !cmd.PersistentFlags().Lookup(v).Changed && viper.IsSet(v) {
+			err := cmd.PersistentFlags().Set(v, fmt.Sprintf("%v", viper.Get(v)))
+			checkError(err)
+		}
 	}
 }

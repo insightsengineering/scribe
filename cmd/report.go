@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"os"
@@ -35,6 +36,12 @@ type PackagesData struct {
 type ReportInfo struct {
 	PackagesInformation []PackagesData `json:"packagesInformation"`
 	SystemInformation   *SystemInfo    `json:"systemInformation"`
+	RenvInformation     RenvInfo       `json:"renvInformation"`
+}
+
+type RenvInfo struct {
+	RenvFilename string `json:"renvFilename"`
+	RenvContents string `json:"renvContents"`
 }
 
 const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
@@ -155,7 +162,8 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) map[string]string {
 // Returns processed download, installation and check information in a structure that
 // can be consumed by Go templating engine.
 func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
-	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo) {
+	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo,
+	renvLock Renvlock) {
 
 	downloadStatuses := processDownloadInfo(allDownloadInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
@@ -178,6 +186,11 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	reportOutput.SystemInformation.EnvVariables = strings.ReplaceAll(
 		reportOutput.SystemInformation.EnvVariables,
 		"\n", "<br />")
+
+	reportOutput.RenvInformation.RenvFilename = renvLockFilename
+	indentedValue, err := json.MarshalIndent(renvLock, "", "&nbsp;&nbsp;")
+	checkError(err)
+	reportOutput.RenvInformation.RenvContents = strings.ReplaceAll(string(indentedValue), "\n", "<br />")
 }
 
 func writeReport(reportData ReportInfo, outputFile string) {

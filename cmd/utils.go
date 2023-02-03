@@ -43,6 +43,11 @@ func checkError(err error) {
 	}
 }
 
+func clearCachedData() {
+	err := os.RemoveAll("/tmp/scribe")
+	checkError(err)
+}
+
 func dirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
