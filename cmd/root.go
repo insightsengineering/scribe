@@ -91,8 +91,21 @@ var rootCmd = &cobra.Command{
 	for a collection of R packages that are defined in an
 	[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
 	Version: scribeVersion,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initializeConfig(cmd)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
+		fmt.Println("cfgfile =", cfgFile)
+		fmt.Println("interactive =", interactive)
+		fmt.Println("maskedEnvVars =", maskedEnvVars)
+		fmt.Println("renvLockFilename =", renvLockFilename)
+		fmt.Println("checkPackage =", checkPackageExpression)
+		fmt.Println("checkAllPackages =", checkAllPackages)
+		fmt.Println("reportDir =", outputReportDirectory)
+		fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
+		fmt.Println("maxCheckRoutines =", maxCheckRoutines)
+		fmt.Println("numberOfWorkers =", numberOfWorkers)
 
 		if maxDownloadRoutines < 1 {
 			log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -218,7 +231,6 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
 		// Use config file from the flag.
@@ -233,11 +245,27 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".scribe")
 	}
-
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	} else {
+		fmt.Println(err)
+	}
+}
+
+func initializeConfig(cmd *cobra.Command) {
+	for _, v := range []string{"logLevel", "interactive", "maskedEnvVars", "renvLockFilename",
+		"checkPackage", "checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines",
+		"numberOfWorkers"} {
+		// If the flag has not been set in init() and it has been set in initConfig().
+		// In other words: if it's not been provided in command line, but has been
+		// provided in config file.
+		// Helpful project where it's explained:
+		// https://github.com/carolynvs/stingoftheviper
+		if !cmd.PersistentFlags().Lookup(v).Changed && viper.IsSet(v) {
+			cmd.PersistentFlags().Set(v, fmt.Sprintf("%v", viper.Get(v)))
+		}
 	}
 }

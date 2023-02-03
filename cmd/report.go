@@ -190,7 +190,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	reportOutput.RenvInformation.RenvFilename = renvLockFilename
 	indentedValue, err := json.MarshalIndent(renvLock, "", "&nbsp;&nbsp;")
 	checkError(err)
-	reportOutput.RenvInformation.RenvContents = strings.Replace(string(indentedValue), "\n", "<br />", -1)
+	reportOutput.RenvInformation.RenvContents = strings.ReplaceAll(string(indentedValue), "\n", "<br />")
 }
 
 func writeReport(reportData ReportInfo, outputFile string) {
