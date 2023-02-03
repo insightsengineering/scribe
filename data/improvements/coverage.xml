@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.5610418" branch-rate="0" version="" timestamp="1675438360497" lines-covered="1034" lines-valid="1843" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.5610418" branch-rate="0" version="" timestamp="1675439603987" lines-covered="1034" lines-valid="1843" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -819,10 +819,10 @@
               <lines>
                 <line number="450" hits="114"></line>
                 <line number="451" hits="114"></line>
-                <line number="452" hits="440"></line>
-                <line number="453" hits="440"></line>
-                <line number="454" hits="440"></line>
-                <line number="455" hits="189"></line>
+                <line number="452" hits="436"></line>
+                <line number="453" hits="436"></line>
+                <line number="454" hits="436"></line>
+                <line number="455" hits="172"></line>
                 <line number="457" hits="114"></line>
               </lines>
             </method>
@@ -1163,10 +1163,10 @@
             <line number="447" hits="4"></line>
             <line number="450" hits="114"></line>
             <line number="451" hits="114"></line>
-            <line number="452" hits="440"></line>
-            <line number="453" hits="440"></line>
-            <line number="454" hits="440"></line>
-            <line number="455" hits="189"></line>
+            <line number="452" hits="436"></line>
+            <line number="453" hits="436"></line>
+            <line number="454" hits="436"></line>
+            <line number="455" hits="172"></line>
             <line number="457" hits="114"></line>
             <line number="460" hits="1"></line>
             <line number="461" hits="1"></line>
@@ -1579,7 +1579,7 @@
                 <line number="533" hits="0"></line>
                 <line number="534" hits="1"></line>
                 <line number="535" hits="1"></line>
-                <line number="536" hits="26"></line>
+                <line number="536" hits="27"></line>
                 <line number="537" hits="6"></line>
                 <line number="538" hits="5"></line>
                 <line number="539" hits="5"></line>
@@ -1613,9 +1613,9 @@
                 <line number="568" hits="0"></line>
                 <line number="569" hits="0"></line>
                 <line number="570" hits="0"></line>
-                <line number="571" hits="20"></line>
-                <line number="572" hits="20"></line>
-                <line number="573" hits="20"></line>
+                <line number="571" hits="21"></line>
+                <line number="572" hits="21"></line>
+                <line number="573" hits="21"></line>
                 <line number="577" hits="1"></line>
                 <line number="578" hits="1"></line>
                 <line number="582" hits="1"></line>
@@ -2095,7 +2095,7 @@
             <line number="533" hits="0"></line>
             <line number="534" hits="1"></line>
             <line number="535" hits="1"></line>
-            <line number="536" hits="26"></line>
+            <line number="536" hits="27"></line>
             <line number="537" hits="6"></line>
             <line number="538" hits="5"></line>
             <line number="539" hits="5"></line>
@@ -2129,9 +2129,9 @@
             <line number="568" hits="0"></line>
             <line number="569" hits="0"></line>
             <line number="570" hits="0"></line>
-            <line number="571" hits="20"></line>
-            <line number="572" hits="20"></line>
-            <line number="573" hits="20"></line>
+            <line number="571" hits="21"></line>
+            <line number="572" hits="21"></line>
+            <line number="573" hits="21"></line>
             <line number="577" hits="1"></line>
             <line number="578" hits="1"></line>
             <line number="582" hits="1"></line>
