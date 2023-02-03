@@ -268,7 +268,7 @@ func initConfig() {
 func initializeConfig(cmd *cobra.Command) {
 	for _, v := range []string{"logLevel", "interactive", "maskedEnvVars", "renvLockFilename",
 		"checkPackage", "checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines",
-		"numberOfWorkers"} {
+		"numberOfWorkers", "clearCache"} {
 		// If the flag has not been set in init() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been
 		// provided in config file.
