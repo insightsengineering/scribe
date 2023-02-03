@@ -236,7 +236,7 @@ func init() {
 	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
 		"Number of simultaneous installation processes.")
 	rootCmd.PersistentFlags().BoolVar(&clearCache, "clearCache", false,
-		"Use this flag if you want to clean scribe internal cache directory structure. This will cause "+
+		"Use this flag if you want to clear scribe internal cache directory structure. This will cause "+
 			"all packages to be downloaded, installed, built, and checked from scratch.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
