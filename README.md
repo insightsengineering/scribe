@@ -18,7 +18,7 @@ scribe --help
 
 Example usage with multiple flags:
 ```bash
-scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150
+scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150 --clearCache
 ```
 
 ## Configuration file
@@ -41,6 +41,7 @@ outputReport: someDirectoryName
 maxDownloadRoutines: 30
 maxCheckRoutines: 31
 numberOfWorkers: 32
+clearCache: true
 ```
 
 ## Cache

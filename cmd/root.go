@@ -37,6 +37,7 @@ var maxDownloadRoutines int
 var maxCheckRoutines int
 var outputReportDirectory string
 var numberOfWorkers uint
+var clearCache bool
 
 var log = logrus.New()
 
@@ -106,6 +107,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
 		fmt.Println("maxCheckRoutines =", maxCheckRoutines)
 		fmt.Println("numberOfWorkers =", numberOfWorkers)
+		fmt.Println("clearCache =", clearCache)
 
 		if maxDownloadRoutines < 1 {
 			log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -119,6 +121,11 @@ var rootCmd = &cobra.Command{
 			log.Warn("Number of simultaneous installation processes should be greater than 0. Setting the default number of workers to 20.")
 			numberOfWorkers = 20
 		}
+
+		if clearCache {
+			clearCachedData()
+		}
+
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
 		var renvLock Renvlock
@@ -228,6 +235,9 @@ func init() {
 		"Maximum number of concurrently running R CMD check goroutines.")
 	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
 		"Number of simultaneous installation processes.")
+	rootCmd.PersistentFlags().BoolVar(&clearCache, "clearCache", false,
+		"Use this flag if you want to clean scribe internal cache directory structure. This will cause "+
+			"all packages to be downloaded, installed, built, and checked from scratch.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
