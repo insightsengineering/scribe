@@ -22,8 +22,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/schollz/progressbar/v3"
 )
 
 var checkLogPath = "/tmp/scribe/check_logs"
@@ -109,14 +107,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 // Go routine receiving data from go routines performing R CMD checks on the packages.
 func checkResultsReceiver(messages chan PackageCheckInfo,
 	checkWaiter chan struct{}, totalPackages int, outputFile string) {
-	var bar progressbar.ProgressBar
 	var allPackagesCheckInfo []PackageCheckInfo
-	if interactive {
-		bar = *progressbar.Default(
-			int64(totalPackages),
-			"Checking...",
-		)
-	}
 	var receivedResults int
 results_receiver_loop:
 	for {
@@ -131,10 +122,6 @@ results_receiver_loop:
 				)
 			}
 			allPackagesCheckInfo = append(allPackagesCheckInfo, msg)
-			if interactive {
-				err := bar.Add(1)
-				checkError(err)
-			}
 			writeJSON(outputFile, allPackagesCheckInfo)
 
 			if receivedResults == totalPackages {

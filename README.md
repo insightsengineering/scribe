@@ -18,7 +18,7 @@ scribe --help
 
 Example usage with multiple flags:
 ```bash
-scribe --interactive --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150 --clearCache
+scribe --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150 --clearCache
 ```
 
 ## Configuration file
@@ -34,7 +34,6 @@ Example contents of configuration file:
 ```yaml
 logLevel: trace
 checkPackage: teal*
-interactive: true
 maskedEnvVars: secret-variable-name
 renvLockFilename: custom-renv.lock
 checkAllPackages: true

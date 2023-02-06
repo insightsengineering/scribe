@@ -28,7 +28,6 @@ import (
 var cfgFile string
 var scribeVersion string
 var logLevel string
-var interactive bool
 var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
@@ -72,16 +71,6 @@ func setLogLevel() {
 	default:
 		log.SetLevel(logrus.InfoLevel)
 	}
-	if interactive {
-		// Save the log to a file instead of outputting it to stdout.
-		file, err := os.OpenFile("scribe.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-		if err == nil {
-			log.Out = file
-		} else {
-			log.Out = os.Stdout
-			log.Info("Failed to write logs to file, using stdout as the default log stream.")
-		}
-	}
 }
 
 var rootCmd = &cobra.Command{
@@ -98,7 +87,6 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel()
 		fmt.Println("cfgfile =", cfgFile)
-		fmt.Println("interactive =", interactive)
 		fmt.Println("maskedEnvVars =", maskedEnvVars)
 		fmt.Println("renvLockFilename =", renvLockFilename)
 		fmt.Println("checkPackage =", checkPackageExpression)
@@ -210,11 +198,6 @@ func init() {
 		"Logging level (trace, debug, info, warn, error). "+
 			"Typically info log level is used for relevant information. "+
 			"Use debug or trace for more detailed debugging information.")
-	// TODO this should probably be reversed: the flag called --noninteractive
-	// and the flag would be used in CI or when user wants to see whole output.
-	rootCmd.PersistentFlags().BoolVar(&interactive, "interactive", false,
-		"Use this flag if you want to see only progress bars for downloading, installing, etc. "+
-			"If this flag is not used (e.g. in CI pipeline), detailed progress output is shown.")
 	rootCmd.PersistentFlags().StringVar(&maskedEnvVars, "maskedEnvVars", "",
 		"Regular expression defining which environment variables should be masked in the output report. "+
 			"Typically variables with sensitive data should be masked. Example: "+`'sensitiveValue1|sensitiveValue2'`)
@@ -266,7 +249,7 @@ func initConfig() {
 }
 
 func initializeConfig(cmd *cobra.Command) {
-	for _, v := range []string{"logLevel", "interactive", "maskedEnvVars", "renvLockFilename",
+	for _, v := range []string{"logLevel", "maskedEnvVars", "renvLockFilename",
 		"checkPackage", "checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines",
 		"numberOfWorkers", "clearCache"} {
 		// If the flag has not been set in init() and it has been set in initConfig().

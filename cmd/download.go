@@ -34,7 +34,6 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/schollz/progressbar/v3"
 )
 
 const defaultCranMirrorURL = "https://cloud.r-project.org"
@@ -524,13 +523,6 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*failedDownloads = 0
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
-	var bar progressbar.ProgressBar
-	if interactive {
-		bar = *progressbar.Default(
-			int64(totalPackages),
-			"Downloading...",
-		)
-	}
 	const maxIdleSeconds = 20
 	for {
 		select {
@@ -543,10 +535,6 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			}
 			*totalSavedBandwidth += msg.SavedBandwidth
 			idleSeconds = 0
-			if interactive {
-				err := bar.Add(1)
-				checkError(err)
-			}
 			messageString := "[" +
 				strconv.Itoa(int(100*float64(*successfulDownloads+*failedDownloads)/
 					float64(totalPackages))) +
@@ -683,7 +671,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	<-downloadWaiter
 
 	if downloadErrors != "" {
-		// Not using log for that because we want to see this no matter if running in interactive mode or not.
+		// Not using log because we want to always see this information.
 		fmt.Println("\n\nThe following errors were encountered during download:")
 		fmt.Print(downloadErrors)
 	}
