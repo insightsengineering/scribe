@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -31,6 +32,7 @@ type PackagesData struct {
 	InstallStatusText  string `json:"installStatusText"`
 	CheckStatusText    string `json:"checkStatusText"`
 	BuildStatusText    string `json:"buildStatusText"`
+	CheckTime          string `json:"checkTime"`
 }
 
 type ReportInfo struct {
@@ -136,8 +138,9 @@ func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
 
 // For each item from R CMD check info JSON, generate HTML code for badge in the report corresponding to the package.
 // Returns map from package name to HTML code.
-func processCheckInfo(allCheckInfo []PackageCheckInfo) map[string]string {
+func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[string]string) {
 	checkStatuses := make(map[string]string)
+	checkTimes := make(map[string]string)
 	for _, p := range allCheckInfo {
 		var checkStatusText string
 		filePath := "<a href=\"./logs/check-" + filepath.Base(p.LogFilePath) + "\">"
@@ -155,8 +158,9 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) map[string]string {
 				"<span class=\"badge bg-danger\">check error(s)</span></a>"
 		}
 		checkStatuses[p.PackageName] = checkStatusText
+		checkTimes[p.PackageName] = strconv.Itoa(p.CheckTime) + " s"
 	}
-	return checkStatuses
+	return checkStatuses, checkTimes
 }
 
 // Returns processed download, installation and check information in a structure that
@@ -169,14 +173,15 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	installStatuses := processInstallInfo(allInstallInfo)
 	// Builiding packages is done as part of install step, so build status is stored in installation info structure.
 	buildStatuses := processBuildInfo(allInstallInfo)
-	checkStatuses := processCheckInfo(allCheckInfo)
+	checkStatuses, checkTimes := processCheckInfo(allCheckInfo)
 
 	// Iterating through download info because it is a superset of install info and check info.
 	for _, p := range allDownloadInfo {
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
 			PackagesData{p.PackageName, p.PackageVersion, downloadStatuses[p.PackageName],
-				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName]},
+				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName],
+				checkTimes[p.PackageName]},
 		)
 	}
 	reportOutput.SystemInformation = systemInfo

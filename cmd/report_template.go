@@ -109,6 +109,7 @@ const HTMLReportTemplate = `<!doctype html>
                     <th>Build status</th>
                     <th>Install status</th>
                     <th>Check status</th>
+                    <th>Check time</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,6 +122,7 @@ const HTMLReportTemplate = `<!doctype html>
                     <td>{{.BuildStatusText | safe}}</td>
                     <td>{{.InstallStatusText | safe}}</td>
                     <td>{{.CheckStatusText | safe}}</td>
+                    <td>{{.CheckTime}}</td>
                 </tr>
                 {{end}}
             </tbody>

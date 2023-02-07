@@ -46,11 +46,15 @@ func Test_processInstallInfo(t *testing.T) {
 func Test_processCheckInfo(t *testing.T) {
 	var allCheckInfo []PackageCheckInfo
 	readJSON("testdata/checkInfo.json", &allCheckInfo)
-	checkStatuses := processCheckInfo(allCheckInfo)
+	checkStatuses, checkTimes := processCheckInfo(allCheckInfo)
 	assert.Equal(t, checkStatuses["package1"], "<a href=\"./logs/check-package1.out\"><span class=\"badge bg-danger\">check error(s)</span></a>")
 	assert.Equal(t, checkStatuses["package2"], "<a href=\"./logs/check-package2.out\"><span class=\"badge bg-warning text-dark\">check warning(s)</span></a>")
 	assert.Equal(t, checkStatuses["package3"], "<a href=\"./logs/check-package3.out\"><span class=\"badge bg-success\">OK</span></a>")
 	assert.Equal(t, checkStatuses["package4"], "<a href=\"./logs/check-package4.out\"><span class=\"badge bg-info text-dark\">check note(s)</span></a>")
+	assert.Equal(t, checkTimes["package1"], "20 s")
+	assert.Equal(t, checkTimes["package2"], "30 s")
+	assert.Equal(t, checkTimes["package3"], "35 s")
+	assert.Equal(t, checkTimes["package4"], "40 s")
 }
 
 func Test_processBuildInfo(t *testing.T) {
