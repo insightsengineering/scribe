@@ -21,7 +21,8 @@
         "CheckItemType": "NOTE",
         "CheckItemContent": "some note description"
       }
-    ]
+    ],
+    "CheckTime": 20
   },
   {
     "PackagePath": "/tmp/scribe/installed_packages/package2",
@@ -37,14 +38,16 @@
         "CheckItemType": "NOTE",
         "CheckItemContent": "some note description"
       }
-    ]
+    ],
+    "CheckTime": 30
   },
   {
     "PackagePath": "/tmp/scribe/installed_packages/package3",
     "PackageName": "package3",
     "LogFilePath": "/tmp/scribe/check_logs/package3.out",
     "MostSevereCheckItem": "OK",
-    "Info": []
+    "Info": [],
+    "CheckTime": 35
   },
   {
     "PackagePath": "/tmp/scribe/installed_packages/package4",
@@ -60,6 +63,7 @@
         "CheckItemType": "NOTE",
         "CheckItemContent": "some note description 2"
       }
-    ]
+    ],
+    "CheckTime": 40
   }
 ]

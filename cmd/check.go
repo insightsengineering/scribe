@@ -41,6 +41,7 @@ type PackageCheckInfo struct {
 	LogFilePath         string // path to the file containing log of R CMD check for the package
 	MostSevereCheckItem string // OK, NOTE, WARNING or ERROR
 	Info                []ItemCheckInfo
+	CheckTime           int
 }
 
 // Check if checkItemType is more severe than currently most severe (mostSevereCheckItem).
@@ -167,7 +168,7 @@ check_single_package_loop:
 		case msg := <-cmdCheckChan:
 			mostSevereCheckItem := parseCheckOutput(msg, &singlePackageCheckInfo)
 			messages <- PackageCheckInfo{packageFile, packageName, logFilePath,
-				mostSevereCheckItem, singlePackageCheckInfo}
+				mostSevereCheckItem, singlePackageCheckInfo, totalWaitTime}
 			<-guard
 			log.Info("R CMD check ", packageFile, " completed after ", totalWaitTime, "s")
 			break check_single_package_loop
