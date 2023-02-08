@@ -109,7 +109,7 @@ const HTMLReportTemplate = `<!doctype html>
                     <th>Build status</th>
                     <th>Install status</th>
                     <th>Check status</th>
-                    <th>Check time</th>
+                    <th>Check time (total: {{.TotalCheckTime}})</th>
                 </tr>
             </thead>
             <tbody>

@@ -39,6 +39,7 @@ type ReportInfo struct {
 	PackagesInformation []PackagesData `json:"packagesInformation"`
 	SystemInformation   *SystemInfo    `json:"systemInformation"`
 	RenvInformation     RenvInfo       `json:"renvInformation"`
+	TotalCheckTime      string         `json:"totalCheckTime"`
 }
 
 type RenvInfo struct {
@@ -137,10 +138,12 @@ func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
 }
 
 // For each item from R CMD check info JSON, generate HTML code for badge in the report corresponding to the package.
-// Returns map from package name to HTML code.
-func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[string]string) {
+// Returns map from package name to HTML code for both check statuses and check times,
+// as well as total check time.
+func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[string]string, string) {
 	checkStatuses := make(map[string]string)
 	checkTimes := make(map[string]string)
+	var totalCheckTime string
 	for _, p := range allCheckInfo {
 		var checkStatusText string
 		filePath := "<a href=\"./logs/check-" + filepath.Base(p.LogFilePath) + "\">"
@@ -159,8 +162,9 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 		}
 		checkStatuses[p.PackageName] = checkStatusText
 		checkTimes[p.PackageName] = strconv.Itoa(p.CheckTime) + " s"
+		totalCheckTime += strconv.Itoa(p.CheckTime) + " s"
 	}
-	return checkStatuses, checkTimes
+	return checkStatuses, checkTimes, totalCheckTime
 }
 
 // Returns processed download, installation and check information in a structure that
@@ -173,7 +177,8 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	installStatuses := processInstallInfo(allInstallInfo)
 	// Builiding packages is done as part of install step, so build status is stored in installation info structure.
 	buildStatuses := processBuildInfo(allInstallInfo)
-	checkStatuses, checkTimes := processCheckInfo(allCheckInfo)
+	checkStatuses, checkTimes, totalCheckTime := processCheckInfo(allCheckInfo)
+	reportOutput.TotalCheckTime = totalCheckTime
 
 	// Iterating through download info because it is a superset of install info and check info.
 	for _, p := range allDownloadInfo {
