@@ -143,7 +143,7 @@ func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
 func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[string]string, string) {
 	checkStatuses := make(map[string]string)
 	checkTimes := make(map[string]string)
-	var totalCheckTime string
+	var totalCheckTime int
 	for _, p := range allCheckInfo {
 		var checkStatusText string
 		filePath := "<a href=\"./logs/check-" + filepath.Base(p.LogFilePath) + "\">"
@@ -162,9 +162,9 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 		}
 		checkStatuses[p.PackageName] = checkStatusText
 		checkTimes[p.PackageName] = strconv.Itoa(p.CheckTime) + " s"
-		totalCheckTime += strconv.Itoa(p.CheckTime) + " s"
+		totalCheckTime += p.CheckTime
 	}
-	return checkStatuses, checkTimes, totalCheckTime
+	return checkStatuses, checkTimes, strconv.Itoa(totalCheckTime) + " s"
 }
 
 // Returns processed download, installation and check information in a structure that
