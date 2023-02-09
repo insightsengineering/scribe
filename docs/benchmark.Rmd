@@ -1,6 +1,6 @@
 ---
 title: "Benchmark  of scribe"
-author: IDR@NEST
+author: IDR
 date: Feb 09, 2023
 output:
   md_document:
