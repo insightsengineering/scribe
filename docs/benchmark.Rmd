@@ -7,8 +7,9 @@ output:
     variant: markdown_github
 ---
 
+# Benchmark  of scribe
 
-### Disclaimer
+#### Disclaimer
 
 "scribe" is very complex program that performs many disk read-write operations as well as queries to web services.
 
@@ -58,8 +59,8 @@ desc.x='Installer and number of threads')
 
 test3.check <- list(npkg = 28,
 data = data.frame(
-threads=c(30), 
-time=c(14)),
+threads=c(1, 5, 10, 20, 30), 
+time=c(53, 15, 10, 7, 7)),
 desc.x='Number of Threads'
 )
 
@@ -80,7 +81,7 @@ print.graph <- function(testdata) {
 
 ```
 
-### Explanation of terms
+#### Explanation of terms
 
 "Number of Threads" is the maximum number of simultaneously running installations of R packages.
 

@@ -1,4 +1,6 @@
-### Disclaimer
+# Benchmark of scribe
+
+#### Disclaimer
 
 “scribe” is very complex program that performs many disk read-write
 operations as well as queries to web services.
@@ -9,7 +11,7 @@ The results obtained in this test may not match your results, because it
 depends on parameters of the server on which it was run, speed of your
 internet connection and the choices of R packages.
 
-### Explanation of terms
+#### Explanation of terms
 
 “Number of Threads” is the maximum number of simultaneously running
 installations of R packages.
