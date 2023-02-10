@@ -11,8 +11,8 @@ on other R packages.
 “Non-Dependent Package” is an R package without dependencies on other R
 packages.
 
-“Low Dependent Package” is a R package which has few (1 or 2 )
-dependencies on Non-dependent Packages
+“Low Dependent Package” is an R package which has a few (1 or 2)
+dependencies on Non-Dependent Packages.
 
 ### Disclaimer
 
@@ -27,27 +27,27 @@ your internet connection and the choice of R packages.
 
 ## Installing packages with different numbers of threads
 
-The more threads, the shorter the installation of all packages. This
-relationship is not linear.
+The more threads, the shorter the time for installation of all packages.
+This relationship is not linear.
 
 We get to the point where the extra threads don’t speed up the overall
-process. It is so, because Highly Dependent Package which has tightly
-coupled packages do not allow parallelisation. The last packages in the
+process. It is because Highly Dependent Packages (with tightly coupled
+packages) do not allow parallelisation. The last packages on the
 installation list are run sequentially.
 
-At the beginning of the installation process, Non-dependent Package are
-being installed as a first packages. They do not have dependencies, so
-parallelisation is done quite effectively.
+At the beginning of the installation process, Non-Dependent Packages are
+being installed first. They do not have dependencies, so parallelisation
+is done quite effectively.
 
 <img src="benchmark_files/figure-markdown_github/unnamed-chunk-2-1.png" alt="Performance on average number of packages"  />
 
 ## Installing packages and Strongly Connected Packages
 
 For a large number of packages, Strongly Connected Packages may appear.
-Strongly Connected Packages are a group of packages, where if he wants
-to use one package, he will have to install a whole horde of other
-packages Examples: “dplyr” with “tibble”, “rlang”, “vctrs” or “devtools”
-with “cli”, “pkgdown”, “rcmdcheck”, “remotes”, “roxygen2”.
+Strongly Connected Packages are a group of packages, where if one wants
+to use a single package, the imperative is to install a cohort of other
+packages. Examples: “dplyr” with “tibble”, “rlang”, “vctrs” or
+“devtools” with “cli”, “pkgdown”, “rcmdcheck”, “remotes”, “roxygen2”.
 
 If there is a Highly Dependent Package then there should be Strongly
 Connected Packages.
@@ -65,16 +65,16 @@ decreases significantly.
 
 In summary, “scribe” can install packages much faster than “renv” will
 ever do. Even if, “renv” will use “pak” package for downloading
-packages, “scribe” will be faster, because it used parallelization for
-download, build, installation process.
+packages, “scribe” will do it faster, because it uses parallelization
+for download, build, and installation process.
 
 <img src="benchmark_files/figure-markdown_github/unnamed-chunk-4-1.png" alt="renv and scribe"  />
 
 ## Checks in scribe
 
-We missed one feature in the renv. It was running “R cmd checks” on
+We missed one feature in the renv. It was running “R CMD checks” on
 several packages. We have parallelized this procedure.
 
-Here are the result for running only checks.
+This is the result for running only checks.
 
 <img src="benchmark_files/figure-markdown_github/unnamed-chunk-5-1.png" alt="Checks in scribe"  />
