@@ -11,7 +11,7 @@ output:
 
 #### Disclaimer
 
-"scribe" is very complex program that performs many disk read-write operations as well as queries to web services.
+"scribe" is a very complex program that performs many disk read-write operations as well as queries to web services.
 
 "scribe" is invoking "R CMD` where execution times can vary greatly.
 
