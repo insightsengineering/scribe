@@ -147,7 +147,7 @@ print.graph(test2)
 We missed one feature in the renv. It was running "R cmd checks" on several packages. 
 We have parallelized this procedure.
 
-Here are the result for running only checks.
+This is the result for running only checks.
 
 ```{r, echo=FALSE, fig.alt = "Checks in scribe"}
 print.graph(test3.check) 
