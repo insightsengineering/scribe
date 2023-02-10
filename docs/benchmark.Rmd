@@ -87,7 +87,7 @@ print.graph <- function(testdata) {
 
 "Highly Dependent Package" is an R package which has a lot dependencies on other R packages.
 
-"Non-dependent Package" is a R package which no dependencies on other R packages 
+"Non-Dependent Package" is an R package without dependencies on other R packages. 
 
 "Low Dependent Package" is a R package which has few (1 or 2 ) dependencies on Non-dependent Packages
 
