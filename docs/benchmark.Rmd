@@ -71,8 +71,8 @@ desc.x='Installer and number of threads')
 
 test3.check <- list(npkg = 28,
 data = data.frame(
-threads=c(1, 5, 10, 20, 30), 
-time=c(53, 15, 10, 7, 7)),
+threads=c(1,2, 3, 4, 5, 10, 15, 20, 30), 
+time=c(54, 30, 22, 17, 15, 10, 8, 7, 7)),
 desc.x='Number of Threads'
 )
 
