@@ -13,7 +13,7 @@ output:
 
 "scribe" is a very complex program that performs many disk read-write operations as well as queries to web services.
 
-"scribe" is invoking "R CMD` where execution times can vary greatly.
+"scribe" invokes "R CMD` check where execution times can vary greatly.
 
 The results obtained in this test may not match your results, because it depends on parameters of the server on which it was run, speed of your internet connection and the choices of R packages.
 
