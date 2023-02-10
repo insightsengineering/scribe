@@ -102,7 +102,7 @@ This relationship is not linear.
 
 We get to the point where the extra threads don't speed up the overall process. 
 It is so, because Highly Dependent Package which has tightly coupled packages do not allow parallelisation.
-The last packages in the installation list are run sequentially.
+The last packages on the installation list are run sequentially.
 
 At the beginning of the installation process,  Non-dependent Package are being installed as a first packages. 
 They do not have dependencies, so parallelisation is done quite effectively.
