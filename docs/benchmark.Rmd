@@ -15,7 +15,7 @@ output:
 
 "scribe" invokes "R CMD` check where execution times can vary greatly.
 
-The results obtained in this test may not match your results, because it depends on parameters of the server on which it was run, speed of your internet connection and the choices of R packages.
+The results obtained in this test may not match your results, because they depend on parameters of the server on which it was run, speed of your internet connection and the choice of R packages.
 
 
 
