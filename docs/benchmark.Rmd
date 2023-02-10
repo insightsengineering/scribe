@@ -97,7 +97,7 @@ print.graph <- function(testdata) {
 
 ## Installing packages with different numbers of threads
 
-The more threads, the shorter the installation of all packages.
+The more threads, the shorter the time for installation of all packages.
 This relationship is not linear.
 
 We get to the point where the extra threads don't speed up the overall process. 
