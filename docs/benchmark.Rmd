@@ -9,7 +9,19 @@ output:
 
 # Benchmark  of scribe
 
-#### Disclaimer
+
+## Explanation of terms
+
+"Number of Threads" is the maximum number of simultaneously running installations of R packages.
+
+"Highly Dependent Package" is an R package which has a lot dependencies on other R packages.
+
+"Non-Dependent Package" is an R package without dependencies on other R packages. 
+
+"Low Dependent Package" is a R package which has few (1 or 2 ) dependencies on Non-dependent Packages
+
+
+### Disclaimer
 
 "scribe" is a very complex program that performs many disk read-write operations as well as queries to web services.
 
@@ -81,15 +93,6 @@ print.graph <- function(testdata) {
 
 ```
 
-#### Explanation of terms
-
-"Number of Threads" is the maximum number of simultaneously running installations of R packages.
-
-"Highly Dependent Package" is an R package which has a lot dependencies on other R packages.
-
-"Non-Dependent Package" is an R package without dependencies on other R packages. 
-
-"Low Dependent Package" is a R package which has few (1 or 2 ) dependencies on Non-dependent Packages
 
 
 ## Installing packages with different numbers of threads
@@ -105,7 +108,7 @@ At the beginning of the installation process,  Non-dependent Package are being i
 They do not have dependencies, so parallelisation is done quite effectively.
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.alt = "Performance on average number of packages"}
 print.graph(test1) 
 ```
 
@@ -125,7 +128,7 @@ This is not always the case, as some packages do not have a complete description
 In launches, we can observe it, when there is an increased number of threads and the installation execution time decreases significantly.
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.alt = "Performance on large number of packages"}
 print.graph(test2.hpc) 
 ```
 
@@ -134,19 +137,19 @@ print.graph(test2.hpc)
 In summary, "scribe" can install packages much faster than "renv" will ever do.
 Even if, "renv" will use "pak" package for downloading packages, "scribe" will be faster, because it used parallelization for download, build, installation process.   
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.alt = "renv and scribe"}
 print.graph(test2) 
 ```
 
 
-## Checks in "scribe"
+## Checks in scribe
 
 We missed one feature in the renv. It was running "R cmd checks" on several packages. 
 We have parallelized this procedure.
 
 Here are the result for running only checks.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.alt = "Checks in scribe"}
 print.graph(test3.check) 
 ```
 
