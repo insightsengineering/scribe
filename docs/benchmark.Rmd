@@ -135,7 +135,7 @@ print.graph(test2.hpc)
 ## renv and scribe
 
 In summary, "scribe" can install packages much faster than "renv" will ever do.
-Even if, "renv" will use "pak" package for downloading packages, "scribe" will be faster, because it used parallelization for download, build, installation process.   
+Even if, "renv" will use "pak" package for downloading packages, "scribe" will do it faster, because it uses parallelization for download, build, and installation process.   
 
 ```{r, echo=FALSE, fig.alt = "renv and scribe"}
 print.graph(test2) 
