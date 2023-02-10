@@ -49,8 +49,8 @@ to use a single package, the imperative is to install a cohort of other
 packages. Examples: “dplyr” with “tibble”, “rlang”, “vctrs” or
 “devtools” with “cli”, “pkgdown”, “rcmdcheck”, “remotes”, “roxygen2”.
 
-If there is a Highly Dependent Package then there should be Strongly
-Connected Packages.
+If there is a Highly Dependent Package in the group, then, in fact, we
+are dealing with Strongly Connected Packages.
 
 The topological sorting algorithm considers Strongly Connected Packages
 to parallelize effectively. This is not always the case, as some
