@@ -118,7 +118,7 @@ print.graph(test1)
 ## Installing packages and Strongly Connected Packages 
 
 For a large number of packages, Strongly Connected Packages may appear.
-Strongly Connected Packages are a group of packages, where if he wants to use one package, he will have to install a whole horde of other packages
+Strongly Connected Packages are a group of packages, where if one wants to use a single package, the imperative is to install a cohort of other packages.
 Examples: "dplyr" with "tibble", "rlang", "vctrs" or "devtools" with "cli", "pkgdown", "rcmdcheck", "remotes", "roxygen2".
 
 If there is a Highly Dependent Package then there should be Strongly Connected Packages. 
