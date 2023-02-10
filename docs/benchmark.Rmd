@@ -144,7 +144,7 @@ print.graph(test2)
 
 ## Checks in scribe
 
-We missed one feature in the renv. It was running "R cmd checks" on several packages. 
+We missed one feature in the renv. It was running "R CMD checks" on several packages. 
 We have parallelized this procedure.
 
 This is the result for running only checks.
