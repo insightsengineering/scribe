@@ -85,7 +85,7 @@ print.graph <- function(testdata) {
 
 "Number of Threads" is the maximum number of simultaneously running installations of R packages.
 
-"Highly Dependent Package" is a R package which has a lot dependencies to other R packages
+"Highly Dependent Package" is an R package which has a lot dependencies on other R packages.
 
 "Non-dependent Package" is a R package which no dependencies on other R packages 
 
