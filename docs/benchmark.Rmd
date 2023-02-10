@@ -104,7 +104,7 @@ We get to the point where the extra threads don't speed up the overall process.
 It is because Highly Dependent Packages (with tightly coupled packages) do not allow parallelisation.
 The last packages on the installation list are run sequentially.
 
-At the beginning of the installation process,  Non-dependent Package are being installed as a first packages. 
+At the beginning of the installation process, Non-Dependent Packages are being installed first. 
 They do not have dependencies, so parallelisation is done quite effectively.
 
 
