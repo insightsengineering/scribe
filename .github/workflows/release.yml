@@ -33,6 +33,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.19.3
+          cache: true
+          cache-dependency-path: go.sum
 
       - name: Log in to the Container registry 🗝
         uses: docker/login-action@v2

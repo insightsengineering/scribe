@@ -38,6 +38,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
+          cache: true
+          cache-dependency-path: go.sum
       
       - name: Run Tests 🧨
         run: make test
@@ -101,6 +103,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
+          cache: true
+          cache-dependency-path: go.sum
 
       - name: Check if compilation works 🧱
         run: make build
