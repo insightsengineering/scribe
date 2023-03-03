@@ -10,7 +10,7 @@ GOPATH ?= $(strip $(shell go env GOPATH)/bin) ## Location of dev dependencies
 export PATH := $(GOPATH):${PATH}
 
 # All targets are phony
-.PHONY: all help devdeps clean tidy generate format build spell lint test
+.PHONY: all help devdeps clean tidy generate format build spell lint test update
 
 # Set the 'all' target
 all: tidy generate format devdeps lint spell test ## Execute all targets
@@ -73,8 +73,13 @@ test: clean tidy devdeps spell ## Run unit tests and generate reports
 	@gocover-cobertura < coverage.out > coverage.xml
 
 testrun: build ## Run against renv.lock file
+	@printf "Executing target: [$@] 🎯\n"
 	@time go run . --logLevel debug
 
 types: ## Examine Go types and their transitive dependencies
 	@printf "Executing target: [$@] 🎯\n"
 	@typex -t -u .
+
+update: ## Update all dependencies
+	@printf "Executing target: [$@] 🎯\n"
+	@go get -u all
