@@ -127,10 +127,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	}
 	if returnOutput {
 		data, err := cmd.Output()
-		if err != nil {
-			return "", err
-		}
-		return string(data), nil
+		return string(data), err
 	}
 
 	log.Tracef("Command to execute: %v", cmd)
@@ -142,15 +139,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	_, errWriteString := file.WriteString(outStr)
 	checkError(errWriteString)
 
-	if errCombinedOutput != nil {
-		return outStr, errCombinedOutput
-	}
-
-	if errWriteString != nil {
-		return outStr, errWriteString
-	}
-
-	return "", nil
+	return outStr, nil
 }
 
 func tsort(graph map[string][]string) (resultOrder []string) {
