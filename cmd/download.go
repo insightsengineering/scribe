@@ -41,6 +41,8 @@ const bioConductorURL = "https://www.bioconductor.org/packages"
 const GitHub = "GitHub"
 const cache = "cache"
 const download = "download"
+const github = "github"
+const gitlab = "gitlab"
 const targzExtensionFile = "tar.gz"
 
 type DownloadInfo struct {
@@ -125,19 +127,22 @@ func downloadFile(url string, outputFile string) (int, int64) {
 // Clones git repository and returns string with error value (empty if cloning was
 // successful), approximate number of downloaded bytes, and cloned version of the package (tag, branch or commit SHA).
 // If commitSha or branchOrTagName is specified, the respective commit, branch or tag are checked out.
-// If useEnvironmentCredentials is true, this function expects username and token to be set in
+// If environmentCredentialsType is "gitlab", this function expects username and token to be set in
 // GITLAB_USER and GITLAB_TOKEN environment variables.
+// If environmentCredentialsType is "github", this function expects token to be set in
+// GITHUB_TOKEN environment variable.
 // This implementation assumes that RemoteSha renv.lock field contains commit SHA,
 // and that RemoteRef renv.lock field contains branch name or tag name.
 // It is assumed that RemoteRef matching regex `v\d+(\.\d+)*` (where \d is a digit) is a tag name.
 // Otherwise, that it is a branch name.
 // If any of these assumptions are not correct for some package, the default branch will be checked out.
-func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials bool,
+func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsType string,
 	commitSha string, branchOrTagName string) (string, int64, string) {
 	err := os.MkdirAll(gitDirectory, os.ModePerm)
 	checkError(err)
 	var gitCloneOptions *git.CloneOptions
-	if useEnvironmentCredentials {
+	switch {
+	case environmentCredentialsType == gitlab:
 		gitCloneOptions = &git.CloneOptions{
 			URL: repoURL,
 			Auth: &githttp.BasicAuth{
@@ -145,12 +150,19 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 				Password: os.Getenv("GITLAB_TOKEN"),
 			},
 		}
-	} else {
+	case environmentCredentialsType == github:
+		gitCloneOptions = &git.CloneOptions{
+			URL: repoURL,
+			Auth: &githttp.BasicAuth{
+				Username: "This can be any string.",
+				Password: os.Getenv("GITHUB_TOKEN"),
+			},
+		}
+	default:
 		gitCloneOptions = &git.CloneOptions{
 			URL: repoURL,
 		}
 	}
-
 	repository, err := git.PlainClone(gitDirectory, false, gitCloneOptions)
 	if err == nil {
 		var packageVersion string
@@ -175,7 +187,8 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 			log.Info("Checking out branch or tag ", checkoutRefName, " in ", gitDirectory)
 			refSpec := config.RefSpec(refName)
 			var fetchOptions *git.FetchOptions
-			if useEnvironmentCredentials {
+			switch {
+			case environmentCredentialsType == gitlab:
 				fetchOptions = &git.FetchOptions{
 					RefSpecs: []config.RefSpec{refSpec},
 					Auth: &githttp.BasicAuth{
@@ -183,7 +196,15 @@ func cloneGitRepo(gitDirectory string, repoURL string, useEnvironmentCredentials
 						Password: os.Getenv("GITLAB_TOKEN"),
 					},
 				}
-			} else {
+			case environmentCredentialsType == github:
+				fetchOptions = &git.FetchOptions{
+					RefSpecs: []config.RefSpec{refSpec},
+					Auth: &githttp.BasicAuth{
+						Username: "This can be any string.",
+						Password: os.Getenv("GITHUB_TOKEN"),
+					},
+				}
+			default:
 				fetchOptions = &git.FetchOptions{
 					RefSpecs: []config.RefSpec{refSpec},
 				}
@@ -324,7 +345,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		gitDirectory := localOutputDirectory + "/github" +
 			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
-		return "github", repoURL, "", gitDirectory, "", 0
+		return github, repoURL, "", gitDirectory, "", 0
 
 	case packageSource == "GitLab":
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
@@ -336,7 +357,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			"/" + remoteUser + "/" + remoteRepo
 		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ",
 			remoteHost, " to directory ", gitDirectory)
-		return "gitlab", repoURL, "", gitDirectory, "", 0
+		return gitlab, repoURL, "", gitDirectory, "", 0
 
 	default:
 		// Repositories other than CRAN or BioConductor
@@ -356,7 +377,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo,
 	downloadFileFunction func(string, string) (int, int64),
-	gitCloneFunction func(string, string, bool, string, string) (string, int64, string),
+	gitCloneFunction func(string, string, string, string, string) (string, int64, string),
 	messages chan DownloadInfo, guard chan struct{}) {
 
 	// Determine whether to download the package as tar.gz file, or from git repository.
@@ -408,16 +429,16 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	case "notfound_bioc":
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
 			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, ""}
-	case "github":
-		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, false,
+	case github:
+		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, github,
 			gitCommitSha, gitBranch)
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, ""}
 		}
-	case "gitlab":
-		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, true,
+	case gitlab:
+		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, gitlab,
 			gitCommitSha, gitBranch)
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion}
@@ -573,7 +594,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 // Download packages from renv.lock file, saves download result structs to allDownloadInfo.
 func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	downloadFileFunction func(string, string) (int, int64),
-	gitCloneFunction func(string, string, bool, string, string) (string, int64, string)) {
+	gitCloneFunction func(string, string, string, string, string) (string, int64, string)) {
 
 	// Clean up any previous downloaded data, except tar.gz packages.
 	// We'll later calculate checksums for tar.gz files and compare them with checksums in

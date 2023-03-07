@@ -21,6 +21,10 @@ Example usage with multiple flags:
 scribe --logLevel debug --maskedEnvVars 'password|key' --renvLockFilename renv2.lock --checkPackage 'tern*,teal*' --reportDir htmlreportdir --maxDownloadRoutines 100 --maxCheckRoutines 20 --numberOfWorkers 150 --clearCache
 ```
 
+To download packages from `git` repositories, `scribe` retrieves username and token from environment variables:
+* for GitLab, it reads username from `GITLAB_USER` variable, and token from `GITLAB_TOKEN` variable,
+* for GitHub, it reads token from `GITHUB_TOKEN` variable.
+
 ## Configuration file
 
 If you'd like to set the above options in a configuration file, by default `scribe` checks the `~/.scribe` file.
