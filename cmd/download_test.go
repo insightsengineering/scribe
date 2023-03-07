@@ -196,7 +196,7 @@ func mockedDownloadFile(_ string, _ string) (int, int64) {
 	return 200, 1
 }
 
-func mockedCloneGitRepo(_ string, _ string, _ bool, _ string, _ string) (string, int64, string) {
+func mockedCloneGitRepo(_ string, _ string, _ string, _ string, _ string) (string, int64, string) {
 	return "", 1, "v0.0.1"
 }
 
