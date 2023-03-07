@@ -139,7 +139,7 @@ func execCommand(command string, showOutput bool, returnOutput bool, envs []stri
 	_, errWriteString := file.WriteString(outStr)
 	checkError(errWriteString)
 
-	return outStr, nil
+	return outStr, errCombinedOutput
 }
 
 func tsort(graph map[string][]string) (resultOrder []string) {
