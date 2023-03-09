@@ -39,6 +39,7 @@ import (
 const defaultCranMirrorURL = "https://cloud.r-project.org"
 const bioConductorURL = "https://www.bioconductor.org/packages"
 const GitHub = "GitHub"
+const GitLab = "GitLab"
 const cache = "cache"
 const download = "download"
 const github = "github"
@@ -89,7 +90,7 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 		repoURL = bioConductorURL
 	case GitHub:
 		repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
-	case "GitLab":
+	case GitLab:
 		repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 	default:
 		repoURL = getRenvRepositoryURL(repositories, v.Repository)
@@ -168,9 +169,19 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 		var packageVersion string
 		w, er := repository.Worktree()
 		checkError(er)
-		// Checkout the branch or tag.
-		packageVersion = "HEAD"
-		if branchOrTagName != "" && branchOrTagName != "HEAD" {
+		switch {
+		case commitSha != "":
+			// Checkout the commit.
+			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash: plumbing.NewHash(commitSha),
+			})
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
+			packageVersion = commitSha
+		case branchOrTagName != "" && branchOrTagName != "HEAD":
+			// Checkout the branch or tag.
 			match, err2 := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
 			checkError(err2)
 			var refName string
@@ -220,16 +231,11 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 				checkError(err)
 			}
 			packageVersion = branchOrTagName
-		} else if commitSha != "" {
-			// Checkout the commit.
-			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
-			err = w.Checkout(&git.CheckoutOptions{
-				Hash: plumbing.NewHash(commitSha),
-			})
-			if err != git.NoErrAlreadyUpToDate {
-				checkError(err)
-			}
-			packageVersion = commitSha
+		default:
+			// Leave HEAD checked out and return its SHA.
+			ref, err2 := repository.Head()
+			checkError(err2)
+			packageVersion = ref.Hash().String()
 		}
 		// The number of bytes downloaded is approximated by the size of repository directory.
 		var gitRepoSize int64
@@ -347,7 +353,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
 		return github, repoURL, "", gitDirectory, "", 0
 
-	case packageSource == "GitLab":
+	case packageSource == GitLab:
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]

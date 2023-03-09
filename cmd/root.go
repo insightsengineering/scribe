@@ -31,6 +31,7 @@ var logLevel string
 var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
+var updatePackages string
 var checkAllPackages bool
 var maxDownloadRoutines int
 var maxCheckRoutines int
@@ -90,6 +91,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println("maskedEnvVars =", maskedEnvVars)
 		fmt.Println("renvLockFilename =", renvLockFilename)
 		fmt.Println("checkPackage =", checkPackageExpression)
+		fmt.Println("updatePackages =", updatePackages)
 		fmt.Println("checkAllPackages =", checkAllPackages)
 		fmt.Println("reportDir =", outputReportDirectory)
 		fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
@@ -119,6 +121,9 @@ var rootCmd = &cobra.Command{
 		var renvLock Renvlock
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
+		if updatePackages != "" {
+			updatePackagesRenvLock(&renvLock, renvLockFilename+".updated", updatePackages)
+		}
 
 		mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
@@ -208,6 +213,10 @@ func init() {
 			"The expression follows the pattern: \"expression1,expression2,...\" where \"expressionN\" can be: "+
 			"literal package name and/or * symbol(s) meaning any set of characters. Example: "+
 			`'package*,*abc,a*b,someOtherPackage'`)
+	rootCmd.PersistentFlags().StringVar(&updatePackages, "updatePackages", "",
+		"Expression with wildcards indicating which packages should be updated to the newest version. "+
+			"The expression follows the same pattern as checkPackage flag. "+
+			"This is currently only supported for packages downloaded from git repositories.")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Use this flag to check all installed packages.")
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
