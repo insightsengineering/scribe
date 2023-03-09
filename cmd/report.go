@@ -28,6 +28,7 @@ import (
 type PackagesData struct {
 	PackageName        string `json:"packageName"`
 	PackageVersion     string `json:"packageVersion"`
+	GitPackageVersion  string `json:"gitPackageVersion"`
 	DownloadStatusText string `json:"downloadStatusText"`
 	InstallStatusText  string `json:"installStatusText"`
 	CheckStatusText    string `json:"checkStatusText"`
@@ -184,7 +185,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	for _, p := range allDownloadInfo {
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
-			PackagesData{p.PackageName, p.PackageVersion, downloadStatuses[p.PackageName],
+			PackagesData{p.PackageName, p.PackageVersion, p.GitPackageVersion, downloadStatuses[p.PackageName],
 				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName],
 				checkTimes[p.PackageName]},
 		)
@@ -198,6 +199,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 		"\n", "<br />")
 
 	reportOutput.RenvInformation.RenvFilename = renvLockFilename
+	// TODO save original renvLock structure and save it to the report
 	indentedValue, err := json.MarshalIndent(renvLock, "", "&nbsp;&nbsp;")
 	checkError(err)
 	reportOutput.RenvInformation.RenvContents = strings.ReplaceAll(string(indentedValue), "\n", "<br />")

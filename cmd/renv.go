@@ -195,5 +195,6 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 	output, err := os.Create(outputFilename)
 	checkError(err)
 	defer output.Close()
-	output.WriteString(string(bytes))
+	_, err = output.WriteString(string(bytes))
+	checkError(err)
 }
