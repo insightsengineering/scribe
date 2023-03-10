@@ -165,12 +165,12 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 				"", "",
 			)
 			// Read newest package version from DESCRIPTION.
-			packages, err3 := os.ReadFile(
+			description, err3 := os.ReadFile(
 				localOutputDirectory + "/git_updates/" + k + "/DESCRIPTION",
 			)
 			checkError(err3)
-			packagesContents := parseDescription(string(packages))
-			newPackageVersion := packagesContents["Version"]
+			descriptionContents := parseDescription(string(description))
+			newPackageVersion := descriptionContents["Version"]
 			// Update renv structure with new package version and SHA.
 			if entry, ok := renvLock.Packages[k]; ok {
 				log.Info("Updating package ", k, " version: ",
