@@ -31,6 +31,7 @@ var logLevel string
 var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
+var updatePackages string
 var checkAllPackages bool
 var maxDownloadRoutines int
 var maxCheckRoutines int
@@ -90,6 +91,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println("maskedEnvVars =", maskedEnvVars)
 		fmt.Println("renvLockFilename =", renvLockFilename)
 		fmt.Println("checkPackage =", checkPackageExpression)
+		fmt.Println("updatePackages =", updatePackages)
 		fmt.Println("checkAllPackages =", checkAllPackages)
 		fmt.Println("reportDir =", outputReportDirectory)
 		fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
@@ -117,8 +119,18 @@ var rootCmd = &cobra.Command{
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
 		var renvLock Renvlock
+		var renvLockOld Renvlock
+		var renvLockFilenameOld string
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
+		if updatePackages != "" {
+			renvLockFilenameOld = renvLockFilename
+			renvLockFilename += ".updated"
+			updatePackagesRenvLock(&renvLock, renvLockFilename, updatePackages)
+			// updatePackagesRenvLock modified the original structure in place.
+			// Therefore, we make a copy to show both renv.lock contents in the report.
+			getRenvLock(renvLockFilenameOld, &renvLockOld)
+		}
 
 		mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
 		if mkdirerr != nil {
@@ -169,7 +181,8 @@ var rootCmd = &cobra.Command{
 
 		// Generate report.
 		var reportData ReportInfo
-		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData, renvLock)
+		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
+			renvLock, renvLockOld, renvLockFilenameOld)
 		err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 		checkError(err)
 		err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
@@ -208,6 +221,10 @@ func init() {
 			"The expression follows the pattern: \"expression1,expression2,...\" where \"expressionN\" can be: "+
 			"literal package name and/or * symbol(s) meaning any set of characters. Example: "+
 			`'package*,*abc,a*b,someOtherPackage'`)
+	rootCmd.PersistentFlags().StringVar(&updatePackages, "updatePackages", "",
+		"Expression with wildcards indicating which packages should be updated to the newest version. "+
+			"The expression follows the same pattern as checkPackage flag. "+
+			"This is currently only supported for packages downloaded from git repositories.")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Use this flag to check all installed packages.")
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",

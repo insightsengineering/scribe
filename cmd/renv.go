@@ -18,6 +18,8 @@ package cmd
 import (
 	"encoding/json"
 	"os"
+	"regexp"
+	"strings"
 )
 
 type Renvlock struct {
@@ -122,4 +124,77 @@ func validateRenvLock(renvLock Renvlock) int {
 		numberOfWarnings += newWarnings
 	}
 	return numberOfWarnings
+}
+
+// Checks if any packages in renv.lock file should be updated.
+// A copy of renv.lock file is created - it contains updated versions
+// of selected packages as well as updated git HEAD SHAs.
+// This is checked by cloning the packages' git repositories.
+func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPackages string) {
+	splitUpdatePackages := strings.Split(updatedPackages, ",")
+	var allUpdateExpressions []string
+	// For each comma-separated wildcard expression convert "." and "*"
+	// characters to regexp equivalent.
+	for _, singleRegexp := range splitUpdatePackages {
+		singleRegexp = strings.ReplaceAll(singleRegexp, `.`, `\.`)
+		singleRegexp = strings.ReplaceAll(singleRegexp, "*", ".*")
+		allUpdateExpressions = append(allUpdateExpressions, "^"+singleRegexp+"$")
+	}
+	// Create temporary directory to clone the packages to be updated.
+	updateRegexp := strings.Join(allUpdateExpressions, "|")
+	err := os.RemoveAll(localOutputDirectory + "/git_updates")
+	checkError(err)
+	err = os.MkdirAll(localOutputDirectory+"/git_updates", os.ModePerm)
+	checkError(err)
+	for k, v := range renvLock.Packages {
+		match, err2 := regexp.MatchString(updateRegexp, k)
+		checkError(err2)
+		if match && (v.Source == "GitLab" || v.Source == "GitHub") {
+			log.Debug("Package ", k, " matches updated packages regexp ", allUpdateExpressions)
+			var credentialsType string
+			if v.Source == "GitLab" {
+				credentialsType = "gitlab"
+			} else if v.Source == "GitHub" {
+				credentialsType = "github"
+			}
+			// Clone package's default branch.
+			_, _, newPackageSha := cloneGitRepo(
+				localOutputDirectory+"/git_updates/"+k,
+				getRepositoryURL(v, renvLock.R.Repositories),
+				credentialsType,
+				"", "",
+			)
+			// Read newest package version from DESCRIPTION.
+			description, err3 := os.ReadFile(
+				localOutputDirectory + "/git_updates/" + k + "/DESCRIPTION",
+			)
+			checkError(err3)
+			descriptionContents := parseDescription(string(description))
+			newPackageVersion := descriptionContents["Version"]
+			// Update renv structure with new package version and SHA.
+			if entry, ok := renvLock.Packages[k]; ok {
+				log.Info("Updating package ", k, " version: ",
+					entry.Version, " -> ", newPackageVersion,
+					", SHA: ", entry.RemoteSha, " -> ", newPackageSha,
+				)
+				entry.Version = newPackageVersion
+				entry.RemoteSha = newPackageSha
+				// Clear hash since it's likely not valid anymore.
+				entry.Hash = ""
+				renvLock.Packages[k] = entry
+			}
+		} else {
+			log.Debug(
+				"Package ", k, " doesn't match updated packages regexp ",
+				allUpdateExpressions, " or is not a git repository.",
+			)
+		}
+	}
+	bytes, err := json.MarshalIndent(*renvLock, "", "  ")
+	checkError(err)
+	output, err := os.Create(outputFilename)
+	checkError(err)
+	defer output.Close()
+	_, err = output.WriteString(string(bytes))
+	checkError(err)
 }

@@ -28,6 +28,7 @@ import (
 type PackagesData struct {
 	PackageName        string `json:"packageName"`
 	PackageVersion     string `json:"packageVersion"`
+	GitPackageShaOrRef string `json:"gitPackageShaOrRef"`
 	DownloadStatusText string `json:"downloadStatusText"`
 	InstallStatusText  string `json:"installStatusText"`
 	CheckStatusText    string `json:"checkStatusText"`
@@ -39,6 +40,7 @@ type ReportInfo struct {
 	PackagesInformation []PackagesData `json:"packagesInformation"`
 	SystemInformation   *SystemInfo    `json:"systemInformation"`
 	RenvInformation     RenvInfo       `json:"renvInformation"`
+	RenvInformationOld  RenvInfo       `json:"renvInformationOld"`
 	TotalCheckTime      string         `json:"totalCheckTime"`
 }
 
@@ -171,7 +173,7 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 // can be consumed by Go templating engine.
 func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
 	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo,
-	renvLock Renvlock) {
+	renvLock Renvlock, renvLockOld Renvlock, renvLockFilenameOld string) {
 
 	downloadStatuses := processDownloadInfo(allDownloadInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
@@ -184,7 +186,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	for _, p := range allDownloadInfo {
 		reportOutput.PackagesInformation = append(
 			reportOutput.PackagesInformation,
-			PackagesData{p.PackageName, p.PackageVersion, downloadStatuses[p.PackageName],
+			PackagesData{p.PackageName, p.PackageVersion, p.GitPackageShaOrRef, downloadStatuses[p.PackageName],
 				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName],
 				checkTimes[p.PackageName]},
 		)
@@ -201,6 +203,15 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	indentedValue, err := json.MarshalIndent(renvLock, "", "&nbsp;&nbsp;")
 	checkError(err)
 	reportOutput.RenvInformation.RenvContents = strings.ReplaceAll(string(indentedValue), "\n", "<br />")
+
+	if renvLockFilenameOld != "" {
+		// A copy of original renv.lock has been created since renvLock structure
+		// has been updated with new version of packages.
+		reportOutput.RenvInformationOld.RenvFilename = renvLockFilenameOld
+		indentedValueOld, err := json.MarshalIndent(renvLockOld, "", "&nbsp;&nbsp;")
+		checkError(err)
+		reportOutput.RenvInformationOld.RenvContents = strings.ReplaceAll(string(indentedValueOld), "\n", "<br />")
+	}
 }
 
 func writeReport(reportData ReportInfo, outputFile string) {

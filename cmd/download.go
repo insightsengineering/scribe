@@ -39,6 +39,7 @@ import (
 const defaultCranMirrorURL = "https://cloud.r-project.org"
 const bioConductorURL = "https://www.bioconductor.org/packages"
 const GitHub = "GitHub"
+const GitLab = "GitLab"
 const cache = "cache"
 const download = "download"
 const github = "github"
@@ -69,6 +70,8 @@ type DownloadInfo struct {
 	DownloadedPackageType string `json:"downloadedPackageType"`
 	PackageName           string `json:"packageName"`
 	PackageVersion        string `json:"packageVersion"`
+	// Contains git SHA of cloned package, or exceptionally git tag or branch, if SHA was not provided in renv.lock.
+	GitPackageShaOrRef string `json:"gitPackageShaOrRef"`
 }
 
 // Struct used to store data about tar.gz packages saved in local cache.
@@ -89,7 +92,7 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 		repoURL = bioConductorURL
 	case GitHub:
 		repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
-	case "GitLab":
+	case GitLab:
 		repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 	default:
 		repoURL = getRenvRepositoryURL(repositories, v.Repository)
@@ -165,12 +168,22 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 	}
 	repository, err := git.PlainClone(gitDirectory, false, gitCloneOptions)
 	if err == nil {
-		var packageVersion string
+		var gitPackageShaOrRef string
 		w, er := repository.Worktree()
 		checkError(er)
-		// Checkout the branch or tag.
-		packageVersion = "HEAD"
-		if branchOrTagName != "" && branchOrTagName != "HEAD" {
+		switch {
+		case commitSha != "":
+			// Checkout the commit.
+			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash: plumbing.NewHash(commitSha),
+			})
+			if err != git.NoErrAlreadyUpToDate {
+				checkError(err)
+			}
+			gitPackageShaOrRef = commitSha
+		case branchOrTagName != "" && branchOrTagName != "HEAD":
+			// Checkout the branch or tag.
 			match, err2 := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
 			checkError(err2)
 			var refName string
@@ -219,24 +232,21 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 			if err != git.NoErrAlreadyUpToDate {
 				checkError(err)
 			}
-			packageVersion = branchOrTagName
-		} else if commitSha != "" {
-			// Checkout the commit.
-			log.Info("Checking out commit ", commitSha, " in ", gitDirectory)
-			err = w.Checkout(&git.CheckoutOptions{
-				Hash: plumbing.NewHash(commitSha),
-			})
-			if err != git.NoErrAlreadyUpToDate {
-				checkError(err)
-			}
-			packageVersion = commitSha
+			gitPackageShaOrRef = branchOrTagName
+		default:
+			// Leave HEAD checked out and return its SHA.
+			// This case is used during package update phase,
+			// where we check the newest package version in git repository.
+			ref, err2 := repository.Head()
+			checkError(err2)
+			gitPackageShaOrRef = ref.Hash().String()
 		}
 		// The number of bytes downloaded is approximated by the size of repository directory.
 		var gitRepoSize int64
 		gitRepoSize, err = dirSize(gitDirectory)
 		checkError(err)
 		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize/1024, " KiB")
-		return "", gitRepoSize, packageVersion
+		return "", gitRepoSize, gitPackageShaOrRef
 	}
 	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""
 }
@@ -347,7 +357,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
 		return github, repoURL, "", gitDirectory, "", 0
 
-	case packageSource == "GitLab":
+	case packageSource == GitLab:
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]
@@ -397,7 +407,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 			packageType = targzExtensionFile
 		}
 		messages <- DownloadInfo{200, "[cached] " + packageURL, 0, outputLocation, savedBandwidth,
-			packageType, packageName, packageVersion}
+			packageType, packageName, packageVersion, ""}
 	case download:
 		statusCode, contentLength := downloadFileFunction(packageURL, outputLocation)
 		if statusCode != http.StatusOK {
@@ -425,28 +435,30 @@ func downloadSinglePackage(packageName string, packageVersion string,
 			packageType = targzExtensionFile
 		}
 		messages <- DownloadInfo{statusCode, packageURL, contentLength, outputLocation, 0, packageType,
-			packageName, packageVersion}
+			packageName, packageVersion, ""}
 	case "notfound_bioc":
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
-			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, ""}
+			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, "", ""}
 	case github:
-		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, github,
+		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, github,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
-			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, ""}
+			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, "", ""}
 		}
 	case gitlab:
-		message, gitRepoSize, packageVersion := gitCloneFunction(outputLocation, packageURL, gitlab,
+		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, gitlab,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
-			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, ""}
+			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, "", ""}
 		}
 	default:
-		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0, "", "", ""}
+		messages <- DownloadInfo{-5, "Internal error: unknown action " + action, 0, "", 0, "", "", "", ""}
 	}
 	<-guard
 }
@@ -570,7 +582,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			*allDownloadInfo = append(
 				*allDownloadInfo,
 				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength, msg.OutputLocation,
-					msg.SavedBandwidth, msg.DownloadedPackageType, msg.PackageName, msg.PackageVersion},
+					msg.SavedBandwidth, msg.DownloadedPackageType, msg.PackageName,
+					msg.PackageVersion, msg.GitPackageShaOrRef},
 			)
 
 			if *successfulDownloads+*failedDownloads == totalPackages {
