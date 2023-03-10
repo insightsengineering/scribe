@@ -39,21 +39,31 @@ const HTMLReportTemplate = `<!doctype html>
         });
         $(document).ready($(function () {
             $('#systemInfo').hide();
-            $('#statusPage').show();
             $('#renvInfo').hide();
+            $('#renvInfoOld').hide();
+            $('#statusPage').show();
             $('#navbarSystemInformation').click(function () {
-                $('#statusPage').hide();
-                $('#renvInfo').hide();
                 $('#systemInfo').show();
+                $('#renvInfo').hide();
+                $('#renvInfoOld').hide();
+                $('#statusPage').hide();
             });
             $('#navbarReport').click(function () {
                 $('#systemInfo').hide();
                 $('#renvInfo').hide();
+                $('#renvInfoOld').hide();
                 $('#statusPage').show();
             });
             $('#navbarRenvInformation').click(function () {
                 $('#systemInfo').hide();
                 $('#renvInfo').show();
+                $('#renvInfoOld').hide();
+                $('#statusPage').hide();
+            });
+            $('#navbarRenvInformationOld').click(function () {
+                $('#systemInfo').hide();
+                $('#renvInfo').hide();
+                $('#renvInfoOld').show();
                 $('#statusPage').hide();
             });
         }));
@@ -70,6 +80,9 @@ const HTMLReportTemplate = `<!doctype html>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#" id="navbarRenvInformation">Renv information</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navbarRenvInformationOld">Renv information (without updated packages)</a>
                     </li>
                 </ul>
             </div>
@@ -99,6 +112,30 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
         </div>
     </div>
+    <div id="renvInfoOld">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                renv.lock filename (without updated packages)
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                    {{.RenvInformationOld.RenvFilename}}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                renv.lock contents (without updated packages)
+                </div>
+                <div class="col">
+                    <p class="font-monospace">
+                    {{.RenvInformationOld.RenvContents | safe}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="statusPage">
         <table id="packagesTable" class="display">
             <thead>
@@ -119,7 +156,7 @@ const HTMLReportTemplate = `<!doctype html>
                 <tr>
                     <td>{{.PackageName}}</td>
                     <td>{{.PackageVersion}}</td>
-                    <td>{{.GitPackageVersion}}</td>
+                    <td>{{.GitPackageShaOrRef}}</td>
                     <td>{{.DownloadStatusText | safe}}</td>
                     <td>{{.BuildStatusText | safe}}</td>
                     <td>{{.InstallStatusText | safe}}</td>

@@ -71,7 +71,7 @@ type DownloadInfo struct {
 	PackageName           string `json:"packageName"`
 	PackageVersion        string `json:"packageVersion"`
 	// Contains git SHA of cloned package, or exceptionally git tag or branch, if SHA was not provided in renv.lock.
-	GitPackageVersion string `json:"gitPackageVersion"`
+	GitPackageShaOrRef string `json:"gitPackageShaOrRef"`
 }
 
 // Struct used to store data about tar.gz packages saved in local cache.
@@ -168,7 +168,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 	}
 	repository, err := git.PlainClone(gitDirectory, false, gitCloneOptions)
 	if err == nil {
-		var gitPackageVersion string
+		var gitPackageShaOrRef string
 		w, er := repository.Worktree()
 		checkError(er)
 		switch {
@@ -181,7 +181,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 			if err != git.NoErrAlreadyUpToDate {
 				checkError(err)
 			}
-			gitPackageVersion = commitSha
+			gitPackageShaOrRef = commitSha
 		case branchOrTagName != "" && branchOrTagName != "HEAD":
 			// Checkout the branch or tag.
 			match, err2 := regexp.MatchString(`v\d+(\.\d+)*`, branchOrTagName)
@@ -232,19 +232,21 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 			if err != git.NoErrAlreadyUpToDate {
 				checkError(err)
 			}
-			gitPackageVersion = branchOrTagName
+			gitPackageShaOrRef = branchOrTagName
 		default:
 			// Leave HEAD checked out and return its SHA.
+			// This case is used during package update phase,
+			// where we check the newest package version in git repository.
 			ref, err2 := repository.Head()
 			checkError(err2)
-			gitPackageVersion = ref.Hash().String()
+			gitPackageShaOrRef = ref.Hash().String()
 		}
 		// The number of bytes downloaded is approximated by the size of repository directory.
 		var gitRepoSize int64
 		gitRepoSize, err = dirSize(gitDirectory)
 		checkError(err)
 		log.Debug("Repository size of ", repoURL, " = ", gitRepoSize/1024, " KiB")
-		return "", gitRepoSize, gitPackageVersion
+		return "", gitRepoSize, gitPackageShaOrRef
 	}
 	return "Error while cloning repo " + repoURL + ": " + err.Error(), 0, ""
 }
@@ -438,18 +440,20 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		messages <- DownloadInfo{-1, "Couldn't find " + packageName + " version " +
 			packageVersion + " in BioConductor.", 0, "", 0, "", packageName, "", ""}
 	case github:
-		message, gitRepoSize, gitPackageVersion := gitCloneFunction(outputLocation, packageURL, github,
+		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, github,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion, gitPackageVersion}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, "", ""}
 		}
 	case gitlab:
-		message, gitRepoSize, gitPackageVersion := gitCloneFunction(outputLocation, packageURL, gitlab,
+		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, gitlab,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0, "git", packageName, packageVersion, gitPackageVersion}
+			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
 			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, "", ""}
 		}
@@ -579,7 +583,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 				*allDownloadInfo,
 				DownloadInfo{msg.StatusCode, msg.Message, msg.ContentLength, msg.OutputLocation,
 					msg.SavedBandwidth, msg.DownloadedPackageType, msg.PackageName,
-					msg.PackageVersion, msg.GitPackageVersion},
+					msg.PackageVersion, msg.GitPackageShaOrRef},
 			)
 
 			if *successfulDownloads+*failedDownloads == totalPackages {

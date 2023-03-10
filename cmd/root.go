@@ -119,10 +119,17 @@ var rootCmd = &cobra.Command{
 		var systemInfo SystemInfo
 		getOsInformation(&systemInfo, maskedEnvVars)
 		var renvLock Renvlock
+		var renvLockOld Renvlock
+		var renvLockFilenameOld string
 		getRenvLock(renvLockFilename, &renvLock)
 		validateRenvLock(renvLock)
 		if updatePackages != "" {
-			updatePackagesRenvLock(&renvLock, renvLockFilename+".updated", updatePackages)
+			renvLockFilenameOld = renvLockFilename
+			renvLockFilename = renvLockFilename + ".updated"
+			updatePackagesRenvLock(&renvLock, renvLockFilename, updatePackages)
+			// updatePackagesRenvLock modified the original structure in place.
+			// Therefore, we make a copy to show both renv.lock contents in the report.
+			getRenvLock(renvLockFilenameOld, &renvLockOld)
 		}
 
 		mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
@@ -174,7 +181,8 @@ var rootCmd = &cobra.Command{
 
 		// Generate report.
 		var reportData ReportInfo
-		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData, renvLock)
+		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
+			renvLock, renvLockOld, renvLockFilenameOld)
 		err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 		checkError(err)
 		err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
