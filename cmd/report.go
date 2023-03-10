@@ -40,7 +40,7 @@ type ReportInfo struct {
 	PackagesInformation []PackagesData `json:"packagesInformation"`
 	SystemInformation   *SystemInfo    `json:"systemInformation"`
 	RenvInformation     RenvInfo       `json:"renvInformation"`
-	RenvInformationOld  RenvInfo       `json:"renvInformation"`
+	RenvInformationOld  RenvInfo       `json:"renvInformationOld"`
 	TotalCheckTime      string         `json:"totalCheckTime"`
 }
 

@@ -125,7 +125,7 @@ var rootCmd = &cobra.Command{
 		validateRenvLock(renvLock)
 		if updatePackages != "" {
 			renvLockFilenameOld = renvLockFilename
-			renvLockFilename = renvLockFilename + ".updated"
+			renvLockFilename += ".updated"
 			updatePackagesRenvLock(&renvLock, renvLockFilename, updatePackages)
 			// updatePackagesRenvLock modified the original structure in place.
 			// Therefore, we make a copy to show both renv.lock contents in the report.
