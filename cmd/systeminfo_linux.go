@@ -72,7 +72,7 @@ func getSystemPackages(prettyName string) string {
 	return ""
 }
 
-func getLinuxSystemDependentInfo(systemInfo *SystemInfo) {
+func getSystemDependentInfo(systemInfo *SystemInfo) {
 	systemInfo.KernelVersion = parseProcVersionFile()
 	systemInfo.PrettyName = parseEtcReleaseFile("/etc/os-release")
 	systemInfo.SystemPackages = getSystemPackages(systemInfo.PrettyName)
