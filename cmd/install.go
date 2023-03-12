@@ -1,5 +1,5 @@
 /*
-Copyright 2022 F. Hoffmann-La Roche AG
+Copyright 2023 F. Hoffmann-La Roche AG
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -244,6 +244,7 @@ func getOrderedDependencies(
 	renvLock Renvlock,
 	packagesLocation map[string]struct{ PackageType, Location string },
 	installedDeps map[string]string,
+	includeSuggests bool,
 ) ([]string, map[string][]string) {
 	deps := make(map[string][]string)
 	var depsOrdered []string
@@ -261,7 +262,13 @@ func getOrderedDependencies(
 		errunmarshal := json.Unmarshal(jsonFile, &deps)
 		checkError(errunmarshal)
 	} else {
-		depsAll := getPackageDeps(renvLock.Packages, renvLock.Bioconductor.Version, reposURLs, packagesLocation)
+		depsAll := getPackageDeps(
+			renvLock.Packages,
+			renvLock.Bioconductor.Version,
+			reposURLs,
+			packagesLocation,
+			includeSuggests,
+		)
 
 		for p, depAll := range depsAll {
 			if _, ok := packagesLocation[p]; ok {
@@ -307,7 +314,12 @@ func getOrderedDependencies(
 }
 
 // nolint: gocyclo
-func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, installResultInfos *[]InstallResultInfo) {
+func installPackages(
+	renvLock Renvlock,
+	allDownloadInfo *[]DownloadInfo,
+	installResultInfos *[]InstallResultInfo,
+	includeSuggests bool,
+) {
 	mkLibPathDir(temporalLibPath)
 	mkLibPathDir(packageLogPath)
 
@@ -318,7 +330,7 @@ func installPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo, install
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
 	}
 
-	depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps)
+	depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
 
 	installChan := make(chan InstallInfo)
 	defer close(installChan)

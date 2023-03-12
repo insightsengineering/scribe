@@ -1,5 +1,5 @@
 /*
-Copyright 2022 F. Hoffmann-La Roche AG
+Copyright 2023 F. Hoffmann-La Roche AG
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-git/go-git/v5"
+	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"

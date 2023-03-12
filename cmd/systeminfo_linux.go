@@ -1,5 +1,5 @@
 /*
-Copyright 2022 F. Hoffmann-La Roche AG
+Copyright 2023 F. Hoffmann-La Roche AG
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ func getSystemPackages(prettyName string) string {
 	return ""
 }
 
-func getSystemDependentInfo(systemInfo *SystemInfo) {
+func getLinuxSystemDependentInfo(systemInfo *SystemInfo) {
 	systemInfo.KernelVersion = parseProcVersionFile()
 	systemInfo.PrettyName = parseEtcReleaseFile("/etc/os-release")
 	systemInfo.SystemPackages = getSystemPackages(systemInfo.PrettyName)
