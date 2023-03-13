@@ -1,5 +1,5 @@
 /*
-Copyright 2022 F. Hoffmann-La Roche AG
+Copyright 2023 F. Hoffmann-La Roche AG
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -133,7 +133,9 @@ func Test_getPackageDepsFromRepositoryURLs(t *testing.T) {
 	t.Skip("skipping integration test")
 	deps := getPackageDepsFromRepositoryURLs(
 		[]string{"https://cloud.r-project.org"},
-		map[string]bool{"ArtifactDB": true, "gp.auth": true})
+		map[string]bool{"ArtifactDB": true, "gp.auth": true},
+		false,
+	)
 	assert.NotEmpty(t, deps)
 	assert.NotEmpty(t, deps["ArtifactDB"])
 	assert.NotEmpty(t, deps["gp.auth"])
@@ -149,14 +151,22 @@ func Test_getPackageDepsFromSinglePackageLocation(t *testing.T) {
 
 func Test_getPackageDepsFromPackagesFile(t *testing.T) {
 	packagesFilePath := "testdata/BIOC_PACKAGES_BIOC"
-	packDeps := getPackageDepsFromPackagesFile(packagesFilePath, map[string]bool{"Rgraphviz": true, "S4Vectors": true})
+	packDeps := getPackageDepsFromPackagesFile(
+		packagesFilePath,
+		map[string]bool{"Rgraphviz": true, "S4Vectors": true},
+		false,
+	)
 	assert.NotNil(t, packDeps)
 	assert.NotEmpty(t, packDeps["Rgraphviz"])
 	assert.NotEmpty(t, packDeps["S4Vectors"])
 }
 
 func Test_getPackageDepsFromBioconductor(t *testing.T) {
-	deps := getPackageDepsFromBioconductor(map[string]bool{"Rgraphviz": true, "S4Vectors": true}, "3.16")
+	deps := getPackageDepsFromBioconductor(
+		map[string]bool{"Rgraphviz": true, "S4Vectors": true},
+		"3.16",
+		false,
+	)
 	assert.NotEmpty(t, deps["Rgraphviz"])
 	assert.NotEmpty(t, deps["S4Vectors"])
 }
@@ -169,7 +179,7 @@ func Test_getPackageDepsFromCrandb(t *testing.T) {
 		{map[string]string{"ggplot2": "3.3.6"}},
 	}
 	for _, ps := range casetable {
-		packDeps := getPackageDepsFromCrandb(ps.pkgs)
+		packDeps := getPackageDepsFromCrandb(ps.pkgs, false)
 		assert.NotEmpty(t, packDeps)
 		assert.Contains(t, packDeps["ggplot2"], "rlang")
 	}
@@ -177,7 +187,7 @@ func Test_getPackageDepsFromCrandb(t *testing.T) {
 
 func Test_getPackageDepsFromCrandbWithChunk(t *testing.T) {
 	pkgs := []string{"childsds", "ini", "teal.logger", "withr", "BiocFileCache", "contrast", "spatial", "stringr"}
-	packDeps := getPackageDepsFromCrandbWithChunk(toEmptyMapString(pkgs))
+	packDeps := getPackageDepsFromCrandbWithChunk(toEmptyMapString(pkgs), false)
 
 	assert.NotEmpty(t, packDeps)
 	assert.Contains(t, packDeps["childsds"], "tidyr")

@@ -1,7 +1,7 @@
 //go:build darwin || solaris || freebsd
 
 /*
-Copyright 2022 F. Hoffmann-La Roche AG
+Copyright 2023 F. Hoffmann-La Roche AG
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

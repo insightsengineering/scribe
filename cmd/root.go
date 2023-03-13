@@ -26,7 +26,6 @@ import (
 )
 
 var cfgFile string
-var scribeVersion string
 var logLevel string
 var maskedEnvVars string
 var renvLockFilename string
@@ -38,6 +37,7 @@ var maxCheckRoutines int
 var outputReportDirectory string
 var numberOfWorkers uint
 var clearCache bool
+var includeSuggests bool
 
 var log = logrus.New()
 
@@ -81,7 +81,6 @@ var rootCmd = &cobra.Command{
 	is a project that creates complete build, check and install reports
 	for a collection of R packages that are defined in an
 	[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
-	Version: scribeVersion,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initializeConfig(cmd)
 	},
@@ -90,6 +89,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println("cfgfile =", cfgFile)
 		fmt.Println("maskedEnvVars =", maskedEnvVars)
 		fmt.Println("renvLockFilename =", renvLockFilename)
+		fmt.Println("includeSuggests = ", includeSuggests)
 		fmt.Println("checkPackage =", checkPackageExpression)
 		fmt.Println("updatePackages =", updatePackages)
 		fmt.Println("checkAllPackages =", checkAllPackages)
@@ -160,7 +160,7 @@ var rootCmd = &cobra.Command{
 			readJSON(installInfoFile, &allInstallInfo)
 		} else {
 			log.Infof("%s doesn't exist.", installInfoFile)
-			installPackages(renvLock, &allDownloadInfo, &allInstallInfo)
+			installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests)
 		}
 
 		// Perform R CMD check, except when cache contains JSON with previous check results.
@@ -196,8 +196,7 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
@@ -238,6 +237,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&clearCache, "clearCache", false,
 		"Use this flag if you want to clear scribe internal cache directory structure. This will cause "+
 			"all packages to be downloaded, installed, built, and checked from scratch.")
+	rootCmd.PersistentFlags().BoolVar(&includeSuggests, "includeSuggests", false,
+		"Use this flag if you also want to install packages from the 'Suggests' field in the "+
+			"dependencies' DESCRIPTION files.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
@@ -266,9 +268,19 @@ func initConfig() {
 }
 
 func initializeConfig(cmd *cobra.Command) {
-	for _, v := range []string{"logLevel", "maskedEnvVars", "renvLockFilename",
-		"checkPackage", "checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines",
-		"numberOfWorkers", "clearCache"} {
+	for _, v := range []string{
+		"logLevel",
+		"maskedEnvVars",
+		"renvLockFilename",
+		"checkPackage",
+		"checkAllPackages",
+		"reportDir",
+		"maxDownloadRoutines",
+		"maxCheckRoutines",
+		"numberOfWorkers",
+		"clearCache",
+		"includeSuggests",
+	} {
 		// If the flag has not been set in init() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been
 		// provided in config file.

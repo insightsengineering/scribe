@@ -1,5 +1,5 @@
 /*
-Copyright 2022 F. Hoffmann-La Roche AG
+Copyright 2023 F. Hoffmann-La Roche AG
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ func randString(n int) string {
 // testing environment, since the probability of setting an variable
 // that has already been set is extremely low.
 func Test_getEnvironmentVariables(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	envVar1 := randString(18)
 	envVar2 := randString(18)
 	envVar3 := randString(18)
