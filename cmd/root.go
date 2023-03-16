@@ -74,6 +74,20 @@ func setLogLevel() {
 	}
 }
 
+func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageCheckInfo) int {
+	for _, p := range allInstallInfo {
+		if (p.BuildStatus == buildStatusFailed) {
+			return 1
+		}
+	}
+	for _, p := range allCheckInfo {
+		if (p.MostSevereCheckItem == "ERROR") {
+			return 1
+		}
+	}
+	return 0
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "scribe",
 	Short: "System Compatibility Report for Install & Build Evaluation",
@@ -192,6 +206,9 @@ var rootCmd = &cobra.Command{
 		copyFiles(buildLogPath, "build-", filepath.Join(outputReportDirectory, "logs"))
 		copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
 		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"))
+
+		exitStatus := getExitStatus(allInstallInfo, allCheckInfo)
+		os.Exit(exitStatus)
 	},
 }
 
