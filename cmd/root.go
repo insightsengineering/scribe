@@ -77,12 +77,12 @@ func setLogLevel() {
 
 func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageCheckInfo) int {
 	for _, p := range allInstallInfo {
-		if (p.BuildStatus == buildStatusFailed) {
+		if p.BuildStatus == buildStatusFailed {
 			return 1
 		}
 	}
 	for _, p := range allCheckInfo {
-		if (p.MostSevereCheckItem == "ERROR") {
+		if p.MostSevereCheckItem == "ERROR" {
 			return 1
 		}
 	}
@@ -208,7 +208,7 @@ var rootCmd = &cobra.Command{
 		copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
 		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"))
 
-		if (failOnError) {
+		if failOnError {
 			exitStatus := getExitStatus(allInstallInfo, allCheckInfo)
 			os.Exit(exitStatus)
 		}
