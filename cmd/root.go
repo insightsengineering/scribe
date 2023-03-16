@@ -260,7 +260,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&includeSuggests, "includeSuggests", false,
 		"Use this flag if you also want to install packages from the 'Suggests' field in the "+
 			"dependencies' DESCRIPTION files.")
-	rootCmd.PersistentFlags().BoolVar(&failOnError, "fail", false,
+	rootCmd.PersistentFlags().BoolVar(&failOnError, "failOnError", false,
 		"Use this flag to make scribe return exit code 1 in case of check errors or build failures.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
