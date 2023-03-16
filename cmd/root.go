@@ -39,6 +39,8 @@ var numberOfWorkers uint
 var clearCache bool
 var includeSuggests bool
 var failOnError bool
+var buildOptions string
+var installOptions string
 
 var log = logrus.New()
 
@@ -175,7 +177,7 @@ var rootCmd = &cobra.Command{
 			readJSON(installInfoFile, &allInstallInfo)
 		} else {
 			log.Infof("%s doesn't exist.", installInfoFile)
-			installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests)
+			installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests, buildOptions, installOptions)
 		}
 
 		// Perform R CMD check, except when cache contains JSON with previous check results.
@@ -263,6 +265,10 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&failOnError, "failOnError", false,
 		"Use this flag to make scribe return exit code 1 in case of check errors or build failures.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&buildOptions, "buildOptions", "",
+		"Extra options to pass to R CMD build. Options must be supplied in double quoted string.")
+	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
+		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
 }
 
 func initConfig() {
