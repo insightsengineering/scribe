@@ -141,9 +141,9 @@ func getBuiltPackageFileName(packageName string) string {
 	return ""
 }
 
-func buildPackage(packageName, outputLocation, buildLogFilePath string) (int, string, error) {
+func buildPackage(packageName, outputLocation, buildLogFilePath string, additionalOptions string) (int, string, error) {
 	log.Infof("Package %s located in %s is a source package so it has to be built first.", packageName, outputLocation)
-	cmd := "R CMD build " + outputLocation
+	cmd := "R CMD build " + additionalOptions + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
 	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if buildLogFileErr != nil {
@@ -172,7 +172,7 @@ func buildPackage(packageName, outputLocation, buildLogFilePath string) (int, st
 }
 
 // Returns error and build status (succeeded, failed or package not built).
-func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string) (int, error) {
+func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string, additionalBuildOptions string, additionalInstallOptions string) (int, error) {
 	log.Infof("Executing installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
@@ -186,13 +186,13 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	if packageType == gitConst {
 		// By default previous outputLocation will be returned, except if package is successfully built.
 		// In the latter case, tar.gz package name will be returned as outputLocation.
-		buildStatus, outputLocation, err = buildPackage(packageName, outputLocation, buildLogFilePath)
+		buildStatus, outputLocation, err = buildPackage(packageName, outputLocation, buildLogFilePath, additionalBuildOptions)
 		if err != nil {
 			return buildStatus, err
 		}
 	}
 
-	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + outputLocation
+	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + additionalInstallOptions + " " + outputLocation
 	log.Trace("Executing command:" + cmd)
 	output, err := execCommand(cmd, false, false,
 		[]string{
@@ -207,12 +207,12 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	return buildStatus, err
 }
 
-func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo) {
+func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo, additionalBuildOptions string, additionalInstallOptions string) {
 	for installInfo := range installChan {
 		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
 		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".out")
 		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
-			logFilePath, buildLogFilePath, installInfo.PackageType)
+			logFilePath, buildLogFilePath, installInfo.PackageType, additionalBuildOptions, additionalInstallOptions)
 		packageVersion := ""
 		var status int
 		switch {
@@ -319,6 +319,8 @@ func installPackages(
 	allDownloadInfo *[]DownloadInfo,
 	installResultInfos *[]InstallResultInfo,
 	includeSuggests bool,
+	additionalBuildOptions string,
+	additionalInstallOptions string,
 ) {
 	mkLibPathDir(temporalLibPath)
 	mkLibPathDir(packageLogPath)
@@ -339,7 +341,7 @@ func installPackages(
 
 	for i := range depsOrderedToInstall {
 		log.Tracef("Starting installation worker #%d", i)
-		go installSinglePackageWorker(installChan, installResultChan)
+		go installSinglePackageWorker(installChan, installResultChan, additionalBuildOptions, additionalInstallOptions)
 	}
 
 	installing := make(map[string]bool)
