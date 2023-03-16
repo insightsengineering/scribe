@@ -38,6 +38,7 @@ var outputReportDirectory string
 var numberOfWorkers uint
 var clearCache bool
 var includeSuggests bool
+var failOnError bool
 
 var log = logrus.New()
 
@@ -72,6 +73,20 @@ func setLogLevel() {
 	default:
 		log.SetLevel(logrus.InfoLevel)
 	}
+}
+
+func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageCheckInfo) int {
+	for _, p := range allInstallInfo {
+		if p.BuildStatus == buildStatusFailed {
+			return 1
+		}
+	}
+	for _, p := range allCheckInfo {
+		if p.MostSevereCheckItem == "ERROR" {
+			return 1
+		}
+	}
+	return 0
 }
 
 var rootCmd = &cobra.Command{
@@ -192,6 +207,11 @@ var rootCmd = &cobra.Command{
 		copyFiles(buildLogPath, "build-", filepath.Join(outputReportDirectory, "logs"))
 		copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
 		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"))
+
+		if failOnError {
+			exitStatus := getExitStatus(allInstallInfo, allCheckInfo)
+			os.Exit(exitStatus)
+		}
 	},
 }
 
@@ -240,6 +260,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&includeSuggests, "includeSuggests", false,
 		"Use this flag if you also want to install packages from the 'Suggests' field in the "+
 			"dependencies' DESCRIPTION files.")
+	rootCmd.PersistentFlags().BoolVar(&failOnError, "failOnError", false,
+		"Use this flag to make scribe return exit code 1 in case of check errors or build failures.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
