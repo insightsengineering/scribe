@@ -28,9 +28,10 @@ const HTMLReportTemplate = `<!doctype html>
     <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/rowreorder/1.3.3/css/rowReorder.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/base16/tomorrow.min.css" integrity="sha512-5D/fcZ3y3nuaeHSxDbFwWDEy1Fvj5qQKsU0tilD7bhWAA+IN/Jl9fzGdUotzvA7wgXtsnZmafcuunH+6nyuA0A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <!-- link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.bootstrap5.min.css" -->
     <!-- Custom styles below -->
     <style>
-    /* TODO: Add padding and margins */
     </style>
 </head>
 
@@ -43,14 +44,20 @@ const HTMLReportTemplate = `<!doctype html>
     <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
     <script src="https://cdn.datatables.net/rowreorder/1.3.3/js/dataTables.rowReorder.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js" integrity="sha512-bgHRAiTjGrzHzLyKOnpFvaEpGzJet3z4tZnXGjpsCcqOnAH6VGUx9frc5bcIhKTVLEiCO6vEhNAgx5jtLUYrfA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- script src="https://cdn.datatables.net/searchpanes/2.1.2/js/searchPanes.bootstrap5.min.js"></script -->
+    <!-- script src="https://cdn.datatables.net/searchpanes/2.1.2/js/dataTables.searchPanes.min.js"></script -->
     <script>
         $(document).ready(function () {
-            $('#packagesTable').DataTable({
+            var table = $('#packagesTable').DataTable({
                 select: true,
                 responsive: true,
                 colReorder: true,
-                rowReorder: true
+                rowReorder: false,
+                searchPanes: false
             });
+            // table.searchPanes.container().prependTo(table.table().container());
+            // table.searchPanes.resizePanes();
         });
         $(document).ready($(function () {
             $('#systemInfo').hide();
@@ -83,6 +90,7 @@ const HTMLReportTemplate = `<!doctype html>
             });
         }));
     </script>
+    <script>hljs.highlightAll();</script>
     <nav class="navbar navbar-expand-lg bg-dark navbar-dark sticky-top">
         <div class="container-fluid">
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -103,66 +111,66 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
         </div>
     </nav>
-    <div id="renvInfo">
+    <div id="renvInfo" class="mt-3">
         <div class="container">
             <div class="row">
                 <div class="col">
-                renv.lock filename
+                    <p class="fw-bold">renv.lock filename</p>
                 </div>
                 <div class="col">
-                    <p class="font-monospace">
+                    <code>
                     {{.RenvInformation.RenvFilename}}
-                    </p>
+                    </code>
                 </div>
             </div>
             <div class="row">
                 <div class="col">
-                renv.lock contents
+                    <p class="fw-bold">renv.lock Contents</p>
                 </div>
                 <div class="col">
-                    <p class="font-monospace">
+                    <pre><code>
                     {{.RenvInformation.RenvContents | safe}}
-                    </p>
+                    </code></pre>
                 </div>
             </div>
         </div>
     </div>
-    <div id="renvInfoOld">
+    <div id="renvInfoOld" class="mt-3">
         <div class="container">
             <div class="row">
                 <div class="col">
-                renv.lock filename (without updated packages)
+                <p class="fw-bold">renv.lock filename (without updated packages)</p>
                 </div>
                 <div class="col">
-                    <p class="font-monospace">
+                    <code>
                     {{.RenvInformationOld.RenvFilename}}
-                    </p>
+                    </code>
                 </div>
             </div>
             <div class="row">
                 <div class="col">
-                renv.lock contents (without updated packages)
+                    <p class="fw-bold">renv.lock contents (without updated packages)</p>
                 </div>
                 <div class="col">
-                    <p class="font-monospace">
+                    <pre><code>
                     {{.RenvInformationOld.RenvContents | safe}}
-                    </p>
+                    </code></pre>
                 </div>
             </div>
         </div>
     </div>
-    <div id="statusPage">
-        <table id="packagesTable" class="display">
+    <div id="statusPage" class="mt-3">
+        <table id="packagesTable" class="table table-striped table-bordered table-hover dt-responsive nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Package name</th>
                     <th>Package version</th>
-                    <th>Package SHA</th>
                     <th>Download status</th>
                     <th>Build status</th>
                     <th>Install status</th>
                     <th>Check status</th>
                     <th>Check time (total: {{.TotalCheckTime}})</th>
+                    <th>Package SHA</th>
                 </tr>
             </thead>
             <tbody>
@@ -171,25 +179,40 @@ const HTMLReportTemplate = `<!doctype html>
                 <tr>
                     <td>{{.PackageName}}</td>
                     <td>{{.PackageVersion}}</td>
-                    <td><code>{{.GitPackageShaOrRef}}</code></td>
                     <td>{{.DownloadStatusText | safe}}</td>
                     <td>{{.BuildStatusText | safe}}</td>
                     <td>{{.InstallStatusText | safe}}</td>
                     <td>{{.CheckStatusText | safe}}</td>
                     <td>{{.CheckTime}}</td>
+                    <td><code>{{.GitPackageShaOrRef}}</code></td>
                 </tr>
                 {{end}}
+                <!-- end go template iteration -->
+                <tfoot>
+                    <tr>
+                        <th>Package name</th>
+                        <th>Package version</th>
+                        <th>Download status</th>
+                        <th>Build status</th>
+                        <th>Install status</th>
+                        <th>Check status</th>
+                        <th>Check time (total: {{.TotalCheckTime}})</th>
+                        <th>Package SHA</th>
+                    </tr>
+                </tfoot>
             </tbody>
         </table>
     </div>
-    <div id="systemInfo">
+    <div id="systemInfo" class="mt-3">
         <div class="container">
             <div class="row">
                 <div class="col">
                     <p class="fw-bold">Operating system</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.OperatingSystem}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -197,7 +220,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">Architecture</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.Architecture}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -205,7 +230,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">Kernel version</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.KernelVersion}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -213,7 +240,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">Pretty name</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.PrettyName}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -221,9 +250,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">System packages</p>
                 </div>
                 <div class="col">
-                    <p class="font-monospace">
+                    <code>
                         {{.SystemInformation.SystemPackages | safe}}
-                    </p>
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -231,7 +260,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">R version</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.RVersion}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -239,7 +270,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">Time</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.Time}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -247,9 +280,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">Environment variables</p>
                 </div>
                 <div class="col">
-                    <p class="font-monospace">
-                        {{.SystemInformation.EnvVariables | safe}}
-                    </p>
+                    <code>
+                    {{.SystemInformation.EnvVariables | safe}}
+                    </code>
                 </div>
             </div>
             <div class="row">
@@ -257,7 +290,9 @@ const HTMLReportTemplate = `<!doctype html>
                     <p class="fw-bold">Hostname</p>
                 </div>
                 <div class="col">
+                    <code>
                     {{.SystemInformation.Hostname}}
+                    </code>
                 </div>
             </div>
         </div>
