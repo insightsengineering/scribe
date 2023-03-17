@@ -22,7 +22,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 type PackagesData struct {
@@ -163,10 +162,10 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 				"<span class=\"badge bg-danger\">check error(s)</span></a>"
 		}
 		checkStatuses[p.PackageName] = checkStatusText
-		checkTimes[p.PackageName] = strconv.Itoa(p.CheckTime) + " s"
+		checkTimes[p.PackageName] = strconv.Itoa(p.CheckTime)
 		totalCheckTime += p.CheckTime
 	}
-	return checkStatuses, checkTimes, strconv.Itoa(totalCheckTime) + " s"
+	return checkStatuses, checkTimes, strconv.Itoa(totalCheckTime)
 }
 
 // Returns processed download, installation and check information in a structure that
@@ -192,25 +191,19 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 		)
 	}
 	reportOutput.SystemInformation = systemInfo
-	reportOutput.SystemInformation.SystemPackages = strings.ReplaceAll(
-		reportOutput.SystemInformation.SystemPackages,
-		"\n", "<br />")
-	reportOutput.SystemInformation.EnvVariables = strings.ReplaceAll(
-		reportOutput.SystemInformation.EnvVariables,
-		"\n", "<br />")
 
 	reportOutput.RenvInformation.RenvFilename = renvLockFilename
-	indentedValue, err := json.MarshalIndent(renvLock, "", "&nbsp;&nbsp;")
+	indentedValue, err := json.MarshalIndent(renvLock, "", "  ")
 	checkError(err)
-	reportOutput.RenvInformation.RenvContents = strings.ReplaceAll(string(indentedValue), "\n", "<br />")
+	reportOutput.RenvInformation.RenvContents = string(indentedValue)
 
 	if renvLockFilenameOld != "" {
 		// A copy of original renv.lock has been created since renvLock structure
 		// has been updated with new version of packages.
 		reportOutput.RenvInformationOld.RenvFilename = renvLockFilenameOld
-		indentedValueOld, err := json.MarshalIndent(renvLockOld, "", "&nbsp;&nbsp;")
+		indentedValueOld, err := json.MarshalIndent(renvLockOld, "", "  ")
 		checkError(err)
-		reportOutput.RenvInformationOld.RenvContents = strings.ReplaceAll(string(indentedValueOld), "\n", "<br />")
+		reportOutput.RenvInformationOld.RenvContents = string(indentedValueOld)
 	}
 }
 

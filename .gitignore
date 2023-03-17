@@ -106,3 +106,4 @@ dist/
 *.env
 __debug_bin
 targz/
+outputReport/

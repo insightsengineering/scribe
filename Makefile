@@ -72,10 +72,6 @@ test: clean tidy devdeps spell ## Run unit tests and generate reports
 	@go tool cover -html=coverage.out -o coverage.html
 	@gocover-cobertura < coverage.out > coverage.xml
 
-testrun: build ## Run against renv.lock file
-	@printf "Executing target: [$@] 🎯\n"
-	@time go run . --logLevel debug
-
 types: ## Examine Go types and their transitive dependencies
 	@printf "Executing target: [$@] 🎯\n"
 	@typex -t -u .
