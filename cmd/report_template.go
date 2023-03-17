@@ -99,13 +99,13 @@ const HTMLReportTemplate = `<!doctype html>
                         <a class="nav-link" href="#" id="navbarReport">Report</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="navbarSystemInformation">System information</a>
+                        <a class="nav-link" href="#" id="navbarSystemInformation">System Information</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="navbarRenvInformation">Renv information</a>
+                        <a class="nav-link" href="#" id="navbarRenvInformation">renv.lock (updated)</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="navbarRenvInformationOld">Renv information (without updated packages)</a>
+                        <a class="nav-link" href="#" id="navbarRenvInformationOld">renv.lock (original)</a>
                     </li>
                 </ul>
             </div>
@@ -115,7 +115,7 @@ const HTMLReportTemplate = `<!doctype html>
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">renv.lock filename</p>
+                    <p class="fw-bold">renv.lock Filename</p>
                 </div>
                 <div class="col">
                     <code>
@@ -129,7 +129,7 @@ const HTMLReportTemplate = `<!doctype html>
                 </div>
                 <div class="col">
                     <pre><code>
-                    {{.RenvInformation.RenvContents | safe}}
+{{.RenvInformation.RenvContents | safe}}
                     </code></pre>
                 </div>
             </div>
@@ -139,7 +139,7 @@ const HTMLReportTemplate = `<!doctype html>
         <div class="container">
             <div class="row">
                 <div class="col">
-                <p class="fw-bold">renv.lock filename (without updated packages)</p>
+                <p class="fw-bold">renv.lock Filename</p>
                 </div>
                 <div class="col">
                     <code>
@@ -149,11 +149,11 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">renv.lock contents (without updated packages)</p>
+                    <p class="fw-bold">renv.lock Contents</p>
                 </div>
                 <div class="col">
                     <pre><code>
-                    {{.RenvInformationOld.RenvContents | safe}}
+{{.RenvInformationOld.RenvContents | safe}}
                     </code></pre>
                 </div>
             </div>
@@ -163,14 +163,14 @@ const HTMLReportTemplate = `<!doctype html>
         <table id="packagesTable" class="table table-striped table-bordered table-hover dt-responsive nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Package name</th>
-                    <th>Package version</th>
-                    <th>Download status</th>
-                    <th>Build status</th>
-                    <th>Install status</th>
-                    <th>Check status</th>
-                    <th>Check time (total: {{.TotalCheckTime}})</th>
-                    <th>Package SHA</th>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Download</th>
+                    <th>Build</th>
+                    <th>Install</th>
+                    <th>Check</th>
+                    <th>Check time (s) (Total: {{.TotalCheckTime}})</th>
+                    <th>Git Ref</th>
                 </tr>
             </thead>
             <tbody>
@@ -190,14 +190,14 @@ const HTMLReportTemplate = `<!doctype html>
                 <!-- end go template iteration -->
                 <tfoot>
                     <tr>
-                        <th>Package name</th>
-                        <th>Package version</th>
-                        <th>Download status</th>
-                        <th>Build status</th>
-                        <th>Install status</th>
-                        <th>Check status</th>
-                        <th>Check time (total: {{.TotalCheckTime}})</th>
-                        <th>Package SHA</th>
+                        <th>Name</th>
+                        <th>Version</th>
+                        <th>Download</th>
+                        <th>Build</th>
+                        <th>Install</th>
+                        <th>Check</th>
+                        <th>Check time (s) (Total: {{.TotalCheckTime}})</th>
+                        <th>Git Ref</th>
                     </tr>
                 </tfoot>
             </tbody>
@@ -207,7 +207,7 @@ const HTMLReportTemplate = `<!doctype html>
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">Operating system</p>
+                    <p class="fw-bold">Operating System</p>
                 </div>
                 <div class="col">
                     <code>
@@ -227,7 +227,7 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">Kernel version</p>
+                    <p class="fw-bold">Kernel Version</p>
                 </div>
                 <div class="col">
                     <code>
@@ -237,7 +237,7 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">Pretty name</p>
+                    <p class="fw-bold">Pretty Name</p>
                 </div>
                 <div class="col">
                     <code>
@@ -247,17 +247,17 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">System packages</p>
+                    <p class="fw-bold">Hostname</p>
                 </div>
                 <div class="col">
                     <code>
-                        {{.SystemInformation.SystemPackages | safe}}
+                    {{.SystemInformation.Hostname}}
                     </code>
                 </div>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">R version</p>
+                    <p class="fw-bold">R Version</p>
                 </div>
                 <div class="col">
                     <code>
@@ -277,22 +277,22 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">Environment variables</p>
+                    <p class="fw-bold">System Packages</p>
                 </div>
                 <div class="col">
-                    <code>
-                    {{.SystemInformation.EnvVariables | safe}}
-                    </code>
+                    <pre><code>
+{{.SystemInformation.SystemPackages | safe}}
+                    </code></pre>
                 </div>
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="fw-bold">Hostname</p>
+                    <p class="fw-bold">Environment Variables</p>
                 </div>
                 <div class="col">
-                    <code>
-                    {{.SystemInformation.Hostname}}
-                    </code>
+                    <pre><code>
+{{.SystemInformation.EnvVariables | safe}}
+                    </code></pre>
                 </div>
             </div>
         </div>
