@@ -143,7 +143,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	checkError(err)
 	cmd := "R CMD check " + packageFile
 	log.Debug("Executing command: ", cmd)
-	output, err := execCommand(cmd, false, false,
+	output, err := execCommand(cmd, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
@@ -230,7 +230,7 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPack
 	return checkPackageFiles
 }
 
-func checkPackages(installResults []InstallResultInfo, outputFile string) {
+func checkPackages(outputFile string) {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	// Built packages are stored in current directory.

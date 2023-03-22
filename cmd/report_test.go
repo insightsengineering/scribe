@@ -51,11 +51,11 @@ func Test_processCheckInfo(t *testing.T) {
 	assert.Equal(t, checkStatuses["package2"], "<a href=\"./logs/check-package2.out\"><span class=\"badge bg-warning text-dark\">check warning(s)</span></a>")
 	assert.Equal(t, checkStatuses["package3"], "<a href=\"./logs/check-package3.out\"><span class=\"badge bg-success\">OK</span></a>")
 	assert.Equal(t, checkStatuses["package4"], "<a href=\"./logs/check-package4.out\"><span class=\"badge bg-info text-dark\">check note(s)</span></a>")
-	assert.Equal(t, checkTimes["package1"], "20 s")
-	assert.Equal(t, checkTimes["package2"], "30 s")
-	assert.Equal(t, checkTimes["package3"], "35 s")
-	assert.Equal(t, checkTimes["package4"], "40 s")
-	assert.Equal(t, totalCheckTime, "125 s")
+	assert.Equal(t, checkTimes["package1"], "20")
+	assert.Equal(t, checkTimes["package2"], "30")
+	assert.Equal(t, checkTimes["package3"], "35")
+	assert.Equal(t, checkTimes["package4"], "40")
+	assert.Equal(t, totalCheckTime, "125")
 }
 
 func Test_processBuildInfo(t *testing.T) {

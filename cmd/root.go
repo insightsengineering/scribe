@@ -79,7 +79,7 @@ func setLogLevel() {
 
 func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageCheckInfo) int {
 	for _, p := range allInstallInfo {
-		if p.BuildStatus == buildStatusFailed {
+		if p.BuildStatus == buildStatusFailed || p.Status == InstallResultInfoStatusFailed {
 			return 1
 		}
 	}
@@ -187,7 +187,7 @@ var rootCmd = &cobra.Command{
 			readJSON(checkInfoFile, &allCheckInfo)
 		} else {
 			log.Infof("%s doesn't exist.", checkInfoFile)
-			checkPackages(allInstallInfo, checkInfoFile)
+			checkPackages(checkInfoFile)
 			// If no packages were checked (because of e.g. not matching the CLI parameter)
 			// the file with check results will not be generated, so we're checking
 			// its existence once again.

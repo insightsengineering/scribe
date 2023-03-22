@@ -92,7 +92,7 @@ func fillEnvFromSystem(envs []string) []string {
 
 // Execute a system command
 // nolint: gocyclo
-func execCommand(command string, showOutput bool, returnOutput bool, envs []string, file *os.File) (string, error) {
+func execCommand(command string, returnOutput bool, envs []string, file *os.File) (string, error) {
 	lastQuote := rune(0)
 	f := func(c rune) bool {
 		switch {
