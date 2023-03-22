@@ -79,7 +79,7 @@ func setLogLevel() {
 
 func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageCheckInfo) int {
 	for _, p := range allInstallInfo {
-		if p.BuildStatus == buildStatusFailed {
+		if p.BuildStatus == buildStatusFailed || p.Status == InstallResultInfoStatusFailed {
 			return 1
 		}
 	}
