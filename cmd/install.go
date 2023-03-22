@@ -151,7 +151,7 @@ func buildPackage(packageName, outputLocation, buildLogFilePath string, addition
 		return buildStatusFailed, outputLocation, buildLogFileErr
 	}
 	defer buildLogFile.Close()
-	output, err := execCommand(cmd, false, false,
+	output, err := execCommand(cmd, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",
@@ -194,7 +194,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 
 	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + additionalInstallOptions + " " + outputLocation
 	log.Trace("Executing command:" + cmd)
-	output, err := execCommand(cmd, false, false,
+	output, err := execCommand(cmd, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
 			"LANG=en_US.UTF-8",

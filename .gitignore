@@ -107,3 +107,4 @@ dist/
 __debug_bin
 targz/
 outputReport/
+*.tar.gz
