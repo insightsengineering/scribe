@@ -94,7 +94,7 @@ func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageChe
 
 var rootCmd *cobra.Command
 
-func NewRootCommand() {
+func newRootCommand() {
 	rootCmd = &cobra.Command{
 		Use:   "scribe",
 		Short: "System Compatibility Report for Install & Build Evaluation",
@@ -300,7 +300,7 @@ func initConfig() {
 }
 
 func Execute() {
-	NewRootCommand()
+	newRootCommand()
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
