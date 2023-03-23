@@ -320,7 +320,7 @@ func initializeConfig() {
 		"clearCache",
 		"includeSuggests",
 	} {
-		// If the flag has not been set in init() and it has been set in initConfig().
+		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been
 		// provided in config file.
 		// Helpful project where it's explained:
