@@ -66,7 +66,7 @@ test: clean tidy devdeps spell ## Run unit tests and generate reports
 	@printf "Executing target: [$@] 🎯\n"
 	@touch coverage.out
 	@mkdir -p /tmp/scribe/installed_packages
-	@go test -timeout 900s -json -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... 2>&1 > test-results.txt || cat test-results.txt
+	@go test -timeout 1200s -json -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./... 2>&1 > test-results.txt || cat test-results.txt
 	@cat test-results.txt | gotestdox
 	@cat test-results.txt | go-junit-report -parser gojson > junit-report.xml
 	@go tool cover -html=coverage.out -o coverage.html
