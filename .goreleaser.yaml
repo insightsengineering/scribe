@@ -19,6 +19,10 @@ builds:
       - arm
       - arm64
       - ppc64
+    ldflags:
+      - -s -w
+      - -X go.szostok.io/version.version={{.Version}}
+      - -X go.szostok.io/version.buildDate={{.Date}}
 checksum:
   name_template: '{{ .ProjectName }}_checksums.txt'
   algorithm: sha512

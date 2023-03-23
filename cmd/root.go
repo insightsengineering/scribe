@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.szostok.io/version/extension"
 )
 
 var cfgFile string
@@ -91,141 +92,137 @@ func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageChe
 	return 0
 }
 
-var rootCmd = &cobra.Command{
-	Use:   "scribe",
-	Short: "System Compatibility Report for Install & Build Evaluation",
-	Long: `scribe (acronym for System Compatibility Report for Install & Build Evaluation)
-	is a project that creates complete build, check and install reports
-	for a collection of R packages that are defined in an
-	[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		initializeConfig(cmd)
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		setLogLevel()
-		fmt.Println("cfgfile =", cfgFile)
-		fmt.Println("maskedEnvVars =", maskedEnvVars)
-		fmt.Println("renvLockFilename =", renvLockFilename)
-		fmt.Println("includeSuggests = ", includeSuggests)
-		fmt.Println("checkPackage =", checkPackageExpression)
-		fmt.Println("updatePackages =", updatePackages)
-		fmt.Println("checkAllPackages =", checkAllPackages)
-		fmt.Println("reportDir =", outputReportDirectory)
-		fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
-		fmt.Println("maxCheckRoutines =", maxCheckRoutines)
-		fmt.Println("numberOfWorkers =", numberOfWorkers)
-		fmt.Println("clearCache =", clearCache)
+var rootCmd *cobra.Command
 
-		if maxDownloadRoutines < 1 {
-			log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
-			maxDownloadRoutines = 40
-		}
-		if maxCheckRoutines < 1 {
-			log.Warn("Maximum number of R CMD check routines set to less than 1. Setting the number to default value of 5.")
-			maxCheckRoutines = 5
-		}
-		if int(numberOfWorkers) < 1 {
-			log.Warn("Number of simultaneous installation processes should be greater than 0. Setting the default number of workers to 20.")
-			numberOfWorkers = 20
-		}
+func NewRootCommand() {
+	rootCmd = &cobra.Command{
+		Use:   "scribe",
+		Short: "System Compatibility Report for Install & Build Evaluation",
+		Long: `scribe (acronym for System Compatibility Report for Install & Build Evaluation)
+		is a project that creates complete build, check and install reports
+		for a collection of R packages that are defined in an
+		[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			initializeConfig()
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			setLogLevel()
+			fmt.Println("cfgfile =", cfgFile)
+			fmt.Println("maskedEnvVars =", maskedEnvVars)
+			fmt.Println("renvLockFilename =", renvLockFilename)
+			fmt.Println("includeSuggests = ", includeSuggests)
+			fmt.Println("checkPackage =", checkPackageExpression)
+			fmt.Println("updatePackages =", updatePackages)
+			fmt.Println("checkAllPackages =", checkAllPackages)
+			fmt.Println("reportDir =", outputReportDirectory)
+			fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
+			fmt.Println("maxCheckRoutines =", maxCheckRoutines)
+			fmt.Println("numberOfWorkers =", numberOfWorkers)
+			fmt.Println("clearCache =", clearCache)
+			fmt.Println("failOnError = ", failOnError)
+			fmt.Println("buildOptions = ", buildOptions)
+			fmt.Println("installOptions = ", installOptions)
 
-		if clearCache {
-			clearCachedData()
-		}
+			if maxDownloadRoutines < 1 {
+				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
+				maxDownloadRoutines = 40
+			}
+			if maxCheckRoutines < 1 {
+				log.Warn("Maximum number of R CMD check routines set to less than 1. Setting the number to default value of 5.")
+				maxCheckRoutines = 5
+			}
+			if int(numberOfWorkers) < 1 {
+				log.Warn("Number of simultaneous installation processes should be greater than 0. Setting the default number of workers to 20.")
+				numberOfWorkers = 20
+			}
 
-		var systemInfo SystemInfo
-		getOsInformation(&systemInfo, maskedEnvVars)
-		var renvLock Renvlock
-		var renvLockOld Renvlock
-		var renvLockFilenameOld string
-		getRenvLock(renvLockFilename, &renvLock)
-		validateRenvLock(renvLock)
-		if updatePackages != "" {
-			renvLockFilenameOld = renvLockFilename
-			renvLockFilename += ".updated"
-			updatePackagesRenvLock(&renvLock, renvLockFilename, updatePackages)
-			// updatePackagesRenvLock modified the original structure in place.
-			// Therefore, we make a copy to show both renv.lock contents in the report.
-			getRenvLock(renvLockFilenameOld, &renvLockOld)
-		}
+			if clearCache {
+				clearCachedData()
+			}
 
-		mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
-		if mkdirerr != nil {
-			log.Errorf("Cannot make dir %s %v", tempCacheDirectory, mkdirerr)
-		}
+			var systemInfo SystemInfo
+			getOsInformation(&systemInfo, maskedEnvVars)
+			var renvLock Renvlock
+			var renvLockOld Renvlock
+			var renvLockFilenameOld string
+			getRenvLock(renvLockFilename, &renvLock)
+			validateRenvLock(renvLock)
+			if updatePackages != "" {
+				renvLockFilenameOld = renvLockFilename
+				renvLockFilename += ".updated"
+				updatePackagesRenvLock(&renvLock, renvLockFilename, updatePackages)
+				// updatePackagesRenvLock modified the original structure in place.
+				// Therefore, we make a copy to show both renv.lock contents in the report.
+				getRenvLock(renvLockFilenameOld, &renvLockOld)
+			}
 
-		// Perform package download, except when cache contains JSON with previous
-		// download results.
-		downloadInfoFile := filepath.Join(tempCacheDirectory, "downloadInfo.json")
-		var allDownloadInfo []DownloadInfo
-		if _, err := os.Stat(downloadInfoFile); err == nil {
-			// File with downloaded packages information is already present.
-			readJSON(downloadInfoFile, &allDownloadInfo)
-		} else {
-			log.Infof("%s doesn't exist.", downloadInfoFile)
-			downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
-			writeJSON(downloadInfoFile, &allDownloadInfo)
-		}
+			mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
+			if mkdirerr != nil {
+				log.Errorf("Cannot make dir %s %v", tempCacheDirectory, mkdirerr)
+			}
 
-		// Perform package installation, except when cache contains JSON with previous
-		// installation results.
-		err2 := os.MkdirAll(buildLogPath, os.ModePerm)
-		checkError(err2)
-		installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfos.json")
-		var allInstallInfo []InstallResultInfo
-		if _, err := os.Stat(installInfoFile); err == nil {
-			readJSON(installInfoFile, &allInstallInfo)
-		} else {
-			log.Infof("%s doesn't exist.", installInfoFile)
-			installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests, buildOptions, installOptions)
-		}
+			// Perform package download, except when cache contains JSON with previous
+			// download results.
+			downloadInfoFile := filepath.Join(tempCacheDirectory, "downloadInfo.json")
+			var allDownloadInfo []DownloadInfo
+			if _, err := os.Stat(downloadInfoFile); err == nil {
+				// File with downloaded packages information is already present.
+				readJSON(downloadInfoFile, &allDownloadInfo)
+			} else {
+				log.Infof("%s doesn't exist.", downloadInfoFile)
+				downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
+				writeJSON(downloadInfoFile, &allDownloadInfo)
+			}
 
-		// Perform R CMD check, except when cache contains JSON with previous check results.
-		checkInfoFile := filepath.Join(tempCacheDirectory, "checkInfo.json")
-		var allCheckInfo []PackageCheckInfo
-		if _, err := os.Stat(checkInfoFile); err == nil {
-			readJSON(checkInfoFile, &allCheckInfo)
-		} else {
-			log.Infof("%s doesn't exist.", checkInfoFile)
-			checkPackages(checkInfoFile)
-			// If no packages were checked (because of e.g. not matching the CLI parameter)
-			// the file with check results will not be generated, so we're checking
-			// its existence once again.
+			// Perform package installation, except when cache contains JSON with previous
+			// installation results.
+			err2 := os.MkdirAll(buildLogPath, os.ModePerm)
+			checkError(err2)
+			installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfos.json")
+			var allInstallInfo []InstallResultInfo
+			if _, err := os.Stat(installInfoFile); err == nil {
+				readJSON(installInfoFile, &allInstallInfo)
+			} else {
+				log.Infof("%s doesn't exist.", installInfoFile)
+				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests, buildOptions, installOptions)
+			}
+
+			// Perform R CMD check, except when cache contains JSON with previous check results.
+			checkInfoFile := filepath.Join(tempCacheDirectory, "checkInfo.json")
+			var allCheckInfo []PackageCheckInfo
 			if _, err := os.Stat(checkInfoFile); err == nil {
 				readJSON(checkInfoFile, &allCheckInfo)
+			} else {
+				log.Infof("%s doesn't exist.", checkInfoFile)
+				checkPackages(checkInfoFile)
+				// If no packages were checked (because of e.g. not matching the CLI parameter)
+				// the file with check results will not be generated, so we're checking
+				// its existence once again.
+				if _, err := os.Stat(checkInfoFile); err == nil {
+					readJSON(checkInfoFile, &allCheckInfo)
+				}
 			}
-		}
 
-		// Generate report.
-		var reportData ReportInfo
-		processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
-			renvLock, renvLockOld, renvLockFilenameOld)
-		err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
-		checkError(err)
-		err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
-		checkError(err)
-		// Copy log files so that they can be accessed from the HTML report.
-		copyFiles(packageLogPath, "install-", filepath.Join(outputReportDirectory, "logs"))
-		copyFiles(buildLogPath, "build-", filepath.Join(outputReportDirectory, "logs"))
-		copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
-		writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"))
+			// Generate report.
+			var reportData ReportInfo
+			processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
+				renvLock, renvLockOld, renvLockFilenameOld)
+			err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
+			checkError(err)
+			err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
+			checkError(err)
+			// Copy log files so that they can be accessed from the HTML report.
+			copyFiles(packageLogPath, "install-", filepath.Join(outputReportDirectory, "logs"))
+			copyFiles(buildLogPath, "build-", filepath.Join(outputReportDirectory, "logs"))
+			copyFiles(checkLogPath, "check-", filepath.Join(outputReportDirectory, "logs"))
+			writeReport(reportData, filepath.Join(outputReportDirectory, "index.html"))
 
-		if failOnError {
-			exitStatus := getExitStatus(allInstallInfo, allCheckInfo)
-			os.Exit(exitStatus)
-		}
-	},
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+			if failOnError {
+				exitStatus := getExitStatus(allInstallInfo, allCheckInfo)
+				os.Exit(exitStatus)
+			}
+		},
 	}
-}
-
-func init() {
-	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.scribe.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info",
@@ -269,6 +266,13 @@ func init() {
 		"Extra options to pass to R CMD build. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
 		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
+
+	// Add version command.
+	rootCmd.AddCommand(extension.NewVersionCobraCmd())
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
 }
 
 func initConfig() {
@@ -295,7 +299,14 @@ func initConfig() {
 	}
 }
 
-func initializeConfig(cmd *cobra.Command) {
+func Execute() {
+	NewRootCommand()
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func initializeConfig() {
 	for _, v := range []string{
 		"logLevel",
 		"maskedEnvVars",
@@ -314,8 +325,8 @@ func initializeConfig(cmd *cobra.Command) {
 		// provided in config file.
 		// Helpful project where it's explained:
 		// https://github.com/carolynvs/stingoftheviper
-		if !cmd.PersistentFlags().Lookup(v).Changed && viper.IsSet(v) {
-			err := cmd.PersistentFlags().Set(v, fmt.Sprintf("%v", viper.Get(v)))
+		if !rootCmd.PersistentFlags().Lookup(v).Changed && viper.IsSet(v) {
+			err := rootCmd.PersistentFlags().Set(v, fmt.Sprintf("%v", viper.Get(v)))
 			checkError(err)
 		}
 	}
