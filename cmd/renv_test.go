@@ -44,5 +44,5 @@ func Test_validateRenvLock(t *testing.T) {
 	var renvLock Renvlock
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	numberOfWarnings := validateRenvLock(renvLock)
-	assert.Equal(t, numberOfWarnings, 6)
+	assert.Equal(t, numberOfWarnings, 4)
 }

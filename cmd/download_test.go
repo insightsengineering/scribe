@@ -202,6 +202,7 @@ func mockedCloneGitRepo(_ string, _ string, _ string, _ string, _ string) (strin
 
 func Test_downloadPackages(t *testing.T) {
 	var renvLock Renvlock
+	maxDownloadRoutines = 10
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
 	var allDownloadInfo []DownloadInfo
 	downloadPackages(renvLock, &allDownloadInfo, mockedDownloadFile, mockedCloneGitRepo)
@@ -215,6 +216,8 @@ func Test_downloadPackages(t *testing.T) {
 	sort.Strings(messages)
 	assert.Equal(t, localFiles, []string{"",
 		"/tmp/scribe/downloaded_packages/github/RemoteUsername/RemoteRepo",
+		"/tmp/scribe/downloaded_packages/github/RemoteUsername/RemoteRepo",
+		"/tmp/scribe/downloaded_packages/gitlab/gitlab.com/RemoteUsername/RemoteRepo",
 		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage3_1.0.0.tar.gz",
 		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage4_1.0.0.tar.gz",
 		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage5_1.0.0.tar.gz",
@@ -225,6 +228,8 @@ func Test_downloadPackages(t *testing.T) {
 		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage4/SomeOtherPackage4_1.0.0.tar.gz",
 		"https://cloud.r-project.org/src/contrib/Archive/SomeOtherPackage5/SomeOtherPackage5_1.0.0.tar.gz",
 		"https://cloud.r-project.org/src/contrib/Archive/SomePackage/SomePackage_1.0.0.tar.gz",
-		"https://github.com/RemoteUsername/RemoteRepo"},
+		"https://github.com/RemoteUsername/RemoteRepo",
+		"https://github.com/RemoteUsername/RemoteRepo",
+		"https://gitlab.com/RemoteUsername/RemoteRepo"},
 	)
 }

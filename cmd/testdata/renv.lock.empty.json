@@ -27,7 +27,7 @@
         },
         "SomeOtherPackage": {
             "Package": "SomeOtherPackage",
-            "Version": "",
+            "Version": "3.0.1",
             "Source": "GitHub",
             "RemoteType": "github",
             "RemoteHost": "api.github.com",
@@ -37,7 +37,7 @@
             "RemoteSha": "aaabbb"
         },
         "SomeOtherPackage2": {
-            "Package": "",
+            "Package": "SomeOtherPackage2",
             "Version": "2.0.0",
             "Source": "GitLab",
             "RemoteType": "gitlab",
