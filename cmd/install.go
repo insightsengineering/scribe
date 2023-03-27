@@ -203,7 +203,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		log.Error(cmd)
 		log.Errorf("Error running: %s. Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
 	}
-	log.Infof("Executed Installation step on package %s located in %s", packageName, outputLocation)
+	log.Infof("Executed installation step on package %s located in %s", packageName, outputLocation)
 	return buildStatus, err
 }
 
