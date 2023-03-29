@@ -221,6 +221,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		go buildPackage(buildPackageChan, packageName, outputLocation, buildLogFilePath, additionalBuildOptions)
 		var waitInterval = 1
 		var totalWaitTime = 0
+		// Wait until buildPackage() completes.
 	build_package_loop:
 		for {
 			select {
@@ -250,6 +251,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	var waitInterval = 1
 	var totalWaitTime = 0
 	var output string
+	// Wait until executeRCmdInstall() completes.
 r_cmd_install_loop:
 	for {
 		select {

@@ -58,6 +58,7 @@ var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotati
 func setLogLevel() {
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	customFormatter.ForceColors = true
 	log.SetFormatter(customFormatter)
 	log.SetReportCaller(true)
 	customFormatter.FullTimestamp = true
