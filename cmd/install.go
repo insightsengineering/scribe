@@ -49,14 +49,14 @@ type InstallResultInfo struct {
 }
 
 type BuildPackageChanInfo struct {
-	BuildStatus int
+	BuildStatus    int
 	OutputLocation string
-	Err error
+	Err            error
 }
 
 type ExecRCmdInstallChanInfo struct {
 	Output string
-	Err error
+	Err    error
 }
 
 const (
@@ -155,7 +155,7 @@ func getBuiltPackageFileName(packageName string) string {
 }
 
 func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string,
-		outputLocation string, buildLogFilePath string, additionalOptions string) {
+	outputLocation string, buildLogFilePath string, additionalOptions string) {
 	log.Infof("Package %s located in %s is a source package so it has to be built first.",
 		packageName, outputLocation)
 	cmd := "R CMD build " + additionalOptions + " " + outputLocation
@@ -193,16 +193,16 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
-	[]string{
-		"R_LIBS=" + rLibsPaths,
-		"LANG=en_US.UTF-8",
-	}, logFile)
+		[]string{
+			"R_LIBS=" + rLibsPaths,
+			"LANG=en_US.UTF-8",
+		}, logFile)
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
 }
 
 // Returns error and build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string,
-		additionalBuildOptions string, additionalInstallOptions string) (int, error) {
+	additionalBuildOptions string, additionalInstallOptions string) (int, error) {
 	log.Infof("Executing installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
@@ -221,7 +221,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		go buildPackage(buildPackageChan, packageName, outputLocation, buildLogFilePath, additionalBuildOptions)
 		var waitInterval = 1
 		var totalWaitTime = 0
-build_package_loop:
+	build_package_loop:
 		for {
 			select {
 			case msg := <-buildPackageChan:
@@ -275,7 +275,7 @@ r_cmd_install_loop:
 }
 
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo,
-		additionalBuildOptions string, additionalInstallOptions string) {
+	additionalBuildOptions string, additionalInstallOptions string) {
 	for installInfo := range installChan {
 		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
 		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".out")

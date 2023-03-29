@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -92,12 +93,11 @@ func fillEnvFromSystem(envs []string) []string {
 
 func getTimeMinutesAndSeconds(seconds int) string {
 	if seconds < 60 {
-		return string(seconds) + "s"
-	} else {
-		minutes := seconds/60
-		remainderSeconds := seconds%60
-		return string(minutes) + "m" + string(remainderSeconds) + "s"
+		return fmt.Sprintf("%ds", seconds)
 	}
+	minutes := seconds / 60
+	remainderSeconds := seconds % 60
+	return fmt.Sprintf("%dm%ds", minutes, remainderSeconds)
 }
 
 // Execute a system command
