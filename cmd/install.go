@@ -228,11 +228,11 @@ build_package_loop:
 				buildStatus = msg.BuildStatus
 				outputLocation = msg.OutputLocation
 				err = msg.Err
-				log.Info("Package build for ", packageName, " completed after ", totalWaitTime, "s")
+				log.Info("Building package ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 				break build_package_loop
 			default:
-				if totalWaitTime%5 == 0 {
-					log.Info("Building package ", packageName, "... [", totalWaitTime, "s elapsed]")
+				if totalWaitTime%10 == 0 {
+					log.Info("Building package ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 				}
 				time.Sleep(time.Duration(waitInterval) * time.Second)
 				totalWaitTime += waitInterval
@@ -256,11 +256,11 @@ r_cmd_install_loop:
 		case msg := <-execRCmdInstallChan:
 			output = msg.Output
 			err = msg.Err
-			log.Info("R CMD INSTALL ", packageName, " completed after ", totalWaitTime, "s")
+			log.Info("R CMD INSTALL ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break r_cmd_install_loop
 		default:
-			if totalWaitTime%5 == 0 {
-				log.Info("R CMD INSTALL ", packageName, "... [", totalWaitTime, "s elapsed]")
+			if totalWaitTime%10 == 0 {
+				log.Info("R CMD INSTALL ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
 			totalWaitTime += waitInterval

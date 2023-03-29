@@ -90,6 +90,16 @@ func fillEnvFromSystem(envs []string) []string {
 	return envs
 }
 
+func getTimeMinutesAndSeconds(seconds int) string {
+	if seconds < 60 {
+		return string(seconds) + "s"
+	} else {
+		minutes := seconds/60
+		remainderSeconds := seconds%60
+		return string(minutes) + "m" + string(remainderSeconds) + "s"
+	}
+}
+
 // Execute a system command
 // nolint: gocyclo
 func execCommand(command string, returnOutput bool, envs []string, file *os.File) (string, error) {
