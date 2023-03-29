@@ -59,7 +59,7 @@ func setLogLevel() {
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.ForceColors = true
-	// customFormatter.ForceFormatting = true
+	customFormatter.ForceFormatting = true
 	log.SetFormatter(customFormatter)
 	log.SetReportCaller(true)
 	customFormatter.FullTimestamp = true
