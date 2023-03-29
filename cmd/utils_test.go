@@ -38,6 +38,11 @@ func Test_writeJSON(t *testing.T) {
 	os.Remove("testdata/test_output.json")
 }
 
+func Test_getTimeMinutesAndSeconds(t *testing.T) {
+	assert.Equal(t, getTimeMinutesAndSeconds(30), "30s")
+	assert.Equal(t, getTimeMinutesAndSeconds(80), "1m20s")
+}
+
 func Test_execCommand(t *testing.T) {
 	t.Skip("skipping integration test")
 	res, err := execCommand("R CMD", false, nil, nil)

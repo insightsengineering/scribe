@@ -170,11 +170,11 @@ check_single_package_loop:
 			messages <- PackageCheckInfo{packageFile, packageName, logFilePath,
 				mostSevereCheckItem, singlePackageCheckInfo, totalWaitTime}
 			<-guard
-			log.Info("R CMD check ", packageFile, " completed after ", totalWaitTime, "s")
+			log.Info("R CMD check ", packageFile, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break check_single_package_loop
 		default:
-			if totalWaitTime%5 == 0 {
-				log.Info("R CMD check ", packageFile, "... [", totalWaitTime, "s elapsed]")
+			if totalWaitTime%10 == 0 {
+				log.Info("R CMD check ", packageFile, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
 			totalWaitTime += waitInterval
