@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.48820755" branch-rate="0" version="" timestamp="1680170513734" lines-covered="1035" lines-valid="2120" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.48820755" branch-rate="0" version="" timestamp="1680171184578" lines-covered="1035" lines-valid="2120" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -797,10 +797,10 @@
               <lines>
                 <line number="451" hits="114"></line>
                 <line number="452" hits="114"></line>
-                <line number="453" hits="444"></line>
-                <line number="454" hits="444"></line>
-                <line number="455" hits="444"></line>
-                <line number="456" hits="169"></line>
+                <line number="453" hits="453"></line>
+                <line number="454" hits="453"></line>
+                <line number="455" hits="453"></line>
+                <line number="456" hits="190"></line>
                 <line number="458" hits="114"></line>
               </lines>
             </method>
@@ -1141,10 +1141,10 @@
             <line number="448" hits="4"></line>
             <line number="451" hits="114"></line>
             <line number="452" hits="114"></line>
-            <line number="453" hits="444"></line>
-            <line number="454" hits="444"></line>
-            <line number="455" hits="444"></line>
-            <line number="456" hits="169"></line>
+            <line number="453" hits="453"></line>
+            <line number="454" hits="453"></line>
+            <line number="455" hits="453"></line>
+            <line number="456" hits="190"></line>
             <line number="458" hits="114"></line>
             <line number="461" hits="1"></line>
             <line number="462" hits="1"></line>
@@ -2435,18 +2435,18 @@
                 <line number="254" hits="4"></line>
                 <line number="255" hits="4"></line>
                 <line number="256" hits="4"></line>
-                <line number="257" hits="18"></line>
+                <line number="257" hits="16"></line>
                 <line number="258" hits="4"></line>
                 <line number="259" hits="4"></line>
                 <line number="260" hits="4"></line>
                 <line number="261" hits="4"></line>
                 <line number="262" hits="4"></line>
-                <line number="263" hits="14"></line>
+                <line number="263" hits="12"></line>
                 <line number="264" hits="4"></line>
                 <line number="265" hits="4"></line>
                 <line number="266" hits="4"></line>
-                <line number="267" hits="14"></line>
-                <line number="268" hits="14"></line>
+                <line number="267" hits="12"></line>
+                <line number="268" hits="12"></line>
                 <line number="271" hits="1"></line>
                 <line number="272" hits="1"></line>
                 <line number="273" hits="1"></line>
@@ -2797,18 +2797,18 @@
             <line number="254" hits="4"></line>
             <line number="255" hits="4"></line>
             <line number="256" hits="4"></line>
-            <line number="257" hits="18"></line>
+            <line number="257" hits="16"></line>
             <line number="258" hits="4"></line>
             <line number="259" hits="4"></line>
             <line number="260" hits="4"></line>
             <line number="261" hits="4"></line>
             <line number="262" hits="4"></line>
-            <line number="263" hits="14"></line>
+            <line number="263" hits="12"></line>
             <line number="264" hits="4"></line>
             <line number="265" hits="4"></line>
             <line number="266" hits="4"></line>
-            <line number="267" hits="14"></line>
-            <line number="268" hits="14"></line>
+            <line number="267" hits="12"></line>
+            <line number="268" hits="12"></line>
             <line number="271" hits="1"></line>
             <line number="272" hits="1"></line>
             <line number="273" hits="1"></line>
