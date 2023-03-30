@@ -48,6 +48,16 @@ numberOfWorkers: 32
 clearCache: true
 ```
 
+## Environment variables
+
+Scribe reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
+For example, setting the following variables will override the respective values from configuration file:
+`SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_CHECKALLPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
+
+The precedence is like this (→ means "takes precedence over" or "overrides"):
+
+CLI flag → environment variable → configuration file → default value.
+
 ## Cache
 
 `scribe` uses cache stored in `/tmp/scribe` for various purposes.

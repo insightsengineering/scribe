@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jamiealquiza/envy"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -270,6 +271,12 @@ func newRootCommand() {
 
 	// Add version command.
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
+
+	cfg := envy.CobraConfig{
+		Prefix:     "SCRIBE",
+		Persistent: true,
+	}
+	envy.ParseCobra(rootCmd, cfg)
 }
 
 func init() {
