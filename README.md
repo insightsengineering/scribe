@@ -27,7 +27,7 @@ To download packages from `git` repositories, `scribe` retrieves username and to
 
 ## Configuration file
 
-If you'd like to set the above options in a configuration file, by default `scribe` checks the `~/.scribe` file.
+If you'd like to set the above options in a configuration file, by default `scribe` checks `~/.scribe`, `~/.scribe.yaml` and `~/.scribe.yml` files.
 If this file exists, `scribe` uses options defined there, unless they are overridden by command line flags.
 
 You can also specify custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
