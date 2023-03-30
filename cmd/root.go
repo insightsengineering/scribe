@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jamiealquiza/envy"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -270,6 +271,12 @@ func newRootCommand() {
 
 	// Add version command.
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
+
+	cfg := envy.CobraConfig{
+		Prefix:     "SCRIBE",
+		Persistent: true,
+	}
+	envy.ParseCobra(rootCmd, cfg)
 }
 
 func init() {
@@ -313,6 +320,7 @@ func initializeConfig() {
 		"maskedEnvVars",
 		"renvLockFilename",
 		"checkPackage",
+		"updatePackages",
 		"checkAllPackages",
 		"reportDir",
 		"maxDownloadRoutines",
@@ -320,6 +328,9 @@ func initializeConfig() {
 		"numberOfWorkers",
 		"clearCache",
 		"includeSuggests",
+		"failOnError",
+		"buildOptions",
+		"installOptions",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been

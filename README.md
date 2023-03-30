@@ -27,7 +27,7 @@ To download packages from `git` repositories, `scribe` retrieves username and to
 
 ## Configuration file
 
-If you'd like to set the above options in a configuration file, by default `scribe` checks the `~/.scribe` file.
+If you'd like to set the above options in a configuration file, by default `scribe` checks `~/.scribe`, `~/.scribe.yaml` and `~/.scribe.yml` files.
 If this file exists, `scribe` uses options defined there, unless they are overridden by command line flags.
 
 You can also specify custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
@@ -47,6 +47,16 @@ maxCheckRoutines: 31
 numberOfWorkers: 32
 clearCache: true
 ```
+
+## Environment variables
+
+Scribe reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
+For example, setting the following variables will override the respective values from configuration file:
+`SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_CHECKALLPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
+
+The precedence is like this (→ means "takes precedence over" or "overrides"):
+
+CLI flag → environment variable → configuration file → default value.
 
 ## Cache
 
