@@ -57,6 +57,7 @@ type Rpackage struct {
 	RemoteUsername string `json:",omitempty"`
 	RemoteRef      string `json:",omitempty"`
 	RemoteSha      string `json:",omitempty"`
+	RemoteSubdir   string `json:",omitempty"`
 }
 
 func getRenvLock(filename string, renvLock *Renvlock) {
@@ -167,7 +168,7 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 			log.Error(gitErr)
 			// Read newest package version from DESCRIPTION.
 			description, err3 := os.ReadFile(
-				localOutputDirectory + "/git_updates/" + k + "/DESCRIPTION",
+				localOutputDirectory + "/git_updates/" + k + v.RemoteSubdir + "/DESCRIPTION",
 			)
 			checkError(err3)
 			descriptionContents := parseDescription(string(description))

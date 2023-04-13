@@ -265,7 +265,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 // * fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
 // * number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
 func getPackageDetails(packageName string, packageVersion string, repoURL string,
-	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
+	packageSource string, packageSubdir string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo) (string, string, string, string, string, int64) {
 	var packageURL string
@@ -355,7 +355,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		gitDirectory := localOutputDirectory + "/github" +
 			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
-		return github, repoURL, "", gitDirectory, "", 0
+		return github, repoURL, "", gitDirectory + packageSubdir, "", 0
 
 	case packageSource == GitLab:
 		// repoURL == https://example.com/remote-user/some/remote/repo/path
@@ -367,7 +367,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 			"/" + remoteUser + "/" + remoteRepo
 		log.Debug("Cloning repo ", remoteUser, "/", remoteRepo, " from host ",
 			remoteHost, " to directory ", gitDirectory)
-		return gitlab, repoURL, "", gitDirectory, "", 0
+		return gitlab, repoURL, "", gitDirectory + packageSubdir, "", 0
 
 	default:
 		// Repositories other than CRAN or BioConductor
@@ -383,7 +383,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 // Then, it performs appropriate action based on what's been determined.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
-	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
+	packageSource string, packageSubdir string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo,
 	downloadFileFunction func(string, string) (int, int64),
@@ -392,7 +392,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 
 	// Determine whether to download the package as tar.gz file, or from git repository.
 	action, packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, savedBandwidth := getPackageDetails(
-		packageName, packageVersion, repoURL, packageSource, currentCranPackageInfo,
+		packageName, packageVersion, repoURL, packageSource, packageSubdir, currentCranPackageInfo,
 		biocPackageInfo, biocUrls, localArchiveChecksums,
 	)
 
@@ -695,7 +695,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
 			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef,
-				v.Source, currentCranPackageInfo, biocPackageInfo, biocUrls,
+				v.Source, v.RemoteSubdir, currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, downloadFileFunction, gitCloneFunction, messages, guard)
 			numberOfDownloads++
 		}
