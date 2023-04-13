@@ -158,12 +158,13 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 				credentialsType = "github"
 			}
 			// Clone package's default branch.
-			_, _, newPackageSha := cloneGitRepo(
+			gitErr, _, newPackageSha := cloneGitRepo(
 				localOutputDirectory+"/git_updates/"+k,
 				getRepositoryURL(v, renvLock.R.Repositories),
 				credentialsType,
 				"", "",
 			)
+			checkError(gitErr)
 			// Read newest package version from DESCRIPTION.
 			description, err3 := os.ReadFile(
 				localOutputDirectory + "/git_updates/" + k + "/DESCRIPTION",
