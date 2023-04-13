@@ -93,7 +93,7 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 	case GitHub:
 		repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
 	case GitLab:
-		repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
+		repoURL = v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 	default:
 		repoURL = getRenvRepositoryURL(repositories, v.Repository)
 	}
