@@ -378,6 +378,13 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 	}
 }
 
+func getPackageOutputLocation(outputLocation, packageSubdir string) string {
+	if packageSubdir != "" {
+		return outputLocation + "/" + packageSubdir
+	}
+	return outputLocation
+}
+
 // Function executed in parallel goroutines.
 // First, it determines in what way to retrieve the package.
 // Then, it performs appropriate action based on what's been determined.
@@ -443,10 +450,8 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, github,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			if packageSubdir != "" {
-				outputLocation += "/" + packageSubdir
-			}
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+			messages <- DownloadInfo{200, repoURL, gitRepoSize,
+				getPackageOutputLocation(outputLocation, packageSubdir), 0,
 				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, "", ""}
@@ -455,10 +460,8 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, gitlab,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			if packageSubdir != "" {
-				outputLocation += "/" + packageSubdir
-			}
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+			messages <- DownloadInfo{200, repoURL, gitRepoSize,
+				getPackageOutputLocation(outputLocation, packageSubdir), 0,
 				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
 			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, "", ""}
