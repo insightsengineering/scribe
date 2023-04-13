@@ -149,7 +149,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 		gitCloneOptions = &git.CloneOptions{
 			URL: repoURL,
 			Auth: &githttp.BasicAuth{
-				Username: os.Getenv("GITLAB_USER"),
+				Username: "This can be any string.",
 				Password: os.Getenv("GITLAB_TOKEN"),
 			},
 		}
@@ -205,7 +205,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 				fetchOptions = &git.FetchOptions{
 					RefSpecs: []config.RefSpec{refSpec},
 					Auth: &githttp.BasicAuth{
-						Username: os.Getenv("GITLAB_USER"),
+						Username: "This can be any string.",
 						Password: os.Getenv("GITLAB_TOKEN"),
 					},
 				}
