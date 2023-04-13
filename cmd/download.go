@@ -562,7 +562,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*failedDownloads = 0
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
-	const maxIdleSeconds = 20
+	// Such big idle timeout is (unfortunately) required for some big packages like rmint.sdtm.
+	const maxIdleSeconds = 200
 	for {
 		select {
 		case msg := <-messages:
