@@ -41,7 +41,7 @@
             "Version": "2.0.0",
             "Source": "GitLab",
             "RemoteType": "gitlab",
-            "RemoteHost": "gitlab.com",
+            "RemoteHost": "https://gitlab.com",
             "RemoteUsername": "RemoteUsername",
             "RemoteRepo": "RemoteRepo",
             "RemoteRef": "main",

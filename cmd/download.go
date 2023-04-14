@@ -93,7 +93,7 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 	case GitHub:
 		repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
 	case GitLab:
-		repoURL = "https://" + v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
+		repoURL = v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 	default:
 		repoURL = getRenvRepositoryURL(repositories, v.Repository)
 	}
@@ -149,7 +149,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 		gitCloneOptions = &git.CloneOptions{
 			URL: repoURL,
 			Auth: &githttp.BasicAuth{
-				Username: os.Getenv("GITLAB_USER"),
+				Username: "This can be any string.",
 				Password: os.Getenv("GITLAB_TOKEN"),
 			},
 		}
@@ -205,7 +205,7 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 				fetchOptions = &git.FetchOptions{
 					RefSpecs: []config.RefSpec{refSpec},
 					Auth: &githttp.BasicAuth{
-						Username: os.Getenv("GITLAB_USER"),
+						Username: "This can be any string.",
 						Password: os.Getenv("GITLAB_TOKEN"),
 					},
 				}
@@ -378,12 +378,19 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 	}
 }
 
+func getPackageOutputLocation(outputLocation, packageSubdir string) string {
+	if packageSubdir != "" {
+		return outputLocation + "/" + packageSubdir
+	}
+	return outputLocation
+}
+
 // Function executed in parallel goroutines.
 // First, it determines in what way to retrieve the package.
 // Then, it performs appropriate action based on what's been determined.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
-	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
+	packageSource string, packageSubdir string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo,
 	downloadFileFunction func(string, string) (int, int64),
@@ -443,7 +450,8 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, github,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+			messages <- DownloadInfo{200, repoURL, gitRepoSize,
+				getPackageOutputLocation(outputLocation, packageSubdir), 0,
 				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, "", ""}
@@ -452,7 +460,8 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		message, gitRepoSize, gitPackageShaOrRef := gitCloneFunction(outputLocation, packageURL, gitlab,
 			gitCommitSha, gitBranch)
 		if message == "" {
-			messages <- DownloadInfo{200, repoURL, gitRepoSize, outputLocation, 0,
+			messages <- DownloadInfo{200, repoURL, gitRepoSize,
+				getPackageOutputLocation(outputLocation, packageSubdir), 0,
 				"git", packageName, packageVersion, gitPackageShaOrRef}
 		} else {
 			messages <- DownloadInfo{-3, message, 0, "", 0, "", packageName, "", ""}
@@ -556,7 +565,8 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*failedDownloads = 0
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
-	const maxIdleSeconds = 20
+	// Such big idle timeout is (unfortunately) required for some big packages like rmint.sdtm.
+	const maxIdleSeconds = 200
 	for {
 		select {
 		case msg := <-messages:
@@ -695,7 +705,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 			guard <- struct{}{}
 			log.Debug("Downloading package ", v.Package)
 			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef,
-				v.Source, currentCranPackageInfo, biocPackageInfo, biocUrls,
+				v.Source, v.RemoteSubdir, currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, downloadFileFunction, gitCloneFunction, messages, guard)
 			numberOfDownloads++
 		}
