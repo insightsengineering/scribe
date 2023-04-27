@@ -88,6 +88,9 @@ func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageChe
 		}
 	}
 	for _, p := range allCheckInfo {
+		if p.ShouldFail {
+			return 1
+		}
 		if p.MostSevereCheckItem == "ERROR" {
 			return 1
 		}
@@ -271,7 +274,7 @@ func newRootCommand() {
 	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
 		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
-		"Regex which when encountered in R CMD check output, should cause scribe to fail "+
+		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
 			"(only when failOnError is true).")
 
 	// Add version command.

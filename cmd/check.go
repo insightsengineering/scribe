@@ -171,7 +171,7 @@ results_receiver_loop:
 				)
 			}
 			if msg.ShouldFail {
-				log.Info("While checking ", msg.PackagePath, " an NOTE or WARNING causing the check to fail occurred.")
+				log.Info("While checking ", msg.PackagePath, " a NOTE or WARNING causing the check to fail occurred.")
 			}
 			allPackagesCheckInfo = append(allPackagesCheckInfo, msg)
 			writeJSON(outputFile, allPackagesCheckInfo)
