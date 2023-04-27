@@ -1,0 +1,10 @@
+* checking for unstated dependencies in examples ... OK
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... WARNING
+Line 4 and
+Line 5
+* checking Rd contents ... NOTE
+Line 1 and
+Line 2
+* checking Rd cross-references ... NOTE
+* checking Rd metadata ... NOTE

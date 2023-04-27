@@ -41,6 +41,10 @@ Some error 6
   ‘tables.Rmd’ using ‘UTF-8’... OK
   ‘tables2.Rmd’ using ‘UTF-8’... OK
 * checking re-building of vignette outputs ... OK
+* checking tests ...
+  Running ‘testthat.R’
+ ERROR
+Running the tests in ‘tests/testthat.R’ failed.
 * checking PDF version of manual ... OK
 * DONE
 Status: 1 WARNING
