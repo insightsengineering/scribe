@@ -63,6 +63,9 @@ func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) str
 }
 
 func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool, packageName string) {
+	if rCmdCheckFailRegex == "" {
+		return
+	}
 	match, err := regexp.MatchString(rCmdCheckFailRegex, checkItem)
 	checkError(err)
 	if match {
