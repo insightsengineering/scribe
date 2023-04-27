@@ -62,23 +62,27 @@ func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) str
 	return newMostSevereCheckItem
 }
 
-func checkIfShouldFail(checkItemType string, checkItem string) bool {
+func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool, packageName string) {
 	match, err := regexp.MatchString(rCmdCheckFailRegex, checkItem)
 	checkError(err)
 	if match {
-		log.Debug("\"", checkItem, "\" matches \"", rCmdCheckFailRegex, "\"")
+		log.Debug(checkItem, "matches ", rCmdCheckFailRegex)
 	} else {
-		log.Debug("\"", checkItem, "\" doesn't match \"", rCmdCheckFailRegex, "\"")
+		log.Debug(checkItem, "doesn't match", rCmdCheckFailRegex)
 	}
 	if match && (checkItemType == "WARNING" || checkItemType == "NOTE") {
-		return true
+		log.Warn(
+			"The following", checkItemType, "encountered while checking package",
+			packageName, "matches regex", rCmdCheckFailRegex, "and will cause the",
+			"check to fail:", checkItem
+		)
+		*shouldFail = true
 	}
-	return false
 }
 
 // Parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
 // Returns most severe of statuses found (OK, NOTE, WARNING, ERROR).
-func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo) (string, bool) {
+func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo, packageName string) (string, bool) {
 	scanner := bufio.NewScanner(strings.NewReader(stringToParse))
 	var checkItem string
 	var previousCheckItem string
@@ -114,9 +118,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 				mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
 			}
 			if previousCheckItemType != "" {
-				if !shouldFail {
-					shouldFail = checkIfShouldFail(previousCheckItemType, previousCheckItem)
-				}
+				checkIfShouldFail(previousCheckItemType, previousCheckItem, &shouldFail, packageName)
 				*singlePackageCheckInfo = append(
 					*singlePackageCheckInfo,
 					ItemCheckInfo{previousCheckItemType, previousCheckItem},
@@ -173,9 +175,6 @@ results_receiver_loop:
 					", problem content: \n", problem.CheckItemContent,
 				)
 			}
-			if msg.ShouldFail {
-				log.Info("While checking ", msg.PackagePath, " a NOTE or WARNING causing the check to fail occurred.")
-			}
 			allPackagesCheckInfo = append(allPackagesCheckInfo, msg)
 			writeJSON(outputFile, allPackagesCheckInfo)
 
@@ -220,7 +219,7 @@ check_single_package_loop:
 	for {
 		select {
 		case msg := <-cmdCheckChan:
-			mostSevereCheckItem, shouldFail := parseCheckOutput(msg, &singlePackageCheckInfo)
+			mostSevereCheckItem, shouldFail := parseCheckOutput(msg, &singlePackageCheckInfo, packageName)
 			messages <- PackageCheckInfo{packageFile, packageName, logFilePath,
 				mostSevereCheckItem, singlePackageCheckInfo, totalWaitTime, shouldFail}
 			<-guard
