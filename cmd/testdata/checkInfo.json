@@ -2,7 +2,7 @@
   {
     "PackagePath": "/tmp/scribe/installed_packages/package1",
     "PackageName": "package1",
-    "LogFilePath": "/tmp/scribe/check_logs/package1.out",
+    "LogFilePath": "/tmp/scribe/check_logs/package1.html",
     "MostSevereCheckItem": "ERROR",
     "Info": [
       {
@@ -27,7 +27,7 @@
   {
     "PackagePath": "/tmp/scribe/installed_packages/package2",
     "PackageName": "package2",
-    "LogFilePath": "/tmp/scribe/check_logs/package2.out",
+    "LogFilePath": "/tmp/scribe/check_logs/package2.html",
     "MostSevereCheckItem": "WARNING",
     "Info": [
       {
@@ -44,7 +44,7 @@
   {
     "PackagePath": "/tmp/scribe/installed_packages/package3",
     "PackageName": "package3",
-    "LogFilePath": "/tmp/scribe/check_logs/package3.out",
+    "LogFilePath": "/tmp/scribe/check_logs/package3.html",
     "MostSevereCheckItem": "OK",
     "Info": [],
     "CheckTime": 35
@@ -52,7 +52,7 @@
   {
     "PackagePath": "/tmp/scribe/installed_packages/package4",
     "PackageName": "package4",
-    "LogFilePath": "/tmp/scribe/check_logs/package4.out",
+    "LogFilePath": "/tmp/scribe/check_logs/package4.html",
     "MostSevereCheckItem": "NOTE",
     "Info": [
       {

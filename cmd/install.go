@@ -269,11 +269,6 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	log.Trace("Executing command:" + cmd)
 	execRCmdInstallChan := make(chan ExecRCmdInstallChanInfo)
 	go executeRCmdInstall(execRCmdInstallChan, cmd, logFile)
-	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, closeHTMLTagsErr, logFilePath)
-		return buildStatus, closeHTMLTagsErr
-	}
 	var waitInterval = 1
 	var totalWaitTime = 0
 	var output string
@@ -297,6 +292,11 @@ r_cmd_install_loop:
 	if err != nil {
 		log.Error(cmd)
 		log.Errorf("Error running: %s. Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
+	}
+	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
+		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
+			packageName, closeHTMLTagsErr, logFilePath)
+		return buildStatus, closeHTMLTagsErr
 	}
 	log.Infof("Executed installation step on package %s located in %s", packageName, outputLocation)
 	return buildStatus, err
