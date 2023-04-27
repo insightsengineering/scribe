@@ -168,6 +168,14 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 		return
 	}
 	defer buildLogFile.Close()
+	// Add HTML tags to highlight logs
+	if _, createHTMLTagsErr := buildLogFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
+		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
+			createHTMLTagsErr, buildLogFilePath)
+		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, createHTMLTagsErr}
+		return
+	}
+	// Execute the command
 	output, err := execCommand(cmd, false,
 		[]string{
 			"R_LIBS=" + rLibsPaths,
@@ -177,6 +185,13 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 		log.Errorf("Error with build: %s . Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s",
 			cmd, outputLocation, packageName, err, output)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, err}
+		return
+	}
+	// Close HTML tags
+	if _, closeHTMLTagsErr := buildLogFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
+		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
+			closeHTMLTagsErr, buildLogFilePath)
+		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, closeHTMLTagsErr}
 		return
 	}
 	log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
@@ -213,6 +228,12 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		return buildStatus, logFileErr
 	}
 	defer logFile.Close()
+	// Add HTML tags to highlight logs
+	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
+		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
+			packageName, createHTMLTagsErr, logFilePath)
+		return buildStatus, createHTMLTagsErr
+	}
 
 	if packageType == gitConst {
 		// By default previous outputLocation will be returned, except if package is successfully built.
@@ -248,6 +269,11 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	log.Trace("Executing command:" + cmd)
 	execRCmdInstallChan := make(chan ExecRCmdInstallChanInfo)
 	go executeRCmdInstall(execRCmdInstallChan, cmd, logFile)
+	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
+		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
+			packageName, closeHTMLTagsErr, logFilePath)
+		return buildStatus, closeHTMLTagsErr
+	}
 	var waitInterval = 1
 	var totalWaitTime = 0
 	var output string
@@ -279,8 +305,8 @@ r_cmd_install_loop:
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo,
 	additionalBuildOptions string, additionalInstallOptions string) {
 	for installInfo := range installChan {
-		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".out")
-		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".out")
+		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".html")
+		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".html")
 		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
 			logFilePath, buildLogFilePath, installInfo.PackageType, additionalBuildOptions, additionalInstallOptions)
 		packageVersion := ""
