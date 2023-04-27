@@ -139,6 +139,9 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 				case strings.HasSuffix(trimmedNewLine, "ERROR"):
 					checkItemType = errConst
 					continuationOnNextLine = false
+				case strings.HasSuffix(trimmedNewLine, "OK"):
+					checkItemType = ""
+					continuationOnNextLine = false
 				}
 			}
 			// Once we find the type of check item, we compare its severity
