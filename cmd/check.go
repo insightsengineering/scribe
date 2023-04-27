@@ -69,6 +69,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 	var previousCheckItem string
 	var checkItemType string
 	var previousCheckItemType string
+	continuationOnNextLine := false
 	mostSevereCheckItem := "OK"
 	for scanner.Scan() {
 		newLine := scanner.Text()
@@ -85,10 +86,16 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 				checkItemType = warnConst
 			case strings.HasSuffix(trimmedNewLine, "... ERROR"):
 				checkItemType = errConst
+			// Exceptionally, it may happen that the line will end with "..."
+			// and the continuation of check item title will span subsequent lines.
+			case strings.HasSuffix(trimmedNewLine, "..."):
+				continuationOnNextLine = true
 			default:
 				checkItemType = ""
 			}
-			mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
+			if !continuationOnNextLine {
+				mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
+			}
 			if previousCheckItemType != "" {
 				*singlePackageCheckInfo = append(
 					*singlePackageCheckInfo,
@@ -98,6 +105,27 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 			checkItem = ""
 			checkItem += newLine + "\n"
 		} else {
+			if continuationOnNextLine {
+				// If the check item title spans multiple lines, we expect it
+				// to end with one of these strings at the end of the line.
+				trimmedNewLine := strings.TrimSpace(newLine)
+				switch {
+				case strings.HasSuffix(trimmedNewLine, "NOTE"):
+					checkItemType = noteConst
+					continuationOnNextLine = false
+				case strings.HasSuffix(trimmedNewLine, "WARNING"):
+					checkItemType = warnConst
+					continuationOnNextLine = false
+				case strings.HasSuffix(trimmedNewLine, "ERROR"):
+					checkItemType = errConst
+					continuationOnNextLine = false
+				}
+			}
+			// Once we find the type of check item, we compare its severity
+			// with existing items.
+			if !continuationOnNextLine {
+				mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
+			}
 			// Append new line to the currently processed check item.
 			checkItem += newLine + "\n"
 		}

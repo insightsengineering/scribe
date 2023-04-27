@@ -44,6 +44,9 @@ func Test_parseCheckOutput(t *testing.T) {
 	assert.Equal(t, allCheckInfo[4].CheckItemType, "WARNING")
 	assert.Equal(t, allCheckInfo[4].CheckItemContent,
 		"* checking for unstated dependencies in ‘tests’ ... WARNING\n    Some error 4\n  Some error 5\nSome error 6\n")
+	assert.Equal(t, allCheckInfo[5].CheckItemType, "ERROR")
+	assert.Equal(t, allCheckInfo[5].CheckItemContent,
+		"* checking tests ...\n  Running ‘testthat.R’\n ERROR\nRunning the tests in ‘tests/testthat.R’ failed.\n")
 }
 
 func Test_getCheckedPackages(t *testing.T) {
