@@ -74,7 +74,7 @@ func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool,
 		log.Warn(
 			"The following", checkItemType, "encountered while checking package",
 			packageName, "matches regex", rCmdCheckFailRegex, "and will cause the",
-			"check to fail:", checkItem
+			"check to fail:", checkItem,
 		)
 		*shouldFail = true
 	}

@@ -28,11 +28,11 @@ func Test_checkIfShouldFail(t *testing.T) {
 	var allCheckInfo []ItemCheckInfo
 	checkOutput, err := os.ReadFile("testdata/note_warning_no_failure.txt")
 	checkError(err)
-	_, shouldFail := parseCheckOutput(string(checkOutput), &allCheckInfo)
+	_, shouldFail := parseCheckOutput(string(checkOutput), &allCheckInfo, "somePackage")
 	assert.Equal(t, shouldFail, false)
 	checkOutput, err = os.ReadFile("testdata/note_warning_failure.txt")
 	checkError(err)
-	_, shouldFail = parseCheckOutput(string(checkOutput), &allCheckInfo)
+	_, shouldFail = parseCheckOutput(string(checkOutput), &allCheckInfo, "somePackage")
 	assert.Equal(t, shouldFail, true)
 }
 
@@ -41,7 +41,7 @@ func Test_parseCheckOutput(t *testing.T) {
 	var allCheckInfo []ItemCheckInfo
 	checkOutput, err := os.ReadFile("testdata/r_cmd_check.txt")
 	checkError(err)
-	maximumSeverity, _ := parseCheckOutput(string(checkOutput), &allCheckInfo)
+	maximumSeverity, _ := parseCheckOutput(string(checkOutput), &allCheckInfo, "somePackage")
 	assert.Equal(t, maximumSeverity, "ERROR")
 	assert.Equal(t, allCheckInfo[0].CheckItemType, "WARNING")
 	assert.Equal(t, allCheckInfo[0].CheckItemContent,
