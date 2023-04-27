@@ -43,6 +43,7 @@ var includeSuggests bool
 var failOnError bool
 var buildOptions string
 var installOptions string
+var rCmdCheckFailRegex string
 
 var log = logrus.New()
 
@@ -87,6 +88,9 @@ func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageChe
 		}
 	}
 	for _, p := range allCheckInfo {
+		if p.ShouldFail {
+			return 1
+		}
 		if p.MostSevereCheckItem == "ERROR" {
 			return 1
 		}
@@ -124,6 +128,7 @@ func newRootCommand() {
 			fmt.Println("failOnError = ", failOnError)
 			fmt.Println("buildOptions = ", buildOptions)
 			fmt.Println("installOptions = ", installOptions)
+			fmt.Println("rCmdCheckFailRegex = ", rCmdCheckFailRegex)
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -268,6 +273,9 @@ func newRootCommand() {
 		"Extra options to pass to R CMD build. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
 		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
+	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
+		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
+			"(only when failOnError is true).")
 
 	// Add version command.
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
@@ -331,6 +339,7 @@ func initializeConfig() {
 		"failOnError",
 		"buildOptions",
 		"installOptions",
+		"rCmdCheckFailRegex",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been

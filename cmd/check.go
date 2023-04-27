@@ -42,6 +42,7 @@ type PackageCheckInfo struct {
 	MostSevereCheckItem string // OK, NOTE, WARNING or ERROR
 	Info                []ItemCheckInfo
 	CheckTime           int
+	ShouldFail          bool // Whether a NOTE or WARNING occurred that would cause the check to fail.
 }
 
 // Check if checkItemType is more severe than currently most severe (mostSevereCheckItem).
@@ -61,14 +62,38 @@ func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) str
 	return newMostSevereCheckItem
 }
 
+func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool, packageName string) {
+	if rCmdCheckFailRegex == "" {
+		return
+	}
+	match, err := regexp.MatchString(rCmdCheckFailRegex, checkItem)
+	checkError(err)
+	if match {
+		log.Debug(checkItem, " matches ", rCmdCheckFailRegex)
+	} else {
+		log.Debug(checkItem, " doesn't match ", rCmdCheckFailRegex)
+	}
+	if match && (checkItemType == "WARNING" || checkItemType == "NOTE") {
+		log.Warn(
+			"The following ", checkItemType, " encountered while checking package ",
+			packageName, " matches regex \"", rCmdCheckFailRegex, "\" and will cause the",
+			" check to fail: ", checkItem,
+		)
+		*shouldFail = true
+	}
+}
+
 // Parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
 // Returns most severe of statuses found (OK, NOTE, WARNING, ERROR).
-func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo) string {
+func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo, packageName string) (string, bool) {
 	scanner := bufio.NewScanner(strings.NewReader(stringToParse))
 	var checkItem string
 	var previousCheckItem string
 	var checkItemType string
 	var previousCheckItemType string
+	continuationOnNextLine := false
+	// Whether a NOTE or a WARNING occurred that would cause the R CMD check to fail.
+	shouldFail := false
 	mostSevereCheckItem := "OK"
 	for scanner.Scan() {
 		newLine := scanner.Text()
@@ -85,24 +110,55 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 				checkItemType = warnConst
 			case strings.HasSuffix(trimmedNewLine, "... ERROR"):
 				checkItemType = errConst
+			// Exceptionally, it may happen that the line will end with "..."
+			// and the continuation of check item title will span subsequent lines.
+			case strings.HasSuffix(trimmedNewLine, "..."):
+				continuationOnNextLine = true
 			default:
 				checkItemType = ""
 			}
-			mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
+			if !continuationOnNextLine {
+				mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
+			}
 			if previousCheckItemType != "" {
+				checkIfShouldFail(previousCheckItemType, previousCheckItem, &shouldFail, packageName)
 				*singlePackageCheckInfo = append(
 					*singlePackageCheckInfo,
 					ItemCheckInfo{previousCheckItemType, previousCheckItem},
 				)
 			}
 			checkItem = ""
-			checkItem += newLine + "\n"
+			checkItem += newLine + " "
 		} else {
+			if continuationOnNextLine {
+				// If the check item title spans multiple lines, we expect it
+				// to end with one of these strings at the end of the line.
+				trimmedNewLine := strings.TrimSpace(newLine)
+				switch {
+				case strings.HasSuffix(trimmedNewLine, "NOTE"):
+					checkItemType = noteConst
+					continuationOnNextLine = false
+				case strings.HasSuffix(trimmedNewLine, "WARNING"):
+					checkItemType = warnConst
+					continuationOnNextLine = false
+				case strings.HasSuffix(trimmedNewLine, "ERROR"):
+					checkItemType = errConst
+					continuationOnNextLine = false
+				case strings.HasSuffix(trimmedNewLine, "OK"):
+					checkItemType = ""
+					continuationOnNextLine = false
+				}
+			}
+			// Once we find the type of check item, we compare its severity
+			// with existing items.
+			if !continuationOnNextLine {
+				mostSevereCheckItem = getNewMaximumSeverity(checkItemType, mostSevereCheckItem)
+			}
 			// Append new line to the currently processed check item.
-			checkItem += newLine + "\n"
+			checkItem += newLine + " "
 		}
 	}
-	return mostSevereCheckItem
+	return mostSevereCheckItem, shouldFail
 }
 
 // Go routine receiving data from go routines performing R CMD checks on the packages.
@@ -166,9 +222,9 @@ check_single_package_loop:
 	for {
 		select {
 		case msg := <-cmdCheckChan:
-			mostSevereCheckItem := parseCheckOutput(msg, &singlePackageCheckInfo)
+			mostSevereCheckItem, shouldFail := parseCheckOutput(msg, &singlePackageCheckInfo, packageName)
 			messages <- PackageCheckInfo{packageFile, packageName, logFilePath,
-				mostSevereCheckItem, singlePackageCheckInfo, totalWaitTime}
+				mostSevereCheckItem, singlePackageCheckInfo, totalWaitTime, shouldFail}
 			<-guard
 			log.Info("R CMD check ", packageFile, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break check_single_package_loop

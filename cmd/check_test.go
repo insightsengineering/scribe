@@ -23,27 +23,44 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_checkIfShouldFail(t *testing.T) {
+	rCmdCheckFailRegex = `Line 1 and Line 2|Line 4 and Line 5`
+	var allCheckInfo []ItemCheckInfo
+	checkOutput, err := os.ReadFile("testdata/note_warning_no_failure.txt")
+	checkError(err)
+	_, shouldFail := parseCheckOutput(string(checkOutput), &allCheckInfo, "somePackage")
+	assert.Equal(t, shouldFail, false)
+	checkOutput, err = os.ReadFile("testdata/note_warning_failure.txt")
+	checkError(err)
+	_, shouldFail = parseCheckOutput(string(checkOutput), &allCheckInfo, "somePackage")
+	assert.Equal(t, shouldFail, true)
+}
+
 func Test_parseCheckOutput(t *testing.T) {
+	rCmdCheckFailRegex = ""
 	var allCheckInfo []ItemCheckInfo
 	checkOutput, err := os.ReadFile("testdata/r_cmd_check.txt")
 	checkError(err)
-	maximumSeverity := parseCheckOutput(string(checkOutput), &allCheckInfo)
+	maximumSeverity, _ := parseCheckOutput(string(checkOutput), &allCheckInfo, "somePackage")
 	assert.Equal(t, maximumSeverity, "ERROR")
 	assert.Equal(t, allCheckInfo[0].CheckItemType, "WARNING")
 	assert.Equal(t, allCheckInfo[0].CheckItemContent,
-		"* checking Rd metadata ... WARNING\nSome warning 1\n  Some warning 2\n")
+		"* checking Rd metadata ... WARNING Some warning 1   Some warning 2 ")
 	assert.Equal(t, allCheckInfo[1].CheckItemType, "ERROR")
 	assert.Equal(t, allCheckInfo[1].CheckItemContent,
-		"* checking Rd metadata ... ERROR\n\n\nSome error 7\n  Some error 8\n\n")
+		"* checking Rd metadata ... ERROR   Some error 7   Some error 8  ")
 	assert.Equal(t, allCheckInfo[2].CheckItemType, "NOTE")
 	assert.Equal(t, allCheckInfo[2].CheckItemContent,
-		"* checking Rd contents ... NOTE\n  Some note 3\nSome note 4\n\nSome note 5\n\n")
+		"* checking Rd contents ... NOTE   Some note 3 Some note 4  Some note 5  ")
 	assert.Equal(t, allCheckInfo[3].CheckItemType, "ERROR")
 	assert.Equal(t, allCheckInfo[3].CheckItemContent,
-		"* checking for unstated dependencies in ‘tests’ ... ERROR\nSome error 1\n  Some error 2\n\nSome error 3\n")
+		"* checking for unstated dependencies in ‘tests’ ... ERROR Some error 1   Some error 2  Some error 3 ")
 	assert.Equal(t, allCheckInfo[4].CheckItemType, "WARNING")
 	assert.Equal(t, allCheckInfo[4].CheckItemContent,
-		"* checking for unstated dependencies in ‘tests’ ... WARNING\n    Some error 4\n  Some error 5\nSome error 6\n")
+		"* checking for unstated dependencies in ‘tests’ ... WARNING     Some error 4   Some error 5 Some error 6 ")
+	assert.Equal(t, allCheckInfo[5].CheckItemType, "ERROR")
+	assert.Equal(t, allCheckInfo[5].CheckItemContent,
+		"* checking tests ...   Running ‘testthat.R’  ERROR Running the tests in ‘tests/testthat.R’ failed. ")
 }
 
 func Test_getCheckedPackages(t *testing.T) {
