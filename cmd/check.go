@@ -66,15 +66,15 @@ func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool,
 	match, err := regexp.MatchString(rCmdCheckFailRegex, checkItem)
 	checkError(err)
 	if match {
-		log.Debug(checkItem, "matches ", rCmdCheckFailRegex)
+		log.Debug(checkItem, " matches ", rCmdCheckFailRegex)
 	} else {
-		log.Debug(checkItem, "doesn't match", rCmdCheckFailRegex)
+		log.Debug(checkItem, " doesn't match ", rCmdCheckFailRegex)
 	}
 	if match && (checkItemType == "WARNING" || checkItemType == "NOTE") {
 		log.Warn(
-			"The following", checkItemType, "encountered while checking package",
-			packageName, "matches regex", rCmdCheckFailRegex, "and will cause the",
-			"check to fail:", checkItem,
+			"The following ", checkItemType, " encountered while checking package ",
+			packageName, " matches regex \"", rCmdCheckFailRegex, "\" and will cause the",
+			" check to fail: ", checkItem,
 		)
 		*shouldFail = true
 	}
