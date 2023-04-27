@@ -85,7 +85,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 	var checkItemType string
 	var previousCheckItemType string
 	continuationOnNextLine := false
-	// Whether a NOTE or a WARNING occured that would cause the R CMD check to fail.
+	// Whether a NOTE or a WARNING occurred that would cause the R CMD check to fail.
 	shouldFail := false
 	mostSevereCheckItem := "OK"
 	for scanner.Scan() {
