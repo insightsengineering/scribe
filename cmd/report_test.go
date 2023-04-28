@@ -38,9 +38,9 @@ func Test_processInstallInfo(t *testing.T) {
 	var allInstallInfo []InstallResultInfo
 	readJSON("testdata/installInfo.json", &allInstallInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
-	assert.Equal(t, installStatuses["Matrix"], "<a href=\"./logs/install-Matrix.out\"><span class=\"badge bg-success\">OK</span></a>")
-	assert.Equal(t, installStatuses["package1"], "<a href=\"./logs/install-package1.out\"><span class=\"badge bg-info text-dark\">skipped</span></a>")
-	assert.Equal(t, installStatuses["package2"], "<a href=\"./logs/install-package2.out\"><span class=\"badge bg-danger\">failed</span></a>")
+	assert.Equal(t, installStatuses["Matrix"], "<a href=\"./logs/install-Matrix.html\"><span class=\"badge bg-success\">OK</span></a>")
+	assert.Equal(t, installStatuses["package1"], "<a href=\"./logs/install-package1.html\"><span class=\"badge bg-info text-dark\">skipped</span></a>")
+	assert.Equal(t, installStatuses["package2"], "<a href=\"./logs/install-package2.html\"><span class=\"badge bg-danger\">failed</span></a>")
 }
 
 func Test_processCheckInfo(t *testing.T) {
