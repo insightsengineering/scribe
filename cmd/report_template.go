@@ -111,6 +111,50 @@ const HTMLReportTemplate = `<!doctype html>
             </div>
         </div>
     </nav>
+    <div id="statusPage" class="mt-3">
+        <table id="packagesTable" class="table table-striped table-bordered table-hover dt-responsive nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Download</th>
+                    <th>Build</th>
+                    <th>Install</th>
+                    <th>Check</th>
+                    <th>Check time (s) (Total: {{.TotalCheckTime}})</th>
+                    <th>Git Ref</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- go template iterating through all package information -->
+                {{range .PackagesInformation}}
+                <tr>
+                    <td>{{.PackageName}}</td>
+                    <td>{{.PackageVersion}}</td>
+                    <td>{{.DownloadStatusText | safe}}</td>
+                    <td>{{.BuildStatusText | safe}}</td>
+                    <td>{{.InstallStatusText | safe}}</td>
+                    <td>{{.CheckStatusText | safe}}</td>
+                    <td>{{.CheckTime}}</td>
+                    <td><code>{{.GitPackageShaOrRef}}</code></td>
+                </tr>
+                {{end}}
+                <!-- end go template iteration -->
+                <tfoot>
+                    <tr>
+                        <th>Name</th>
+                        <th>Version</th>
+                        <th>Download</th>
+                        <th>Build</th>
+                        <th>Install</th>
+                        <th>Check</th>
+                        <th>Check time (s) (Total: {{.TotalCheckTime}})</th>
+                        <th>Git Ref</th>
+                    </tr>
+                </tfoot>
+            </tbody>
+        </table>
+    </div>
     <div id="renvInfo" class="mt-3">
         <div class="container">
             <div class="row">
@@ -158,50 +202,6 @@ const HTMLReportTemplate = `<!doctype html>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="statusPage" class="mt-3">
-        <table id="packagesTable" class="table table-striped table-bordered table-hover dt-responsive nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Version</th>
-                    <th>Download</th>
-                    <th>Build</th>
-                    <th>Install</th>
-                    <th>Check</th>
-                    <th>Check time (s) (Total: {{.TotalCheckTime}})</th>
-                    <th>Git Ref</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- go template iterating through all package information -->
-                {{range .PackagesInformation}}
-                <tr>
-                    <td>{{.PackageName}}</td>
-                    <td>{{.PackageVersion}}</td>
-                    <td>{{.DownloadStatusText | safe}}</td>
-                    <td>{{.BuildStatusText | safe}}</td>
-                    <td>{{.InstallStatusText | safe}}</td>
-                    <td>{{.CheckStatusText | safe}}</td>
-                    <td>{{.CheckTime}}</td>
-                    <td><code>{{.GitPackageShaOrRef}}</code></td>
-                </tr>
-                {{end}}
-                <!-- end go template iteration -->
-                <tfoot>
-                    <tr>
-                        <th>Name</th>
-                        <th>Version</th>
-                        <th>Download</th>
-                        <th>Build</th>
-                        <th>Install</th>
-                        <th>Check</th>
-                        <th>Check time (s) (Total: {{.TotalCheckTime}})</th>
-                        <th>Git Ref</th>
-                    </tr>
-                </tfoot>
-            </tbody>
-        </table>
     </div>
     <div id="systemInfo" class="mt-3">
         <div class="container">

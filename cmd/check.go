@@ -197,6 +197,14 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
+	defer logFile.Close()
+	// Add HTML tags to highlight logs
+	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
+		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
+			createHTMLTagsErr, logFilePath)
+		cmdCheckChan <- ""
+		return
+	}
 	cmd := "R CMD check " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
@@ -205,6 +213,13 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 			"LANG=en_US.UTF-8",
 		}, logFile)
 	checkError(err)
+	// Close HTML tags
+	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
+		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
+			closeHTMLTagsErr, logFilePath)
+		cmdCheckChan <- ""
+		return
+	}
 	cmdCheckChan <- output
 }
 
@@ -212,7 +227,7 @@ func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packageFile string) {
 	cmdCheckChan := make(chan string)
 	packageName := strings.Split(packageFile, "_")[0]
-	logFilePath := checkLogPath + "/" + packageName + ".out"
+	logFilePath := checkLogPath + "/" + packageName + ".html"
 	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
