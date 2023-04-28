@@ -196,7 +196,15 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	log.Info("Checking package ", packageFile)
 	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	defer logFile.Close()
 	checkError(err)
+	// Add HTML tags to highlight logs
+	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
+		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
+			createHTMLTagsErr, logFilePath)
+		cmdCheckChan <- ""
+		return
+	}
 	cmd := "R CMD check " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
@@ -205,6 +213,13 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 			"LANG=en_US.UTF-8",
 		}, logFile)
 	checkError(err)
+	// Close HTML tags
+	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
+		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
+			closeHTMLTagsErr, logFilePath)
+		cmdCheckChan <- ""
+		return
+	}
 	cmdCheckChan <- output
 }
 
