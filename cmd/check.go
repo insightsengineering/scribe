@@ -212,7 +212,7 @@ func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packageFile string) {
 	cmdCheckChan := make(chan string)
 	packageName := strings.Split(packageFile, "_")[0]
-	logFilePath := checkLogPath + "/" + packageName + ".out"
+	logFilePath := checkLogPath + "/" + packageName + ".html"
 	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
