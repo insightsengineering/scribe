@@ -196,8 +196,8 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	log.Info("Checking package ", packageFile)
 	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-	defer logFile.Close()
 	checkError(err)
+	defer logFile.Close()
 	// Add HTML tags to highlight logs
 	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
 		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
