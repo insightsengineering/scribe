@@ -5,7 +5,7 @@ on:
     tags:
       - "*"
     branches:
-      - main
+      - feature/slsa-goreleaser
 
 permissions: read-all
 
