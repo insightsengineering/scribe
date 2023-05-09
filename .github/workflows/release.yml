@@ -55,6 +55,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # SLSA go releaser part is below.
+  # It is based on documentation from
+  # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md
   # Generate ldflags dynamically.
   # Optional: only needed for ldflags.
   args:
