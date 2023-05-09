@@ -60,6 +60,7 @@ jobs:
   # Generate ldflags dynamically.
   # Optional: only needed for ldflags.
   args:
+    name: SLSA - args 💃
     runs-on: ubuntu-latest
     outputs:
       commit-date: ${{ steps.ldflags.outputs.commit-date }}
@@ -82,6 +83,7 @@ jobs:
 
   # Trusted builder.
   build:
+    name: SLSA - build 💃
     permissions:
       id-token: write # To sign the provenance.
       contents: write # To upload assets to release.
