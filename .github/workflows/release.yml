@@ -54,7 +54,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-# SLSA go releaser
+  # SLSA go releaser part is below.
   # Generate ldflags dynamically.
   # Optional: only needed for ldflags.
   args:
@@ -91,4 +91,5 @@ jobs:
       # Optional: only needed if using ldflags.
       evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
       private-repository: true
+      # Required to upload assets to existing release.
       upload-assets: true
