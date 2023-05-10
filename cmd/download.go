@@ -93,7 +93,15 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 	case GitHub:
 		repoURL = "https://github.com/" + v.RemoteUsername + "/" + v.RemoteRepo
 	case GitLab:
-		repoURL = v.RemoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
+		// The behavior of renv.lock is not standardized in terms of whether GitLab host address
+		// starts with 'https://' or not.
+		var remoteHost string
+		if strings.HasPrefix(v.RemoteHost, "https://") {
+			remoteHost = v.RemoteHost
+		} else {
+			remoteHost = "https://" + v.RemoteHost
+		}
+		repoURL = remoteHost + "/" + v.RemoteUsername + "/" + v.RemoteRepo
 	default:
 		repoURL = getRenvRepositoryURL(repositories, v.Repository)
 	}

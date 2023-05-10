@@ -36,6 +36,8 @@ func Test_getRepositoryURL(t *testing.T) {
 	assert.Equal(t, repoURL, "https://github.com/RemoteUsername/RemoteRepo")
 	repoURL = getRepositoryURL(renvLock.Packages["SomeOtherPackage2"], renvLock.R.Repositories)
 	assert.Equal(t, repoURL, "https://gitlab.com/RemoteUsername/RemoteRepo")
+	repoURL = getRepositoryURL(renvLock.Packages["GitlabPackage1"], renvLock.R.Repositories)
+	assert.Equal(t, repoURL, "https://gitlab.com/RemoteUsername1/RemoteRepo1")
 }
 
 func Test_parsePackagesFile(t *testing.T) {
@@ -218,6 +220,7 @@ func Test_downloadPackages(t *testing.T) {
 		"/tmp/scribe/downloaded_packages/github/RemoteUsername/RemoteRepo",
 		"/tmp/scribe/downloaded_packages/github/RemoteUsername/RemoteRepo",
 		"/tmp/scribe/downloaded_packages/gitlab/gitlab.com/RemoteUsername/RemoteRepo",
+		"/tmp/scribe/downloaded_packages/gitlab/gitlab.com/RemoteUsername1/RemoteRepo1",
 		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage3_1.0.0.tar.gz",
 		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage4_1.0.0.tar.gz",
 		"/tmp/scribe/downloaded_packages/package_archives/SomeOtherPackage5_1.0.0.tar.gz",
@@ -230,6 +233,7 @@ func Test_downloadPackages(t *testing.T) {
 		"https://cloud.r-project.org/src/contrib/Archive/SomePackage/SomePackage_1.0.0.tar.gz",
 		"https://github.com/RemoteUsername/RemoteRepo",
 		"https://github.com/RemoteUsername/RemoteRepo",
-		"https://gitlab.com/RemoteUsername/RemoteRepo"},
+		"https://gitlab.com/RemoteUsername/RemoteRepo",
+		"https://gitlab.com/RemoteUsername1/RemoteRepo1"},
 	)
 }

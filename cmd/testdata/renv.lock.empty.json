@@ -47,6 +47,17 @@
             "RemoteRef": "main",
             "RemoteSha": "aaabbb"
         },
+        "GitlabPackage1": {
+            "Package": "GitLabPackage1",
+            "Version": "2.0.0",
+            "Source": "GitLab",
+            "RemoteType": "gitlab",
+            "RemoteHost": "gitlab.com",
+            "RemoteUsername": "RemoteUsername1",
+            "RemoteRepo": "RemoteRepo1",
+            "RemoteRef": "main",
+            "RemoteSha": "aaabbbccc"
+        },
         "SomeOtherPackage3": {
             "Package": "SomeOtherPackage3",
             "Version": "1.0.0",
