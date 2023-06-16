@@ -33,6 +33,7 @@ type PackagesData struct {
 	CheckStatusText    string `json:"checkStatusText"`
 	BuildStatusText    string `json:"buildStatusText"`
 	CheckTime          string `json:"checkTime"`
+	PackageRepository  string `json:"packageRepository"`
 }
 
 type ReportInfo struct {
@@ -187,7 +188,7 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 			reportOutput.PackagesInformation,
 			PackagesData{p.PackageName, p.PackageVersion, p.GitPackageShaOrRef, downloadStatuses[p.PackageName],
 				installStatuses[p.PackageName], checkStatuses[p.PackageName], buildStatuses[p.PackageName],
-				checkTimes[p.PackageName]},
+				checkTimes[p.PackageName], p.PackageRepository},
 		)
 	}
 	reportOutput.SystemInformation = systemInfo
