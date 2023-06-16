@@ -73,7 +73,7 @@ type DownloadInfo struct {
 	// Contains git SHA of cloned package, or exceptionally git tag or branch, if SHA was not provided in renv.lock.
 	GitPackageShaOrRef string `json:"gitPackageShaOrRef"`
 	// Name of R package repository (e.g. CRAN, RSPM), or GitHub/GitLab.
-	PackageRepository  string `json:"packageRepository"`
+	PackageRepository string `json:"packageRepository"`
 }
 
 // Struct used to store data about tar.gz packages saved in local cache.
