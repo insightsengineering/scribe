@@ -463,7 +463,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 		if message == "" {
 			messages <- DownloadInfo{200, repoURL, gitRepoSize,
 				getPackageOutputLocation(outputLocation, packageSubdir), 0,
-				"git", packageName, packageVersion, gitPackageShaOrRef, packageRepository}
+				"git", packageName, packageVersion, gitPackageShaOrRef, packageSource}
 		} else {
 			messages <- DownloadInfo{-2, message, 0, "", 0, "", packageName, "", "", packageSource}
 		}
