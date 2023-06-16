@@ -117,6 +117,7 @@ const HTMLReportTemplate = `<!doctype html>
                 <tr>
                     <th>Name</th>
                     <th>Version</th>
+                    <th>Source</th>
                     <th>Download</th>
                     <th>Build</th>
                     <th>Install</th>
@@ -131,6 +132,7 @@ const HTMLReportTemplate = `<!doctype html>
                 <tr>
                     <td>{{.PackageName}}</td>
                     <td>{{.PackageVersion}}</td>
+                    <td>{{.PackageRepository | safe}}</td>
                     <td>{{.DownloadStatusText | safe}}</td>
                     <td>{{.BuildStatusText | safe}}</td>
                     <td>{{.InstallStatusText | safe}}</td>
