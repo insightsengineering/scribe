@@ -192,7 +192,8 @@ results_receiver_loop:
 	}
 }
 
-func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName string, logFilePath string) {
+func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName string, logFilePath string,
+	additionalOptions string) {
 	log.Info("Checking package ", packageFile)
 	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
@@ -205,7 +206,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 		cmdCheckChan <- ""
 		return
 	}
-	cmd := "R CMD check " + packageFile
+	cmd := "R CMD check " + additionalOptions + " " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
 		[]string{
@@ -224,11 +225,11 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 }
 
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
-	packageFile string) {
+	packageFile string, additionalOptions string) {
 	cmdCheckChan := make(chan string)
 	packageName := strings.Split(packageFile, "_")[0]
 	logFilePath := checkLogPath + "/" + packageName + ".html"
-	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath)
+	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath, additionalOptions string)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
 	var totalWaitTime = 0
@@ -301,7 +302,7 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPack
 	return checkPackageFiles
 }
 
-func checkPackages(outputFile string) {
+func checkPackages(outputFile string, additionalOptions string) {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	// Built packages are stored in current directory.
@@ -319,7 +320,7 @@ func checkPackages(outputFile string) {
 		go checkResultsReceiver(messages, checkWaiter, len(checkPackagesFiles), outputFile)
 		for _, packageFile := range checkPackagesFiles {
 			guard <- struct{}{}
-			go checkSinglePackage(messages, guard, packageFile)
+			go checkSinglePackage(messages, guard, packageFile, additionalOptions)
 		}
 		<-checkWaiter
 	}
