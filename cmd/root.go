@@ -42,6 +42,7 @@ var clearCache bool
 var includeSuggests bool
 var failOnError bool
 var buildOptions string
+var checkOptions string
 var installOptions string
 var rCmdCheckFailRegex string
 
@@ -128,6 +129,7 @@ func newRootCommand() {
 			fmt.Println("failOnError = ", failOnError)
 			fmt.Println("buildOptions = ", buildOptions)
 			fmt.Println("installOptions = ", installOptions)
+			fmt.Println("checkOptions = ", checkOptions)
 			fmt.Println("rCmdCheckFailRegex = ", rCmdCheckFailRegex)
 
 			if maxDownloadRoutines < 1 {
@@ -201,7 +203,7 @@ func newRootCommand() {
 				readJSON(checkInfoFile, &allCheckInfo)
 			} else {
 				log.Infof("%s doesn't exist.", checkInfoFile)
-				checkPackages(checkInfoFile)
+				checkPackages(checkInfoFile, checkOptions)
 				// If no packages were checked (because of e.g. not matching the CLI parameter)
 				// the file with check results will not be generated, so we're checking
 				// its existence once again.
@@ -273,6 +275,8 @@ func newRootCommand() {
 		"Extra options to pass to R CMD build. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
 		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
+	rootCmd.PersistentFlags().StringVar(&checkOptions, "checkOptions", "",
+		"Extra options to pass to R CMD check. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
 		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
 			"(only when failOnError is true).")
@@ -339,6 +343,7 @@ func initializeConfig() {
 		"failOnError",
 		"buildOptions",
 		"installOptions",
+		"checkOptions",
 		"rCmdCheckFailRegex",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
