@@ -3,27 +3,27 @@
     "packageName": "Matrix",
     "inputLocation": "/tmp/scribe/downloaded_packages/package_archives/Matrix_1.5-1.tar.gz",
     "packageVersion": "1.5-1",
-    "status": 0,
+    "status": "SUCCEEDED",
     "logFilePath": "/tmp/scribe/installed_logs/Matrix.html",
-    "buildStatus": 0,
+    "buildStatus": "SUCCEEDED",
     "buildLogFilePath": "/tmp/scribe/build_logs/Matrix.html"
   },
   {
     "packageName": "package1",
     "inputLocation": "",
     "packageVersion": "",
-    "status": 1,
+    "status": "SKIPPED",
     "logFilePath": "/tmp/scribe/installed_logs/package1.html",
-    "buildStatus": 1,
+    "buildStatus": "FAILED",
     "buildLogFilePath": "/tmp/scribe/build_logs/package1.html"
   },
   {
     "packageName": "package2",
     "inputLocation": "",
     "packageVersion": "",
-    "status": 2,
+    "status": "FAILED",
     "logFilePath": "/tmp/scribe/installed_logs/package2.html",
-    "buildStatus": 0,
+    "buildStatus": "SUCCEEDED",
     "buildLogFilePath": "/tmp/scribe/build_logs/package2.html"
   }
 ]
