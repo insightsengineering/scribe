@@ -42,14 +42,14 @@ type InstallInfo struct {
 type InstallResultInfo struct {
 	InstallInfo
 	PackageVersion   string `json:"packageVersion"`
-	Status           int    `json:"status"`
+	Status           string `json:"status"`
 	LogFilePath      string `json:"logFilePath"`
-	BuildStatus      int    `json:"buildStatus"`
+	BuildStatus      string `json:"buildStatus"`
 	BuildLogFilePath string `json:"buildLogFilePath"`
 }
 
 type BuildPackageChanInfo struct {
-	BuildStatus    int
+	BuildStatus    string
 	OutputLocation string
 	Err            error
 }
@@ -59,18 +59,14 @@ type ExecRCmdInstallChanInfo struct {
 	Err    error
 }
 
-const (
-	InstallResultInfoStatusSucceeded = iota
-	InstallResultInfoStatusSkipped
-	InstallResultInfoStatusFailed
-	InstallResultInfoStatusBuildFailed
-)
+const InstallResultInfoStatusSucceeded = "SUCCEEDED"
+const InstallResultInfoStatusSkipped = "SKIPPED"
+const InstallResultInfoStatusFailed = "FAILED"
+const InstallResultInfoStatusBuildFailed = "BUILD_FAILED"
 
-const (
-	buildStatusSucceeded = iota
-	buildStatusFailed
-	buildStatusNotBuilt
-)
+const buildStatusSucceeded = "SUCCEEDED"
+const buildStatusFailed = "FAILED"
+const buildStatusNotBuilt = "NOT_BUILT"
 
 func mkLibPathDir(temporalLibPath string) {
 	for _, libPath := range strings.Split(temporalLibPath, ":") {
@@ -217,7 +213,7 @@ func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd st
 
 // Returns error and build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string,
-	additionalBuildOptions string, additionalInstallOptions string) (int, error) {
+	additionalBuildOptions string, additionalInstallOptions string) (string, error) {
 	log.Infof("Executing installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
