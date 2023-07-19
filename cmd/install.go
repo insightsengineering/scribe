@@ -306,7 +306,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
 			logFilePath, buildLogFilePath, installInfo.PackageType, additionalBuildOptions, additionalInstallOptions)
 		packageVersion := ""
-		var status int
+		var status string
 		switch {
 		case err == nil:
 			log.Tracef("No error after installation of %s", installInfo.PackageName)
