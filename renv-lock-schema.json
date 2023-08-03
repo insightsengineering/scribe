@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "R": {
+      "type": "object",
+      "properties": {
+        "Version": {
+          "type": "string"
+        },
+        "Repositories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string"
+              },
+              "URL": {
+                "type": "string"
+              }
+            },
+            "required": ["Name", "URL"]
+          }
+        }
+      },
+      "required": ["Version", "Repositories"]
+    },
+    "Bioconductor": {
+      "type": "object",
+      "properties": {
+        "Version": {
+          "type": "string"
+        }
+      },
+      "required": ["Version"]
+    },
+    "Packages": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z.]+$": {
+          "type": "object",
+          "properties": {
+            "Package": {
+              "type": "string"
+            },
+            "Version": {
+              "type": "string"
+            },
+            "Source": {
+              "type": "string",
+              "enum": ["Repository", "GitLab", "GitHub"]
+            },
+            "Repository": {
+              "type": "string"
+            },
+            "Hash": {
+              "type": "string"
+            },
+            "Requirements": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "RemoteHost": {
+              "type": "string"
+            },
+            "RemoteRepo": {
+              "type": "string"
+            },
+            "RemoteUsername": {
+              "type": "string"
+            },
+            "RemoteRef": {
+              "type": "string"
+            },
+            "RemoteSha": {
+              "type": "string"
+            },
+            "RemoteType": {
+              "type": "string"
+            },
+            "RemoteSubdir": {
+              "type": "string"
+            }
+          },
+          "required": ["Package", "Version", "Source", "Repository", "Hash"]
+        }
+      }
+    }
+  },
+  "required": ["R", "Bioconductor", "Packages"]
+}
+
