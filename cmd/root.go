@@ -63,7 +63,7 @@ func setLogLevel() {
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.ForceColors = true
 	log.SetFormatter(customFormatter)
-	log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 	customFormatter.FullTimestamp = true
 	fmt.Println("Loglevel =", logLevel)
 	switch logLevel {
@@ -114,6 +114,10 @@ func newRootCommand() {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			setLogLevel()
+
+			getPackagesFileFromUrl("https://cloud.r-project.org/src/contrib/PACKAGES")
+			os.Exit(0)
+
 			fmt.Println("cfgfile =", cfgFile)
 			fmt.Println("maskedEnvVars =", maskedEnvVars)
 			fmt.Println("renvLockFilename =", renvLockFilename)
