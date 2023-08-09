@@ -41,26 +41,34 @@ func getPackagesFileFromURL(url string, allPackages *[]PackagesFile) {
 	if err != nil {
 		log.Errorf("Failed to get package content for URL %s", url)
 	}
+	processDescriptionFile(content, allPackages)
+}
+
+func processDescriptionFile(content string, allPackages *[]PackagesFile) {
 	for _, lineGroup := range strings.Split(content, "\n\n") {
 		firstLine := strings.Split(lineGroup, "\n")[0]
 		packageName := strings.ReplaceAll(firstLine, "Package: ", "")
-		m := make(map[string]string)
-		err := yaml.Unmarshal([]byte(lineGroup), &m)
+		packageMap := make(map[string]string)
+		err := yaml.Unmarshal([]byte(lineGroup), &packageMap)
 		if err != nil {
 			log.Error("Error reading package data from PACKAGES: ", err)
 		}
 		var packageDependencies []Dependency
-		processDependencyFields(m, &packageDependencies)
-		*allPackages = append(*allPackages, PackagesFile{packageName, m["Version"], packageDependencies})
+		processDependencyFields(packageMap, &packageDependencies)
+		*allPackages = append(
+			*allPackages,
+			PackagesFile{packageName, packageMap["Version"], packageDependencies},
+		)
 	}
 }
 
-func processDependencyFields(m map[string]string, packageDependencies *[]Dependency) {
+func processDependencyFields(packageMap map[string]string,
+	packageDependencies *[]Dependency) {
 	dependencyFields := []string{"Depends", "Imports", "Suggests", "Enhances", "LinkingTo"}
 	re := regexp.MustCompile(`\(.*\)`)
 	for _, field := range dependencyFields {
-		if _, ok := m[field]; ok {
-			dependencyList := strings.Split(m[field], ", ")
+		if _, ok := packageMap[field]; ok {
+			dependencyList := strings.Split(packageMap[field], ", ")
 			for _, dependency := range dependencyList {
 				dependencyName := strings.Split(dependency, " ")[0]
 				versionConstraintOperator := ""
