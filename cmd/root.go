@@ -114,6 +114,12 @@ func newRootCommand() {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			setLogLevel()
+
+			// TODO this function should be used during renv.lock generation
+			var allPackages []PackagesFile
+			getPackagesFileFromURL("https://cloud.r-project.org/src/contrib/PACKAGES", &allPackages)
+			writeJSON("packages.json", allPackages)
+
 			fmt.Println("cfgfile =", cfgFile)
 			fmt.Println("maskedEnvVars =", maskedEnvVars)
 			fmt.Println("renvLockFilename =", renvLockFilename)
