@@ -26,7 +26,7 @@ func Test_processDescriptionFile(t *testing.T) {
 	var allPackages []PackagesFile
 	byteValue, err := os.ReadFile("testdata/PACKAGES")
 	checkError(err)
-	processDescriptionFile(string(byteValue), &allPackages)
+	processPackagesFile(string(byteValue), &allPackages)
 	assert.Equal(t, allPackages,
 		[]PackagesFile{
 			{
