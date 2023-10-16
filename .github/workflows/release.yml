@@ -34,7 +34,7 @@ jobs:
       - name: Setup Go 🐹
         uses: actions/setup-go@v3
         with:
-          go-version: 1.20.2
+          go-version: 1.21.3
           cache: true
           cache-dependency-path: go.sum
 
@@ -91,7 +91,7 @@ jobs:
     needs: args
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.5.0
     with:
-      go-version: "1.20"
+      go-version: "1.21"
       # Optional: only needed if using ldflags.
       evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
       private-repository: true
