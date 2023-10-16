@@ -249,7 +249,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 				log.Info("Building package ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 				break build_package_loop
 			default:
-				if totalWaitTime%10 == 0 {
+				if totalWaitTime%20 == 0 {
 					log.Info("Building package ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 				}
 				time.Sleep(time.Duration(waitInterval) * time.Second)
@@ -278,7 +278,7 @@ r_cmd_install_loop:
 			log.Info("R CMD INSTALL ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break r_cmd_install_loop
 		default:
-			if totalWaitTime%10 == 0 {
+			if totalWaitTime%20 == 0 {
 				log.Info("R CMD INSTALL ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)

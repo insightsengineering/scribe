@@ -245,7 +245,7 @@ check_single_package_loop:
 			log.Info("R CMD check ", packageFile, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break check_single_package_loop
 		default:
-			if totalWaitTime%10 == 0 {
+			if totalWaitTime%20 == 0 {
 				log.Info("R CMD check ", packageFile, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
