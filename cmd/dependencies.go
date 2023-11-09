@@ -434,6 +434,7 @@ func getPackageDeps(
 	}
 	// TODO: What does this mean?
 	log.Debugf("Found %d packages with dependencies", len(deps))
+	log.Info("All package dependencies: ", deps)
 	return deps
 }
 
