@@ -155,7 +155,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	log.Infof("Package %s located in %s is a source package so it has to be built first.",
 		packageName, outputLocation)
 	// TODO allow running R.exe on Windows
-	cmd := "R.exe CMD build " + additionalOptions + " " + outputLocation
+	cmd := "C:\\Program Files\\R\\R-4.3.2\bin\\R.exe CMD build " + additionalOptions + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
 	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if buildLogFileErr != nil {
@@ -263,7 +263,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	}
 
 	// TODO allow running R.exe on Windows
-	cmd := "R.exe CMD INSTALL --no-lock -l " + temporalLibPath + " " + additionalInstallOptions + " " + outputLocation
+	cmd := "C:\\Program Files\\R\\R-4.3.2\bin\\R.exe CMD INSTALL --no-lock -l " + temporalLibPath + " " + additionalInstallOptions + " " + outputLocation
 	log.Trace("Executing command:" + cmd)
 	execRCmdInstallChan := make(chan ExecRCmdInstallChanInfo)
 	go executeRCmdInstall(execRCmdInstallChan, cmd, logFile)
