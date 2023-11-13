@@ -164,7 +164,7 @@ func Test_getPackageDepsFromPackagesFile(t *testing.T) {
 func Test_getPackageDepsFromBioconductor(t *testing.T) {
 	deps := getPackageDepsFromBioconductor(
 		map[string]bool{"Rgraphviz": true, "S4Vectors": true},
-		"3.16",
+		"3.18",
 		false,
 	)
 	assert.NotEmpty(t, deps["Rgraphviz"])
