@@ -29,6 +29,7 @@ import (
 const packageLogPath = "/tmp/scribe/installed_logs"
 const buildLogPath = "/tmp/scribe/build_logs"
 const gitConst = "git"
+const htmlExtension = ".html"
 
 type InstallInfo struct {
 	PackageName   string `json:"packageName"`
@@ -64,6 +65,8 @@ const InstallResultInfoStatusBuildFailed = "BUILD_FAILED"
 const buildStatusSucceeded = "SUCCEEDED"
 const buildStatusFailed = "FAILED"
 const buildStatusNotBuilt = "NOT_BUILT"
+
+const rLibsVarName = "R_LIBS="
 
 func mkLibPathDir(temporaryLibPath string) {
 	for _, libPath := range strings.Split(temporaryLibPath, ":") {
@@ -171,7 +174,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	// Execute the command
 	output, err := execCommand(cmd, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
+			rLibsVarName + rLibsPaths,
 			"LANG=en_US.UTF-8",
 		}, buildLogFile)
 	if err != nil {
@@ -202,7 +205,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
+			rLibsVarName + rLibsPaths,
 			"LANG=en_US.UTF-8",
 		}, logFile)
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
@@ -298,8 +301,8 @@ r_cmd_install_loop:
 func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo,
 	additionalBuildOptions string, additionalInstallOptions string) {
 	for installInfo := range installChan {
-		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+".html")
-		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+".html")
+		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+htmlExtension)
+		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+htmlExtension)
 		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
 			logFilePath, buildLogFilePath, installInfo.PackageType, additionalBuildOptions, additionalInstallOptions)
 		packageVersion := ""

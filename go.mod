@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/deckarep/golang-set/v2 v2.3.1
 	github.com/go-git/go-git/v5 v5.9.0
+	github.com/insightsengineering/locksmith v0.1.1
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0

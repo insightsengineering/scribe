@@ -35,6 +35,7 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+	locksmith "github.com/insightsengineering/locksmith/cmd"
 )
 
 const defaultCranMirrorURL = "https://cloud.r-project.org"
@@ -46,6 +47,10 @@ const download = "download"
 const github = "github"
 const gitlab = "gitlab"
 const targzExtensionFile = "tar.gz"
+const tarGzExtension = ".tar.gz"
+const archivesSubdirectory = "/package_archives/"
+const srcContrib = "/src/contrib/"
+const biocPackagesPrefix = "/package_files/BIOC_PACKAGES_"
 
 type DownloadInfo struct {
 	// if statusCode > 0 it is identical to HTTP status code from download, or 200 in case of successful
@@ -115,11 +120,9 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 }
 
 // Returns HTTP status code for downloaded file and number of bytes in downloaded content.
-func downloadFile(url string, outputFile string) (int, int64) {
+func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 	// Get the data
-	tr := &http.Transport{ // #nosec
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec
-	} // #nosec
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
 	checkError(err)
@@ -271,8 +274,8 @@ func getCranPackageDetails(packageName string, packageVersion string, repoURL st
 	if runtime.GOOS == "linux" {
 		// Download source or binary packages for Linux (depending on exact repository URL).
 		var packageURL string
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
-			"_" + packageVersion + ".tar.gz"
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + packageVersion + tarGzExtension
 		// Check if package is in current CRAN repository.
 		var versionInCran string
 		packageInfo, ok := currentCranPackageInfo[packageName]
@@ -287,7 +290,7 @@ func getCranPackageDetails(packageName string, packageVersion string, repoURL st
 		if ok && versionInCran == packageVersion {
 			// Check if the package is cached locally.
 			localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
-			packageURL = repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
+			packageURL = repoURL + srcContrib + packageName + "_" + packageVersion + tarGzExtension
 			if ok {
 				return cache, "tar.gz", packageURL, "", localCachedFile.Path, "", localCachedFile.Length
 			}
@@ -301,16 +304,16 @@ func getCranPackageDetails(packageName string, packageVersion string, repoURL st
 			" from CRAN Archive.",
 		)
 		packageURL = repoURL + "/src/contrib/Archive/" + packageName +
-			"/" + packageName + "_" + packageVersion + ".tar.gz"
+			"/" + packageName + "_" + packageVersion + tarGzExtension
 		// In case the requested package version cannot be found neither in current CRAN or CRAN archive,
 		// we'll try to download the version from current CRAN as fallback.
-		fallbackPackageURL := repoURL + "/src/contrib/" + packageName + "_" + versionInCran + ".tar.gz"
-		fallbackOutputLocation := localOutputDirectory + "/package_archives/" + packageName +
-			"_" + versionInCran + ".tar.gz"
+		fallbackPackageURL := repoURL + srcContrib + packageName + "_" + versionInCran + tarGzExtension
+		fallbackOutputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + versionInCran + tarGzExtension
 		return download, "tar.gz", packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, 0
 	} else if runtime.GOOS == "windows" {
 		// Download binary packages for Windows.
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
 			"_" + packageVersion + ".zip"
 		packageURL := repoURL + "/" + packageName + "_" + packageVersion + ".zip"
 		log.Debug("Downloading Windows binary package from ", packageURL)
@@ -327,8 +330,8 @@ func getBioconductorPackageDetails(packageName string, packageVersion string, re
 		// Download source or binary packages for Linux (depending on exact repository URL).
 		var packageChecksum string
 		var packageURL string
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
-			"_" + packageVersion + ".tar.gz"
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + packageVersion + tarGzExtension
 		for _, biocCategory := range bioconductorCategories {
 			biocPackageInfo, ok := biocPackageInfo[biocCategory][packageName]
 			if ok {
@@ -339,7 +342,7 @@ func getBioconductorPackageDetails(packageName string, packageVersion string, re
 				if biocPackageInfo.Version == packageVersion {
 					log.Debug("Retrieving package ", packageName, " from BioConductor current.")
 					packageURL = biocUrls[biocCategory] + "/" + packageName +
-						"_" + packageVersion + ".tar.gz"
+						"_" + packageVersion + tarGzExtension
 					packageChecksum = biocPackageInfo.Checksum
 				} else {
 					// Package not found in current Bioconductor.
@@ -349,7 +352,7 @@ func getBioconductorPackageDetails(packageName string, packageVersion string, re
 						" from Bioconductor Archive.",
 					)
 					packageURL = biocUrls[biocCategory] + "/Archive/" + packageName + "/" + packageName +
-						"_" + packageVersion + ".tar.gz"
+						"_" + packageVersion + tarGzExtension
 				}
 				break
 			}
@@ -445,9 +448,9 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		// Repositories other than CRAN or BioConductor.
 		// It is assumed that the requested package version is the newest available.
 		// Archive is not checked.
-		packageURL := repoURL + "/src/contrib/" + packageName + "_" + packageVersion + ".tar.gz"
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
-			"_" + packageVersion + ".tar.gz"
+		packageURL := repoURL + srcContrib + packageName + "_" + packageVersion + tarGzExtension
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + packageVersion + tarGzExtension
 		return download, "", packageURL, "", outputLocation, "", 0
 	}
 }
@@ -566,8 +569,22 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 		if strings.HasPrefix(newLine, "MD5sum:") {
 			checksumFields := strings.Fields(newLine)
 			checksum := checksumFields[1]
-			packageInfo[currentlyProcessedPackageName] = &PackageInfo{
-				currentlyProcessedPackageVersion, checksum}
+			previouslyAddedPackage, ok := packageInfo[currentlyProcessedPackageName]
+			overwriteVersion := false
+			if ok {
+				// Package has already been added to packageInfo map.
+				previouslyAddedVersion := previouslyAddedPackage.Version
+				if locksmith.CheckIfVersionSufficient(currentlyProcessedPackageVersion, ">", previouslyAddedVersion) {
+					overwriteVersion = true
+				}
+			}
+			if !ok || overwriteVersion {
+				// We're adding the package to packageInfo for the first time, or the new package
+				// entry contains a newer package version than previously encountered in PACKAGES,
+				// so we treat the new one as truly latest package version in the repository.
+				packageInfo[currentlyProcessedPackageName] = &PackageInfo{
+					currentlyProcessedPackageVersion, checksum}
+			}
 		}
 	}
 }
@@ -586,14 +603,13 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 	for _, biocCategory := range bioconductorCategories {
 		biocPackageInfo[biocCategory] = make(map[string]*PackageInfo)
 		status, _ := downloadFileFunction(
-			biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+
-				"/package_files/BIOC_PACKAGES_"+
+			biocUrls[biocCategory]+"/PACKAGES", localOutputDirectory+biocPackagesPrefix+
 				strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 		)
 		if status == http.StatusOK {
 			// Get BioConductor package versions and their checksums.
 			parsePackagesFile(
-				localOutputDirectory+"/package_files/BIOC_PACKAGES_"+
+				localOutputDirectory+biocPackagesPrefix+
 					strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_")),
 				biocPackageInfo[biocCategory],
 			)
@@ -605,7 +621,7 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 // TODO parallelize this if required - takes around 3 seconds for 820 MB of data
 func computeChecksums(directoryPath string, localArchiveChecksums map[string]*CacheInfo) {
 	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(info.Name(), ".tar.gz") {
+		if strings.HasSuffix(info.Name(), tarGzExtension) {
 			filePath := directoryPath + "/" + info.Name()
 			byteValue, err := os.ReadFile(filePath)
 			checkError(err)
