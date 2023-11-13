@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/jamiealquiza/envy"
 	"github.com/sirupsen/logrus"
@@ -48,14 +49,15 @@ var rCmdCheckFailRegex string
 
 var log = logrus.New()
 
-var temporalLibPath string
+var temporaryLibPath string
 var rLibsPaths string
+var rExecutable string
 
 // within below directory:
 // tar.gz packages are downloaded to package_archives subdirectory
 // GitHub repositories are cloned into github subdirectory
 // GitLab repositories are cloned into gitlab subdirectory
-const localOutputDirectory = "/tmp/scribe/downloaded_packages"
+var localOutputDirectory string
 
 const tempCacheDirectory = "/tmp/scribe/cache"
 
@@ -158,9 +160,19 @@ func newRootCommand() {
 				clearCachedData()
 			}
 
-			temporalLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
-			rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+			if runtime.GOOS == "linux" {
+				temporaryLibPath = "/tmp/scribe/installed_packages"
+				rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+				localOutputDirectory = "/tmp/scribe/downloaded_packages"
+				rExecutable = "R"
+			} else if runtime.GOOS == "windows" {
+				temporaryLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+				rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+				localOutputDirectory = os.Getenv("TMP") + `\tmp\scribe\downloaded_packages`
+				rExecutable = `'C:\Program Files\R\R-4.3.2\bin\R.exe'`
+			}
 
+			// Temporary to check whether execCommand sets the environment variables properly.
 			logFile, logFileErr := os.OpenFile(os.Getenv("TMP") + `\tempLogFile`, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 			checkError(logFileErr)
 			defer logFile.Close()

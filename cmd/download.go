@@ -708,7 +708,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 		)
 	}
 
-	const localCranPackagesPath = localOutputDirectory + "/package_files/CRAN_PACKAGES"
+	localCranPackagesPath := localOutputDirectory + "/package_files/CRAN_PACKAGES"
 
 	currentCranPackageInfo := make(map[string]*PackageInfo)
 	// Prepare a map from package name to the current versions of the

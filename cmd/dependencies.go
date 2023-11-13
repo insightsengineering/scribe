@@ -415,7 +415,6 @@ func getPackageDeps(
 			if _, err := os.Stat(pInfo.Location); !os.IsNotExist(err) {
 				packageDeps := getPackageDepsFromSinglePackageLocation(pInfo.Location, true)
 				deps[pName] = packageDeps
-				log.Info("Dependencies for package ", pName, " = ", packageDeps)
 			} else {
 				log.Errorf("Directory %s for package %s does not exist", pInfo.PackageType, pInfo.Location)
 			}
@@ -425,20 +424,16 @@ func getPackageDeps(
 	// packagesNoDeps contains such packages from packagesSet for which the corresponding key in deps
 	// was non-empty.
 	packagesNoDeps := getMapKeyDiffOrEmpty(packagesSet, deps)
-	log.Info("packagesNoDeps = ", packagesNoDeps)
 	for k := range packagesNoDeps {
-		log.Info("Processing package ", k)
 		info := packagesLocation[k]
 		if info.PackageType == targzExtensionFile {
 			log.Debug("Getting dependencies for ", k, " packages")
 			targzDeps := getPackageDepsFromTarGz(info.Location)
 			deps[k] = targzDeps
-			log.Info("Dependencies for package ", k, " = ", targzDeps)
 		}
 	}
 	// TODO: What does this mean?
 	log.Debugf("Found %d packages with dependencies", len(deps))
-	log.Info("All package dependencies: ", deps)
 	return deps
 }
 
