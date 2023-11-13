@@ -31,8 +31,6 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-// Go through the originMap and remove from it keys for which the corresponsing key in mapskeysToRemove
-// is non-empty.
 func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string][]string) map[string]bool {
 	newmap := make(map[string]bool)
 	for k, v := range originMap {
@@ -421,8 +419,6 @@ func getPackageDeps(
 		}
 	}
 
-	// packagesNoDeps contains such packages from packagesSet for which the corresponding key in deps
-	// was non-empty.
 	packagesNoDeps := getMapKeyDiffOrEmpty(packagesSet, deps)
 	for k := range packagesNoDeps {
 		info := packagesLocation[k]

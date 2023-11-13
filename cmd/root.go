@@ -174,18 +174,6 @@ func newRootCommand() {
 				rExecutable = `'` + rExecutablePath + `'`
 			}
 
-			// Temporary to check whether execCommand sets the environment variables properly.
-			logFile, logFileErr := os.OpenFile(os.Getenv("TMP") + `\tempLogFile`, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-			checkError(logFileErr)
-			defer logFile.Close()
-			output, err3 := execCommand(`powershell.exe -noexit "$env:PATH; $env:R_LIBS; $env:LANG"`, false,
-				[]string{
-					"R_LIBS=" + rLibsPaths,
-					"LANG=en_US.UTF-8",
-				}, logFile)
-			checkError(err3)
-			fmt.Println("output =", output)
-
 			var systemInfo SystemInfo
 			getOsInformation(&systemInfo, maskedEnvVars)
 			var renvLock Renvlock
