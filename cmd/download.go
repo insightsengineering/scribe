@@ -519,7 +519,7 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 			overwriteVersion := false
 			if ok {
 				// Package has already been added to packageInfo map.
-				previouslyAddedVersion := (*previouslyAddedPackage).Version
+				previouslyAddedVersion := previouslyAddedPackage.Version
 				if locksmith.CheckIfVersionSufficient(currentlyProcessedPackageVersion, ">", previouslyAddedVersion) {
 					overwriteVersion = true
 				}
@@ -532,6 +532,9 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 					currentlyProcessedPackageVersion, checksum}
 			}
 		}
+	}
+	for k, v := range packageInfo {
+		log.Debug("package = ", k, " version = ", v.Version)
 	}
 }
 
