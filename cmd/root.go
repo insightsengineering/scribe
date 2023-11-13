@@ -164,7 +164,7 @@ func newRootCommand() {
 			logFile, logFileErr := os.OpenFile(os.Getenv("TMP") + `\tempLogFile`, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 			checkError(logFileErr)
 			defer logFile.Close()
-			output, err3 := execCommand("$env:R_LIBS;$env:LANG", false,
+			output, err3 := execCommand("echo %PATH%      %TEMP%      %R_LIBS%      %LANG%", false,
 				[]string{
 					"R_LIBS=" + rLibsPaths,
 					"LANG=en_US.UTF-8",
