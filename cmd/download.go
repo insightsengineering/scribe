@@ -533,6 +533,9 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 			}
 		}
 	}
+	for k, v := range packageInfo {
+		log.Debug("package = ", k, " version = ", (*v).Version)
+	}
 }
 
 func getBiocUrls(biocVersion string, biocUrls map[string]string) {
@@ -689,7 +692,6 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 			localCranPackagesPath, currentCranPackageInfo,
 		)
 	}
-	log.Debug(currentCranPackageInfo)
 
 	// Before downloading any packages, check which packages have already been downloaded to the cache
 	// and calculate their checksums. Later on, if we see a package to be downloaded that will have a matching
