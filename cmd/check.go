@@ -210,7 +210,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
+			rLibsVarName + rLibsPaths,
 			"LANG=en_US.UTF-8",
 		}, logFile)
 	checkError(err)
@@ -228,7 +228,7 @@ func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packageFile string, additionalOptions string) {
 	cmdCheckChan := make(chan string)
 	packageName := strings.Split(packageFile, "_")[0]
-	logFilePath := checkLogPath + "/" + packageName + ".html"
+	logFilePath := checkLogPath + "/" + packageName + htmlExtension
 	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath, additionalOptions)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
