@@ -50,6 +50,7 @@ type RenvInfo struct {
 }
 
 const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
+const HTMLLinkEnd = "</a>"
 
 // Copies all files from sourceDirectory to destinationDirectory (not recursively).
 // Adds filePrefix prefix to each copied file name.
@@ -107,7 +108,7 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 		filePath := "<a href=\"./logs/install-" + filepath.Base(p.LogFilePath) + "\">"
 		switch p.Status {
 		case InstallResultInfoStatusSucceeded:
-			installStatusText = filePath + HTMLStatusOK + "</a>"
+			installStatusText = filePath + HTMLStatusOK + HTMLLinkEnd
 		case InstallResultInfoStatusSkipped:
 			installStatusText = filePath + "<span class=\"badge bg-info text-dark\">skipped</span></a>"
 		case InstallResultInfoStatusFailed:
@@ -130,7 +131,7 @@ func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
 		filePath := "<a href=\"./logs/build-" + filepath.Base(p.BuildLogFilePath) + "\">"
 		switch p.BuildStatus {
 		case buildStatusSucceeded:
-			buildStatusText = filePath + HTMLStatusOK + "</a>"
+			buildStatusText = filePath + HTMLStatusOK + HTMLLinkEnd
 		case buildStatusFailed:
 			buildStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
 		}
@@ -151,7 +152,7 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 		filePath := "<a href=\"./logs/check-" + filepath.Base(p.LogFilePath) + "\">"
 		switch p.MostSevereCheckItem {
 		case "OK":
-			checkStatusText = filePath + HTMLStatusOK + "</a>"
+			checkStatusText = filePath + HTMLStatusOK + HTMLLinkEnd
 		case "NOTE":
 			checkStatusText = filePath +
 				"<span class=\"badge bg-info text-dark\">check note(s)</span></a>"

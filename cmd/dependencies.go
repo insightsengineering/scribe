@@ -94,10 +94,8 @@ func cleanDescription(description string) string {
 	return content
 }
 
-func request(url string) (string, error) {
-	tr := &http.Transport{ // #nosec
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec
-	} // #nosec
+func request(url string) (string, error) { // #nosec G402
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: tr}
 	log.Tracef("Requesting %s" + url)
 	resp, errc := client.Get(url)
@@ -360,7 +358,7 @@ func getPackageDepsFromBioconductor(packages map[string]bool, bioconductorVersio
 	deps := make(map[string][]string)
 
 	for _, biocCategory := range bioconductorCategories {
-		packageFileLocation := localOutputDirectory + "/package_files/BIOC_PACKAGES_" + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_"))
+		packageFileLocation := localOutputDirectory + biocPackagesPrefix + strings.ToUpper(strings.ReplaceAll(biocCategory, "/", "_"))
 		var depsBiocCategory map[string][]string
 		if _, err := os.Stat(packageFileLocation); !os.IsNotExist(err) {
 			depsBiocCategory = getPackageDepsFromPackagesFile(packageFileLocation, packages, includeSuggests)
@@ -434,15 +432,16 @@ func getPackageDeps(
 }
 
 func getCrandbURL(packagesWithVersion map[string]string) string {
+	const encodedQuote = "%22"
 	acc := ""
 	for k, v := range packagesWithVersion {
 		if len(acc) > 0 {
 			acc += ","
 		}
 		if v != "" {
-			acc += "%22" + k + "-" + v + "%22"
+			acc += encodedQuote + k + "-" + v + encodedQuote
 		} else {
-			acc += "%22" + k + "%22"
+			acc += encodedQuote + k + encodedQuote
 		}
 	}
 	return "https://crandb.r-pkg.org/-/versions?keys=[" + acc + "]"
