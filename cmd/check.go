@@ -210,8 +210,8 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
-			"LANG=en_US.UTF-8",
+			"$env:R_LIBS=" + rLibsPaths,
+			"$env:LANG=en_US.UTF-8",
 		}, logFile)
 	checkError(err)
 	// Close HTML tags

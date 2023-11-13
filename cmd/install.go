@@ -175,8 +175,8 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	// Execute the command
 	output, err := execCommand(cmd, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
-			"LANG=en_US.UTF-8",
+			"$env:R_LIBS=" + rLibsPaths,
+			"$env:LANG=en_US.UTF-8",
 		}, buildLogFile)
 	if err != nil {
 		log.Errorf("Error with build: %s . Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s",
@@ -206,8 +206,8 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
 		[]string{
-			"R_LIBS=" + rLibsPaths,
-			"LANG=en_US.UTF-8",
+			"$env:R_LIBS=" + rLibsPaths,
+			"$env:LANG=en_US.UTF-8",
 		}, logFile)
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
 }
