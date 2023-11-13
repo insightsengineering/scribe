@@ -48,6 +48,9 @@ var rCmdCheckFailRegex string
 
 var log = logrus.New()
 
+var temporalLibPath string
+var rLibsPaths string
+
 // within below directory:
 // tar.gz packages are downloaded to package_archives subdirectory
 // GitHub repositories are cloned into github subdirectory
@@ -154,6 +157,20 @@ func newRootCommand() {
 			if clearCache {
 				clearCachedData()
 			}
+
+			temporalLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+			rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+
+			logFile, logFileErr := os.OpenFile(os.Getenv("TMP") + `\tempLogFile`, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+			checkError(logFileErr)
+			defer logFile.Close()
+			output, err3 := execCommand("$env:R_LIBS;$env:LANG", false,
+				[]string{
+					"R_LIBS=" + rLibsPaths,
+					"LANG=en_US.UTF-8",
+				}, logFile)
+			checkError(err3)
+			fmt.Println("output =", output)
 
 			var systemInfo SystemInfo
 			getOsInformation(&systemInfo, maskedEnvVars)
