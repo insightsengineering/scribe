@@ -515,12 +515,12 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 		if strings.HasPrefix(newLine, "MD5sum:") {
 			checksumFields := strings.Fields(newLine)
 			checksum := checksumFields[1]
-			previousPackage, ok := packageInfo[currentlyProcessedPackageName]
+			previouslyAddedPackage, ok := packageInfo[currentlyProcessedPackageName]
 			overwriteVersion := false
 			if ok {
 				// Package has already been added to packageInfo map.
-				previousVersion := (*previousPackage).Version
-				if locksmith.CheckIfVersionSufficient(currentlyProcessedPackageVersion, ">", previousVersion) {
+				previouslyAddedVersion := (*previouslyAddedPackage).Version
+				if locksmith.CheckIfVersionSufficient(currentlyProcessedPackageVersion, ">", previouslyAddedVersion) {
 					overwriteVersion = true
 				}
 			}
@@ -532,9 +532,6 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 					currentlyProcessedPackageVersion, checksum}
 			}
 		}
-	}
-	for k, v := range packageInfo {
-		log.Debug("package = ", k, " version = ", (*v).Version)
 	}
 }
 
