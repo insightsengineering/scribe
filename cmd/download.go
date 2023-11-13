@@ -34,6 +34,7 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+	locksmith "github.com/insightsengineering/locksmith/cmd"
 )
 
 const defaultCranMirrorURL = "https://cloud.r-project.org"
@@ -514,8 +515,22 @@ func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
 		if strings.HasPrefix(newLine, "MD5sum:") {
 			checksumFields := strings.Fields(newLine)
 			checksum := checksumFields[1]
-			packageInfo[currentlyProcessedPackageName] = &PackageInfo{
-				currentlyProcessedPackageVersion, checksum}
+			previousPackage, ok := packageInfo[currentlyProcessedPackageName]
+			overwriteVersion := false
+			if ok {
+				// Package has already been added to packageInfo map.
+				previousVersion := (*previousPackage).Version
+				if locksmith.CheckIfVersionSufficient(currentlyProcessedPackageVersion, ">", previousVersion) {
+					overwriteVersion = true
+				}
+			}
+			if !ok || overwriteVersion {
+				// We're adding the package to packageInfo for the first time, or the new package
+				// entry contains a newer package version than previously encountered in PACKAGES,
+				// so we treat the new one as truly latest package version in the repository.
+				packageInfo[currentlyProcessedPackageName] = &PackageInfo{
+					currentlyProcessedPackageVersion, checksum}
+			}
 		}
 	}
 }
@@ -674,6 +689,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 			localCranPackagesPath, currentCranPackageInfo,
 		)
 	}
+	log.Debug(currentCranPackageInfo)
 
 	// Before downloading any packages, check which packages have already been downloaded to the cache
 	// and calculate their checksums. Later on, if we see a package to be downloaded that will have a matching
