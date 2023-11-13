@@ -46,6 +46,7 @@ var buildOptions string
 var checkOptions string
 var installOptions string
 var rCmdCheckFailRegex string
+var rExecutablePath string
 
 var log = logrus.New()
 
@@ -142,6 +143,7 @@ func newRootCommand() {
 			fmt.Println("installOptions = ", installOptions)
 			fmt.Println("checkOptions = ", checkOptions)
 			fmt.Println("rCmdCheckFailRegex = ", rCmdCheckFailRegex)
+			fmt.Println("rExecutablePath = ", rExecutablePath)
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -164,12 +166,12 @@ func newRootCommand() {
 				temporaryLibPath = "/tmp/scribe/installed_packages"
 				rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
 				localOutputDirectory = "/tmp/scribe/downloaded_packages"
-				rExecutable = "R"
+				rExecutable = rExecutablePath
 			} else if runtime.GOOS == "windows" {
 				temporaryLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
 				rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
 				localOutputDirectory = os.Getenv("TMP") + `\tmp\scribe\downloaded_packages`
-				rExecutable = `'C:\Program Files\R\R-4.3.2\bin\R.exe'`
+				rExecutable = `'` + rExecutablePath + `'`
 			}
 
 			// Temporary to check whether execCommand sets the environment variables properly.
@@ -314,7 +316,9 @@ func newRootCommand() {
 		"Extra options to pass to R CMD check. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
 		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
-			"(only when failOnError is true).")
+		"(only when failOnError is true).")
+	rootCmd.PersistentFlags().StringVar(&rExecutablePath, "rExecutablePath", "R",
+		"Path to the R executable.")
 
 	// Add version command.
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
@@ -380,6 +384,7 @@ func initializeConfig() {
 		"installOptions",
 		"checkOptions",
 		"rCmdCheckFailRegex",
+		"rExecutablePath",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been
