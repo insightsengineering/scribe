@@ -107,4 +107,3 @@ jobs:
 
       - name: Check if compilation works 🧱
         run: make build
-
