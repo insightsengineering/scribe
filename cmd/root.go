@@ -162,16 +162,16 @@ func newRootCommand() {
 				clearCachedData()
 			}
 
-			if runtime.GOOS == "linux" {
-				temporaryLibPath = "/tmp/scribe/installed_packages"
-				rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
-				localOutputDirectory = "/tmp/scribe/downloaded_packages"
-				rExecutable = rExecutablePath
-			} else if runtime.GOOS == "windows" {
+			if runtime.GOOS == windows {
 				temporaryLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
 				rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
 				localOutputDirectory = os.Getenv("TMP") + `\tmp\scribe\downloaded_packages`
 				rExecutable = `'` + rExecutablePath + `'`
+			} else {
+				temporaryLibPath = "/tmp/scribe/installed_packages"
+				rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+				localOutputDirectory = "/tmp/scribe/downloaded_packages"
+				rExecutable = rExecutablePath
 			}
 
 			var systemInfo SystemInfo
@@ -304,7 +304,7 @@ func newRootCommand() {
 		"Extra options to pass to R CMD check. Options must be supplied in double quoted string.")
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
 		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
-		"(only when failOnError is true).")
+			"(only when failOnError is true).")
 	rootCmd.PersistentFlags().StringVar(&rExecutablePath, "rExecutablePath", "R",
 		"Path to the R executable.")
 

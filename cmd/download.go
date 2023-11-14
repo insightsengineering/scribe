@@ -26,10 +26,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
-	"runtime"
 
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -46,8 +46,11 @@ const cache = "cache"
 const download = "download"
 const github = "github"
 const gitlab = "gitlab"
+const windows = "windows"
 const targzExtensionFile = "tar.gz"
 const tarGzExtension = ".tar.gz"
+const zipExtension = ".zip"
+const tgzExtension = ".tgz"
 const archivesSubdirectory = "/package_archives/"
 const srcContrib = "/src/contrib/"
 const biocPackagesPrefix = "/package_files/BIOC_PACKAGES_"
@@ -270,140 +273,159 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 
 func getCranPackageDetails(packageName string, packageVersion string, repoURL string,
 	currentCranPackageInfo map[string]*PackageInfo, localArchiveChecksums map[string]*CacheInfo,
-	) (string, string, string, string, string, string, int64) {
-	if runtime.GOOS == "linux" {
-		// Download source or binary packages for Linux (depending on exact repository URL).
-		var packageURL string
-		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
-			"_" + packageVersion + tarGzExtension
-		// Check if package is in current CRAN repository.
-		var versionInCran string
-		packageInfo, ok := currentCranPackageInfo[packageName]
-		if ok {
-			versionInCran = packageInfo.Version
-		}
-		if ok {
-			log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
-		} else {
-			log.Debug("CRAN current doesn't have ", packageName, " in any version.")
-		}
-		if ok && versionInCran == packageVersion {
-			// Check if the package is cached locally.
-			localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
-			packageURL = repoURL + srcContrib + packageName + "_" + packageVersion + tarGzExtension
-			if ok {
-				return cache, "tar.gz", packageURL, "", localCachedFile.Path, "", localCachedFile.Length
-			}
-			// Package not cached locally.
-			log.Debug("Retrieving package ", packageName, " from CRAN current.")
-			return download, "tar.gz", packageURL, "", outputLocation, "", 0
-		}
-		// If CRAN current doesn't have the package version, look for the package in Archive.
-		log.Debug(
-			"Attempting to retrieve ", packageName, " version ", packageVersion,
-			" from CRAN Archive.",
-		)
-		packageURL = repoURL + "/src/contrib/Archive/" + packageName +
-			"/" + packageName + "_" + packageVersion + tarGzExtension
-		// In case the requested package version cannot be found neither in current CRAN or CRAN archive,
-		// we'll try to download the version from current CRAN as fallback.
-		fallbackPackageURL := repoURL + srcContrib + packageName + "_" + versionInCran + tarGzExtension
-		fallbackOutputLocation := localOutputDirectory + archivesSubdirectory + packageName +
-			"_" + versionInCran + tarGzExtension
-		return download, "tar.gz", packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, 0
-	} else if runtime.GOOS == "windows" {
+) (string, string, string, string, string, string, int64) {
+	if runtime.GOOS == windows {
 		// Download binary packages for Windows.
 		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
-			"_" + packageVersion + ".zip"
-		packageURL := repoURL + "/" + packageName + "_" + packageVersion + ".zip"
+			"_" + packageVersion + zipExtension
+		packageURL := repoURL + "/" + packageName + "_" + packageVersion + zipExtension
 		log.Debug("Downloading Windows binary package from ", packageURL)
 		return download, "zip", packageURL, "", outputLocation, "", 0
+	} else if runtime.GOOS == "darwin" {
+		// Download binary packages for macOS.
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + packageVersion + tgzExtension
+		packageURL := repoURL + "/" + packageName + "_" + packageVersion + tgzExtension
+		log.Debug("Downloading macOS binary package from ", packageURL)
+		return download, "tgz", packageURL, "", outputLocation, "", 0
 	}
-	// TODO add support for macOS binary packages
-	return "", "", "", "", "", "", 0
+	// Download source or binary packages for Linux (depending on exact repository URL).
+	var packageURL string
+	outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+		"_" + packageVersion + tarGzExtension
+	// Check if package is in current CRAN repository.
+	var versionInCran string
+	packageInfo, ok := currentCranPackageInfo[packageName]
+	if ok {
+		versionInCran = packageInfo.Version
+	}
+	if ok {
+		log.Debug("CRAN current has package ", packageName, " version ", versionInCran, ".")
+	} else {
+		log.Debug("CRAN current doesn't have ", packageName, " in any version.")
+	}
+	if ok && versionInCran == packageVersion {
+		// Check if the package is cached locally.
+		localCachedFile, ok := localArchiveChecksums[packageInfo.Checksum]
+		packageURL = repoURL + srcContrib + packageName + "_" + packageVersion + tarGzExtension
+		if ok {
+			return cache, targzExtensionFile, packageURL, "", localCachedFile.Path, "", localCachedFile.Length
+		}
+		// Package not cached locally.
+		log.Debug("Retrieving package ", packageName, " from CRAN current.")
+		return download, targzExtensionFile, packageURL, "", outputLocation, "", 0
+	}
+	// If CRAN current doesn't have the package version, look for the package in Archive.
+	log.Debug(
+		"Attempting to retrieve ", packageName, " version ", packageVersion,
+		" from CRAN Archive.",
+	)
+	packageURL = repoURL + "/src/contrib/Archive/" + packageName +
+		"/" + packageName + "_" + packageVersion + tarGzExtension
+	// In case the requested package version cannot be found neither in current CRAN or CRAN archive,
+	// we'll try to download the version from current CRAN as fallback.
+	fallbackPackageURL := repoURL + srcContrib + packageName + "_" + versionInCran + tarGzExtension
+	fallbackOutputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+		"_" + versionInCran + tarGzExtension
+	return download, targzExtensionFile, packageURL, fallbackPackageURL, outputLocation, fallbackOutputLocation, 0
 }
 
 func getBioconductorPackageDetails(packageName string, packageVersion string, repoURL string,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo) (string, string, string, string, int64) {
-	if runtime.GOOS == "linux" {
-		// Download source or binary packages for Linux (depending on exact repository URL).
-		var packageChecksum string
-		var packageURL string
-		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
-			"_" + packageVersion + tarGzExtension
-		for _, biocCategory := range bioconductorCategories {
-			biocPackageInfo, ok := biocPackageInfo[biocCategory][packageName]
-			if ok {
-				log.Debug(
-					"BioConductor category ", biocCategory, " has package ", packageName,
-					" version ", biocPackageInfo.Version, ".",
-				)
-				if biocPackageInfo.Version == packageVersion {
-					log.Debug("Retrieving package ", packageName, " from BioConductor current.")
-					packageURL = biocUrls[biocCategory] + "/" + packageName +
-						"_" + packageVersion + tarGzExtension
-					packageChecksum = biocPackageInfo.Checksum
-				} else {
-					// Package not found in current Bioconductor.
-					// Try to retrieve it from Bioconductor archive.
-					log.Debug(
-						"Attempting to retrieve ", packageName, " version ", packageVersion,
-						" from Bioconductor Archive.",
-					)
-					packageURL = biocUrls[biocCategory] + "/Archive/" + packageName + "/" + packageName +
-						"_" + packageVersion + tarGzExtension
-				}
-				break
-			}
-		}
-		if packageURL != "" {
-			// Check if package is cached locally.
-			localCachedFile, ok := localArchiveChecksums[packageChecksum]
-			if ok {
-				return cache, "bioconductor", packageURL, localCachedFile.Path, localCachedFile.Length
-			}
-			// Package not cached locally.
-			return download, "bioconductor", packageURL, outputLocation, 0
-		}
-		// Package not found in any Bioconductor category.
-		return "notfound_bioc", "", "", "", 0
-	} else if runtime.GOOS == "windows" {
+	if runtime.GOOS == windows {
 		// Download binary packages for Windows.
-		outputLocation := localOutputDirectory + "/package_archives/" + packageName +
-			"_" + packageVersion + ".zip"
-		packageURL := repoURL + "/" + packageName + "_" + packageVersion + ".zip"
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + packageVersion + zipExtension
+		packageURL := repoURL + "/" + packageName + "_" + packageVersion + zipExtension
 		log.Debug("Downloading Windows binary package from ", packageURL)
 		return download, "zip", packageURL, outputLocation, 0
+	} else if runtime.GOOS == "darwin" {
+		// Download binary packages for macOS.
+		outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+			"_" + packageVersion + tgzExtension
+		packageURL := repoURL + "/" + packageName + "_" + packageVersion + tgzExtension
+		log.Debug("Downloading macOS binary package from ", packageURL)
+		return download, "tgz", packageURL, outputLocation, 0
 	}
-	// TODO add support for macOS binary packages
-	return "", "", "", "", 0
+	// Download source or binary packages for Linux (depending on exact repository URL).
+	var packageChecksum string
+	var packageURL string
+	outputLocation := localOutputDirectory + archivesSubdirectory + packageName +
+		"_" + packageVersion + tarGzExtension
+	for _, biocCategory := range bioconductorCategories {
+		biocPackageInfo, ok := biocPackageInfo[biocCategory][packageName]
+		if ok {
+			log.Debug(
+				"BioConductor category ", biocCategory, " has package ", packageName,
+				" version ", biocPackageInfo.Version, ".",
+			)
+			if biocPackageInfo.Version == packageVersion {
+				log.Debug("Retrieving package ", packageName, " from BioConductor current.")
+				packageURL = biocUrls[biocCategory] + "/" + packageName +
+					"_" + packageVersion + tarGzExtension
+				packageChecksum = biocPackageInfo.Checksum
+			} else {
+				// Package not found in current Bioconductor.
+				// Try to retrieve it from Bioconductor archive.
+				log.Debug(
+					"Attempting to retrieve ", packageName, " version ", packageVersion,
+					" from Bioconductor Archive.",
+				)
+				packageURL = biocUrls[biocCategory] + "/Archive/" + packageName + "/" + packageName +
+					"_" + packageVersion + tarGzExtension
+			}
+			break
+		}
+	}
+	if packageURL != "" {
+		// Check if package is cached locally.
+		localCachedFile, ok := localArchiveChecksums[packageChecksum]
+		if ok {
+			return cache, "bioconductor", packageURL, localCachedFile.Path, localCachedFile.Length
+		}
+		// Package not cached locally.
+		return download, "bioconductor", packageURL, outputLocation, 0
+	}
+	// Package not found in any Bioconductor category.
+	return "notfound_bioc", "", "", "", 0
 }
 
 // Returns:
 // * information how the package should be accessed:
+//
 //   - "download" means the package should be downloaded as a tar.gz file from CRAN, Bioconductor or some other repo
+//
 //   - "cache" means the package is available in local cache because it has been previously downloaded
+//
 //   - "github" means the package should be cloned as a GitHub repository
+//
 //   - "gitlab" means the package should be cloned as a GitLab repository
+//
 //   - "notfound_bioc" means the package couldn't be found in Bioconductor
 //
-// * package type: tar.gz for Linux packages, zip for Windows binary packages, tgz for macOS binary packages
-// * URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
-// * fallback URL - in case specific package version can't be found in CRAN, it is downloaded in the newest available CRAN version
-// * location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
-// * fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
-// * number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
+//   - package type: tar.gz for Linux packages, zip for Windows binary packages, tgz for macOS binary packages
+//     in other cases this field is empty
+//
+//   - URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
+//
+//   - fallback URL - in case specific package version can't be found in CRAN, it is downloaded in the newest available CRAN version
+//
+//   - location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
+//
+//   - fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
+//
+//   - number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
 func getPackageDetails(packageName string, packageVersion string, repoURL string,
 	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
 	localArchiveChecksums map[string]*CacheInfo) (string, string, string, string, string, string, int64) {
 	switch {
-	case repoURL == defaultCranMirrorURL || strings.Contains(repoURL, defaultCranMirrorURL + "/bin"):
+	case repoURL == defaultCranMirrorURL || strings.Contains(repoURL, defaultCranMirrorURL+"/bin"):
 		// This is a situation where:
 		// * the repository from which the package should be downloaded
 		//   as defined in the renv.lock, is not itself defined in the renv.lock or,
-		// * package should be downloaded from binary repository for Windows or macOS.
+		// * package should be downloaded from binary CRAN repository for Windows or macOS.
 		//   Here the assumption is that if the renv.lock points to a repository like:
 		//   https://cloud.r-project.org/bin/windows/contrib/4.2 or https://cloud.r-project.org/bin/macosx/contrib/4.2
 		//   then the package in a given version exists in that repository, and scribe will not verify that.
@@ -415,7 +437,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		strings.Contains(repoURL, "bin/")):
 		// This is a situation where:
 		// * the package points to Bioconductor package source ("Source": "Bioconductor" in the renv.lock) or,
-		// * package should be downloaded from binary repository for Windows or macOS.
+		// * package should be downloaded from binary BioConductor repository for Windows or macOS.
 		//   Here the assumption is that if the renv.lock points to a repository like:
 		//   https://www.bioconductor.org/packages/release/bioc/bin/windows/contrib/4.2 or,
 		//   https://www.bioconductor.org/packages/release/bioc/bin/macosx/big-sur-arm64/contrib/4.2 or,
