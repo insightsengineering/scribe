@@ -115,6 +115,7 @@ jobs:
           path: dist/scribe_darwin_amd64_v1/scribe
 
   macos-test:
+    needs: compilation
     runs-on: macos-latest
     steps:
       - name: Download macOS binary
