@@ -48,13 +48,38 @@ numberOfWorkers: 32
 clearCache: true
 ```
 
+## Binary dependencies
+
+For `scribe` to use binary packages, it expects the `renv.lock` to contain the repository definitions pointing to the binary repositories.
+
+Examples of expected format of binary repository URLs:
+
+* Linux:
+  * `https://packagemanager.posit.co/cran/__linux__/<distribution-name>/latest`
+* Windows:
+  * `https://cloud.r-project.org/bin/windows/contrib/<r-version>`
+  * `https://www.bioconductor.org/packages/release/bioc/bin/windows/contrib/<r-version>`
+  * `https://packagemanager.posit.co/cran/latest/bin/windows/contrib/<r-version>`
+* macOS:
+  * `https://cloud.r-project.org/bin/macosx/contrib/<r-version>`
+  * `https://www.bioconductor.org/packages/release/bioc/bin/macosx/big-sur-arm64/contrib/<r-version>`
+  * `https://www.bioconductor.org/packages/release/bioc/bin/macosx/big-sur-x86_64/contrib/<r-version>`
+  * `https://packagemanager.posit.co/cran/latest/bin/macosx/big-sur-x86_64/contrib/<r-version>`
+  * `https://packagemanager.posit.co/cran/latest/bin/macosx/big-sur-arm64/contrib/<r-version>`
+
+where `<r-version>` is e.g. `4.2`, `4.3` etc.
+
+In all cases the URL points to a directory where the `PACKAGES` file is located.
+
+Additionally, on Windows it might be required to point `scribe` to a local R installation, for example by using flag: `--rExecutablePath 'C:\Program Files\R\R-4.3.2\bin\R.exe'`.
+
 ## Environment variables
 
 Scribe reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
 For example, setting the following variables will override the respective values from configuration file:
 `SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_CHECKALLPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
 
-The precedence is like this (→ means "takes precedence over" or "overrides"):
+The order of precedence is:
 
 CLI flag → environment variable → configuration file → default value.
 

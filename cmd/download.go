@@ -404,18 +404,19 @@ func getBioconductorPackageDetails(packageName string, packageVersion string, re
 //
 //   - "notfound_bioc" means the package couldn't be found in Bioconductor
 //
-//   - package type: tar.gz for Linux packages, zip for Windows binary packages, tgz for macOS binary packages
-//     in other cases this field is empty
+// * package type: "bioconductor" for BioConductor Linux packages, "tar.gz" for other Linux packages,
+// zip for Windows binary packages, tgz for macOS binary packages,
+// in other cases this field is empty
 //
-//   - URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
+// * URL from which the package should be downloaded or cloned (or has originally been downloaded from, if it's available in cache)
 //
-//   - fallback URL - in case specific package version can't be found in CRAN, it is downloaded in the newest available CRAN version
+// * fallback URL - in case specific package version can't be found in CRAN, it is downloaded in the newest available CRAN version
 //
-//   - location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
+// * location where the package will be downloaded (filepath to the tar.gz file or git repo directory)
 //
-//   - fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
+// * fallback location - filepath to tar.gz file in case package is downloaded from the fallback URL
 //
-//   - number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
+// * number of bytes saved due to retrieving file from cache (size of the tar.gz file in cache), if not found in cache: 0
 func getPackageDetails(packageName string, packageVersion string, repoURL string,
 	packageSource string, currentCranPackageInfo map[string]*PackageInfo,
 	biocPackageInfo map[string]map[string]*PackageInfo, biocUrls map[string]string,
@@ -424,7 +425,8 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 	case repoURL == defaultCranMirrorURL || strings.Contains(repoURL, defaultCranMirrorURL+"/bin"):
 		// This is a situation where:
 		// * the repository from which the package should be downloaded
-		//   as defined in the renv.lock, is not itself defined in the renv.lock or,
+		//   as defined in the renv.lock, is not itself defined in the renv.lock
+		//   (in that case getRepositoryURL and getRenvRepositoryURL will return default CRAN URL) or,
 		// * package should be downloaded from binary CRAN repository for Windows or macOS.
 		//   Here the assumption is that if the renv.lock points to a repository like:
 		//   https://cloud.r-project.org/bin/windows/contrib/4.2 or https://cloud.r-project.org/bin/macosx/contrib/4.2

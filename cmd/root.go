@@ -70,8 +70,8 @@ func setLogLevel() {
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.ForceColors = true
 	log.SetFormatter(customFormatter)
-	log.SetReportCaller(false)
-	customFormatter.FullTimestamp = false
+	log.SetReportCaller(true)
+	customFormatter.FullTimestamp = true
 	fmt.Println("Loglevel =", logLevel)
 	switch logLevel {
 	case "trace":
