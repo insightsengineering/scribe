@@ -131,4 +131,5 @@ jobs:
       - name: Run scribe
         run: |
           chmod +x scribe
+          export GITHUB_TOKEN="$REPO_GITHUB_TOKEN"
           ./scribe --renvLockFilename temp-macos-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,scda,scda.2022,nestcolor
