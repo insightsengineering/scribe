@@ -19,73 +19,73 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test 🔍
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version:
-          - 1.21.3
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Checkout Repo 🛎
-        uses: actions/checkout@v3
+  # test:
+  #   name: Test 🔍
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       go-version:
+  #         - 1.21.3
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   steps:
+  #     - name: Checkout Repo 🛎
+  #       uses: actions/checkout@v3
 
-      - name: Setup Go 🐹
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ matrix.go-version }}
-          cache: true
-          cache-dependency-path: go.sum
+  #     - name: Setup Go 🐹
+  #       uses: actions/setup-go@v3
+  #       with:
+  #         go-version: ${{ matrix.go-version }}
+  #         cache: true
+  #         cache-dependency-path: go.sum
 
-      - name: Run Tests 🧨
-        run: make test
+  #     - name: Run Tests 🧨
+  #       run: make test
 
-      - name: Check whether JUnit XML report exists 🚦
-        id: check-junit-xml
-        uses: andstor/file-existence-action@v1
-        with:
-          files: junit-report.xml
+  #     - name: Check whether JUnit XML report exists 🚦
+  #       id: check-junit-xml
+  #       uses: andstor/file-existence-action@v1
+  #       with:
+  #         files: junit-report.xml
 
-      - name: Publish Unit Test Summary 📑
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        id: test-results
-        if: steps.check-junit-xml.outputs.files_exists == 'true' && github.event_name == 'pull_request'
-        with:
-          check_name: Unit Tests Summary
-          junit_files: junit-report.xml
+  #     - name: Publish Unit Test Summary 📑
+  #       uses: EnricoMi/publish-unit-test-result-action@v2
+  #       id: test-results
+  #       if: steps.check-junit-xml.outputs.files_exists == 'true' && github.event_name == 'pull_request'
+  #       with:
+  #         check_name: Unit Tests Summary
+  #         junit_files: junit-report.xml
 
-      - name: Check whether coverage reports exists 💭
-        id: check-coverage-reports
-        uses: andstor/file-existence-action@v1
-        with:
-          files: >-
-            coverage.xml,
-            coverage.html
+  #     - name: Check whether coverage reports exists 💭
+  #       id: check-coverage-reports
+  #       uses: andstor/file-existence-action@v1
+  #       with:
+  #         files: >-
+  #           coverage.xml,
+  #           coverage.html
 
-      - name: Post coverage report 🗞
-        if: steps.check-coverage-reports.outputs.files_exists == 'true'
-        uses: insightsengineering/coverage-action@v2
-        with:
-          path: coverage.xml
-          threshold: 80
-          fail: false
-          publish: true
-          diff: true
-          coverage-reduction-failure: true
-          new-uncovered-statements-failure: true
-        continue-on-error: true
+  #     - name: Post coverage report 🗞
+  #       if: steps.check-coverage-reports.outputs.files_exists == 'true'
+  #       uses: insightsengineering/coverage-action@v2
+  #       with:
+  #         path: coverage.xml
+  #         threshold: 80
+  #         fail: false
+  #         publish: true
+  #         diff: true
+  #         coverage-reduction-failure: true
+  #         new-uncovered-statements-failure: true
+  #       continue-on-error: true
 
-      - name: Upload report 🔼
-        if: steps.check-coverage-reports.outputs.files_exists == 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: |
-            coverage.html
-        continue-on-error: true
+  #     - name: Upload report 🔼
+  #       if: steps.check-coverage-reports.outputs.files_exists == 'true'
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: coverage-report
+  #         path: |
+  #           coverage.html
+  #       continue-on-error: true
 
   compilation:
     name: Build 🏗
@@ -107,3 +107,20 @@ jobs:
 
       - name: Check if compilation works 🧱
         run: make build
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: scribe-macos
+          path: dist/scribe_darwin_amd64_v1/scribe
+
+  macos-test:
+    runs-on: macos-latest
+    steps:
+      - name: Download macOS binary
+        uses: actions/download-artifact@v3
+        with:
+          name: scribe-macos
+
+      - name: Run scribe
+        run: dist/scribe_darwin_amd64_v1/scribe

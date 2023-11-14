@@ -62,7 +62,7 @@ func Test_getPackageDetails(t *testing.T) {
 	biocUrls := make(map[string]string)
 	localArchiveChecksums := make(map[string]*CacheInfo)
 	getBiocUrls("3.13", biocUrls)
-	localOutputDirectory = "/tmp/scribe/downloaded_packages"
+	localOutputDirectory = defaultDownloadDirectory
 
 	// package1 is downloaded neither from CRAN nor from BioConductor - therefore isn't not added to any structure
 	// somePackage1 is cached

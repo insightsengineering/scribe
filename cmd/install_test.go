@@ -70,7 +70,7 @@ func Test_executeInstallationFromTargz(t *testing.T) {
 	rExecutable = "R"
 	temporaryLibPath = "/tmp/scribe/installed_packages"
 	rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
-	localOutputDirectory = "/tmp/scribe/downloaded_packages"
+	localOutputDirectory = defaultDownloadDirectory
 	downloadFile(
 		"https://cran.r-project.org/src/contrib/Archive/bitops/bitops_1.0-6.tar.gz",
 		"testdata/targz/bitops_1.0-6.tar.gz",

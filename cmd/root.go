@@ -61,6 +61,7 @@ var rExecutable string
 var localOutputDirectory string
 
 const tempCacheDirectory = "/tmp/scribe/cache"
+const defaultDownloadDirectory = "/tmp/scribe/downloaded_packages"
 
 var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
@@ -170,7 +171,7 @@ func newRootCommand() {
 			} else {
 				temporaryLibPath = "/tmp/scribe/installed_packages"
 				rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
-				localOutputDirectory = "/tmp/scribe/downloaded_packages"
+				localOutputDirectory = defaultDownloadDirectory
 				rExecutable = rExecutablePath
 			}
 
