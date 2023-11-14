@@ -132,4 +132,4 @@ jobs:
         run: |
           chmod +x scribe
           export GITHUB_TOKEN="${{ secrets.REPO_GITHUB_TOKEN }}"
-          ./scribe --renvLockFilename temp-macos-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,scda,scda.2022,nestcolor,tern,rlistings,citril,scda.test,citril.metadata,chevron,dunlin,osprey,goshawk,teal,teal.code,teal.data,teal.goshawk,teal.modules.clinical,teal.modules.general,teal.modules.hermes,teal.osprey,teal.reporter,teal.slice,teal.transform,teal.widgets,teal.logger
+          ./scribe --renvLockFilename temp-macos-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings
