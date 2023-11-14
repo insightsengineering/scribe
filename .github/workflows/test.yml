@@ -124,4 +124,6 @@ jobs:
           name: scribe-macos
 
       - name: Run scribe
-        run: ./scribe --help
+        run: |
+          chmod +x scribe
+          ./scribe --help
