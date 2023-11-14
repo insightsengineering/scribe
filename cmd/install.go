@@ -26,9 +26,6 @@ import (
 	"time"
 )
 
-const temporalLibPath = "/tmp/scribe/installed_packages"
-const rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
-
 const packageLogPath = "/tmp/scribe/installed_logs"
 const buildLogPath = "/tmp/scribe/build_logs"
 const gitConst = "git"
@@ -71,8 +68,8 @@ const buildStatusNotBuilt = "NOT_BUILT"
 
 const rLibsVarName = "R_LIBS="
 
-func mkLibPathDir(temporalLibPath string) {
-	for _, libPath := range strings.Split(temporalLibPath, ":") {
+func mkLibPathDir(temporaryLibPath string) {
+	for _, libPath := range strings.Split(temporaryLibPath, ":") {
 		if _, err := os.Stat(libPath); os.IsNotExist(err) {
 			err := os.MkdirAll(libPath, os.ModePerm)
 			checkError(err)
@@ -157,7 +154,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	outputLocation string, buildLogFilePath string, additionalOptions string) {
 	log.Infof("Package %s located in %s is a source package so it has to be built first.",
 		packageName, outputLocation)
-	cmd := "R CMD build " + additionalOptions + " " + outputLocation
+	cmd := rExecutable + " CMD build " + additionalOptions + " " + outputLocation
 	log.Trace("execCommand:" + cmd)
 	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if buildLogFileErr != nil {
@@ -264,7 +261,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		}
 	}
 
-	cmd := "R CMD INSTALL --no-lock -l " + temporalLibPath + " " + additionalInstallOptions + " " + outputLocation
+	cmd := rExecutable + " CMD INSTALL --no-lock -l " + temporaryLibPath + " " + additionalInstallOptions + " " + outputLocation
 	log.Trace("Executing command:" + cmd)
 	execRCmdInstallChan := make(chan ExecRCmdInstallChanInfo)
 	go executeRCmdInstall(execRCmdInstallChan, cmd, logFile)
@@ -313,7 +310,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 		switch {
 		case err == nil:
 			log.Tracef("No error after installation of %s", installInfo.PackageName)
-			descFilePath := filepath.Join(temporalLibPath, installInfo.PackageName, "DESCRIPTION")
+			descFilePath := filepath.Join(temporaryLibPath, installInfo.PackageName, "DESCRIPTION")
 			installedDesc := parseDescriptionFile(descFilePath)
 			packageVersion = installedDesc["Version"]
 			status = InstallResultInfoStatusSucceeded
@@ -417,11 +414,11 @@ func installPackages(
 	additionalBuildOptions string,
 	additionalInstallOptions string,
 ) {
-	mkLibPathDir(temporalLibPath)
+	mkLibPathDir(temporaryLibPath)
 	mkLibPathDir(packageLogPath)
 
-	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporalLibPath})
-	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporalLibPath)
+	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporaryLibPath})
+	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporaryLibPath)
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
 	for _, v := range *allDownloadInfo {
 		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}

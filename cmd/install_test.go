@@ -67,6 +67,10 @@ func Test_executeInstallation_with_wrong_path_to_package(t *testing.T) {
 func Test_executeInstallationFromTargz(t *testing.T) {
 	err := os.MkdirAll("testdata/targz", os.ModePerm)
 	checkError(err)
+	rExecutable = "R"
+	temporaryLibPath = "/tmp/scribe/installed_packages"
+	rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+	localOutputDirectory = defaultDownloadDirectory
 	downloadFile(
 		"https://cran.r-project.org/src/contrib/Archive/bitops/bitops_1.0-6.tar.gz",
 		"testdata/targz/bitops_1.0-6.tar.gz",

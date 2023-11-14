@@ -206,7 +206,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 		cmdCheckChan <- ""
 		return
 	}
-	cmd := "R CMD check " + additionalOptions + " " + packageFile
+	cmd := rExecutable + " CMD check " + additionalOptions + " " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
 		[]string{

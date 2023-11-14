@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/jamiealquiza/envy"
 	"github.com/sirupsen/logrus"
@@ -45,16 +46,22 @@ var buildOptions string
 var checkOptions string
 var installOptions string
 var rCmdCheckFailRegex string
+var rExecutablePath string
 
 var log = logrus.New()
+
+var temporaryLibPath string
+var rLibsPaths string
+var rExecutable string
 
 // within below directory:
 // tar.gz packages are downloaded to package_archives subdirectory
 // GitHub repositories are cloned into github subdirectory
 // GitLab repositories are cloned into gitlab subdirectory
-const localOutputDirectory = "/tmp/scribe/downloaded_packages"
+var localOutputDirectory string
 
 const tempCacheDirectory = "/tmp/scribe/cache"
+const defaultDownloadDirectory = "/tmp/scribe/downloaded_packages"
 
 var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
@@ -137,6 +144,7 @@ func newRootCommand() {
 			fmt.Println("installOptions = ", installOptions)
 			fmt.Println("checkOptions = ", checkOptions)
 			fmt.Println("rCmdCheckFailRegex = ", rCmdCheckFailRegex)
+			fmt.Println("rExecutablePath = ", rExecutablePath)
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -153,6 +161,18 @@ func newRootCommand() {
 
 			if clearCache {
 				clearCachedData()
+			}
+
+			if runtime.GOOS == windows {
+				temporaryLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+				rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
+				localOutputDirectory = os.Getenv("TMP") + `\tmp\scribe\downloaded_packages`
+				rExecutable = `'` + rExecutablePath + `'`
+			} else {
+				temporaryLibPath = "/tmp/scribe/installed_packages"
+				rLibsPaths = "/tmp/scribe/installed_packages:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+				localOutputDirectory = defaultDownloadDirectory
+				rExecutable = rExecutablePath
 			}
 
 			var systemInfo SystemInfo
@@ -286,6 +306,8 @@ func newRootCommand() {
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
 		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
 			"(only when failOnError is true).")
+	rootCmd.PersistentFlags().StringVar(&rExecutablePath, "rExecutablePath", "R",
+		"Path to the R executable.")
 
 	// Add version command.
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
@@ -351,6 +373,7 @@ func initializeConfig() {
 		"installOptions",
 		"checkOptions",
 		"rCmdCheckFailRegex",
+		"rExecutablePath",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been

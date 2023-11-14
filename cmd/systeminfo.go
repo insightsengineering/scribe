@@ -37,7 +37,7 @@ type SystemInfo struct {
 }
 
 func getSystemRVersion() string {
-	out, err := exec.Command("R", "--version").CombinedOutput()
+	out, err := exec.Command(rExecutablePath, "--version").CombinedOutput()
 	checkError(err)
 	return strings.Split(string(out), "\n")[0]
 }
