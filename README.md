@@ -30,9 +30,9 @@ scribe --help
 
 Example usage with multiple flags:
 
-*   ```bash
-    scribe --config custom-config-file.yml --logLevel debug --maskedEnvVars 'password|key|regexForAnEnvVarThatShouldNotBeDisplayed' --renvLockFilename output-renv.lock --reportDir output-report-directory
-    ```
+* ```bash
+  scribe --config custom-config-file.yml --logLevel debug --maskedEnvVars 'password|key|regexForAnEnvVarThatShouldNotBeDisplayed' --renvLockFilename output-renv.lock --reportDir output-report-directory
+  ```
 * Specifying for which packages `R CMD check` should be run, and which packages stored in `git` repositories should be updated with the newest version.
     ```bash
     scribe --checkPackage 'package*,*abc,a*b,someOtherPackage' --updatePackages 'gitPackage1,git*Package,*packageFromGit*'
