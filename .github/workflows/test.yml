@@ -12,6 +12,7 @@ on:
       - ready_for_review
     branches:
       - main
+      - example-windows-macos-workflow
   workflow_dispatch:
 
 concurrency:
@@ -107,3 +108,45 @@ jobs:
 
       - name: Check if compilation works 🧱
         run: make build
+
+      - name: List binaries
+        run: ls -lR dist/
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: scribe-macos
+          path: dist/scribe_darwin_amd64_v1/scribe
+
+  # macos-test:
+  #   needs: compilation
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Checkout Repo 🛎
+  #       uses: actions/checkout@v3
+
+  #     - name: Download macOS binary
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: scribe-macos
+
+  #     - uses: r-lib/actions/setup-r@v2
+
+  #     - name: Run scribe
+  #       run: |
+  #         chmod +x scribe
+  #         export GITHUB_TOKEN="${{ secrets.REPO_GITHUB_TOKEN }}"
+  #         ./scribe --renvLockFilename temp-macos-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings
+
+  #     - name: Upload report as artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: output-report
+  #         path: outputReport
+
+  windows-test:
+    needs: compilation
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repo 🛎
+        uses: actions/checkout@v3
