@@ -113,9 +113,9 @@ func newRootCommand() {
 		Use:   "scribe",
 		Short: "System Compatibility Report for Install & Build Evaluation",
 		Long: `scribe (acronym for System Compatibility Report for Install & Build Evaluation)
-		is a project that creates complete build, check and install reports
-		for a collection of R packages that are defined in an
-		[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
+is a project that creates complete build, check and install reports
+for a collection of R packages that are defined in an
+[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			initializeConfig()
 		},
@@ -298,11 +298,11 @@ func newRootCommand() {
 		"Use this flag to make scribe return exit code 1 in case of check errors or build failures.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().StringVar(&buildOptions, "buildOptions", "",
-		"Extra options to pass to R CMD build. Options must be supplied in double quoted string.")
+		"Extra options to pass to R CMD build. Options must be supplied in single quoted string.")
 	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
-		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
+		"Extra options to pass to R CMD INSTALL. Options must be supplied in single quoted string.")
 	rootCmd.PersistentFlags().StringVar(&checkOptions, "checkOptions", "",
-		"Extra options to pass to R CMD check. Options must be supplied in double quoted string.")
+		"Extra options to pass to R CMD check. Options must be supplied in single quoted string.")
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
 		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
 			"(only when failOnError is true).")
