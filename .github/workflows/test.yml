@@ -163,7 +163,6 @@ jobs:
 
       - name: Run scribe
         run: |
-          chmod +x scribe
           $env:GITHUB_TOKEN = "${{ secrets.REPO_GITHUB_TOKEN }}"
           $env:PWD = "."
           ./scribe.exe --renvLockFilename windows-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings
