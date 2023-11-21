@@ -16,6 +16,8 @@
 
 ![Report example](./images/report.png)
 
+The statuses in the report shown above, when clicked, show the logs from the execution of `R CMD build`, `R CMD INSTALL`, or `R CMD check`.
+
 ## Installing
 
 Simply download the project for your distribution from the [releases](https://github.com/insightsengineering/scribe/releases) page. `scribe` is distributed as a single binary file and does not require any additional system requirements other than `R`, with which it integrates and interfaces externally.
