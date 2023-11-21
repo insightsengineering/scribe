@@ -113,9 +113,9 @@ func newRootCommand() {
 		Use:   "scribe",
 		Short: "System Compatibility Report for Install & Build Evaluation",
 		Long: `scribe (acronym for System Compatibility Report for Install & Build Evaluation)
-		is a project that creates complete build, check and install reports
-		for a collection of R packages that are defined in an
-		[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
+is a project that creates complete build, check and install reports
+for a collection of R packages that are defined in an
+[renv.lock](https://rstudio.github.io/renv/articles/lockfile.html) file.`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			initializeConfig()
 		},
