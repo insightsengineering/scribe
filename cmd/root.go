@@ -298,11 +298,11 @@ func newRootCommand() {
 		"Use this flag to make scribe return exit code 1 in case of check errors or build failures.")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().StringVar(&buildOptions, "buildOptions", "",
-		"Extra options to pass to R CMD build. Options must be supplied in double quoted string.")
+		"Extra options to pass to R CMD build. Options must be supplied in single quoted string.")
 	rootCmd.PersistentFlags().StringVar(&installOptions, "installOptions", "",
-		"Extra options to pass to R CMD INSTALL. Options must be supplied in double quoted string.")
+		"Extra options to pass to R CMD INSTALL. Options must be supplied in single quoted string.")
 	rootCmd.PersistentFlags().StringVar(&checkOptions, "checkOptions", "",
-		"Extra options to pass to R CMD check. Options must be supplied in double quoted string.")
+		"Extra options to pass to R CMD check. Options must be supplied in single quoted string.")
 	rootCmd.PersistentFlags().StringVar(&rCmdCheckFailRegex, "rCmdCheckFailRegex", "",
 		"Regex which when encountered as part of R CMD check NOTE or WARNING, should cause scribe to fail "+
 			"(only when failOnError is true).")
