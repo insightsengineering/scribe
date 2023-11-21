@@ -33,11 +33,11 @@ Example usage with multiple flags:
 *   ```bash
     scribe --config custom-config-file.yml --logLevel debug --maskedEnvVars 'password|key|regexForAnEnvVarThatShouldNotBeDisplayed' --renvLockFilename output-renv.lock --reportDir output-report-directory
     ```
-* Specifying on which packages `R CMD check` should be run, and which packages stored in `git` repositories should be updated with the newest version.
+* Specifying for which packages `R CMD check` should be run, and which packages stored in `git` repositories should be updated with the newest version.
     ```bash
     scribe --checkPackage 'package*,*abc,a*b,someOtherPackage' --updatePackages 'gitPackage1,git*Package,*packageFromGit*'
     ```
-* Checking the default number of concurrent goroutines for downloading packages, goroutines for running `R CMD check`, and for running package building and installation.
+* Changing the default number of concurrent goroutines for downloading packages, goroutines for running `R CMD check`, and for running package building and installation.
     ```bash
     scribe --maxDownloadRoutines 40 --maxCheckRoutines 10 --numberOfWorkers 20
     ```
@@ -52,10 +52,10 @@ To download packages from `git` repositories, `scribe` uses Personal Access Toke
 
 ## Configuration file
 
-If you'd like to set the above options in a configuration file, by default `scribe` checks `~/.scribe`, `~/.scribe.yaml` and `~/.scribe.yml` files.
-If this file exists, `scribe` uses options defined there, unless they are overridden by command line flags.
+If you'd like to set the above options in a configuration file, by default `scribe` tries to read `~/.scribe`, `~/.scribe.yaml` and `~/.scribe.yml` files.
+If any of these files exist, `scribe` uses options defined there, unless they are overridden by command line flags.
 
-You can also specify custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
+You can also specify- a custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
 When using custom configuration file, if you specify command line flags, the latter will still take precedence.
 
 Example contents of configuration file:
@@ -74,6 +74,16 @@ buildOptions: --no-manual --no-build-vignettes
 installOptions: --no-docs
 checkOptions: --ignore-vignettes
 ```
+
+## Environment variables
+
+Scribe reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
+For example, setting the following variables will override the respective values from configuration file:
+`SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_UPDATEPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
+
+The order of precedence is:
+
+CLI flag → environment variable → configuration file → default value.
 
 ## Binary dependencies
 
@@ -98,17 +108,7 @@ where `<r-version>` is e.g. `4.2`, `4.3` etc.
 
 In all cases the URL points to a directory where the `PACKAGES` file is located.
 
-Additionally, on Windows it might be required to tell `scribe` where the R executable is located, for example by using flag: `--rExecutablePath 'C:\Program Files\R\R-4.3.2\bin\R.exe'`.
-
-## Environment variables
-
-Scribe reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
-For example, setting the following variables will override the respective values from configuration file:
-`SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_UPDATEPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
-
-The order of precedence is:
-
-CLI flag → environment variable → configuration file → default value.
+Additionally, on Windows it might be required to tell `scribe` where the R executable is located by using flag: `--rExecutablePath 'C:\Program Files\R\R-4.3.2\bin\R.exe'`.
 
 ## Cache
 
