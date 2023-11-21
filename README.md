@@ -10,7 +10,7 @@
 
 * downloads R packages from package repositories or GitHub/GitLab repositories,
 * determines the order in which the packages should be built and installed,
-* builds packages from git repositories, and installs all of the packages (by running `R CMD build` and `R CMD INSTALL` respectively),
+* builds packages from `git` repositories, and installs all of the packages (by running `R CMD build` and `R CMD INSTALL` respectively),
 * checks the specified subset of packages by running `R CMD check`,
 * generates an HTML report with the statuses of the above processes.
 
@@ -37,7 +37,7 @@ Example usage with multiple flags:
     ```bash
     scribe --checkPackage 'package*,*abc,a*b,someOtherPackage' --updatePackages 'gitPackage1,git*Package,*packageFromGit*'
     ```
-* Changing the default number of concurrent goroutines for downloading packages, goroutines for running `R CMD check`, and for running package building and installation.
+* Changing the default number of concurrent goroutines for downloading packages, running `R CMD check`, and running package building and installation.
     ```bash
     scribe --maxDownloadRoutines 40 --maxCheckRoutines 10 --numberOfWorkers 20
     ```
@@ -55,7 +55,7 @@ To download packages from `git` repositories, `scribe` uses Personal Access Toke
 If you'd like to set the above options in a configuration file, by default `scribe` tries to read `~/.scribe`, `~/.scribe.yaml` and `~/.scribe.yml` files.
 If any of these files exist, `scribe` uses options defined there, unless they are overridden by command line flags.
 
-You can also specify- a custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
+You can also specify a custom path to configuration file with `--config <your-configuration-file>.yml` command line flag.
 When using custom configuration file, if you specify command line flags, the latter will still take precedence.
 
 Example contents of configuration file:
@@ -77,7 +77,7 @@ checkOptions: --ignore-vignettes
 
 ## Environment variables
 
-Scribe reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
+`scribe` reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
 For example, setting the following variables will override the respective values from configuration file:
 `SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_UPDATEPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
 
@@ -118,7 +118,7 @@ The results of download, installation, build and check stages are stored in `/tm
 
 In order to run the download, installation, build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually. Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
 
-The cache can be cleared with `--clearCache` flag.
+The cache can also be cleared with `--clearCache` flag.
 
 ## Development
 
