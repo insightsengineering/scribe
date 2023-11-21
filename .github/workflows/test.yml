@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - example-windows-macos-workflow
   pull_request:
     types:
       - opened
@@ -12,7 +13,6 @@ on:
       - ready_for_review
     branches:
       - main
-      - example-windows-macos-workflow
   workflow_dispatch:
 
 concurrency:
