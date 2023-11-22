@@ -559,14 +559,14 @@
     },
     "citril": {
       "Package": "citril",
-      "Version": "0.1.9.9004",
+      "Version": "0.1.9.9005",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "insightsengineering",
       "RemoteRepo": "citril",
       "RemoteRef": "main",
-      "RemoteSha": "1943ddde1faf2bde5444beb92f094eb51f64f956"
+      "RemoteSha": "224314247667c7b1b08a2cb1a6bec0307179fdf2"
     },
     "citril.metadata": {
       "Package": "citril.metadata",
@@ -773,14 +773,14 @@
     },
     "dunlin": {
       "Package": "dunlin",
-      "Version": "0.1.6.9001",
+      "Version": "0.1.6.9002",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "insightsengineering",
       "RemoteRepo": "dunlin",
       "RemoteRef": "main",
-      "RemoteSha": "d241a0b8ce6ee15ae459159ed6c91ae1e6715ef0"
+      "RemoteSha": "8eb011e4519a345660f64d30a9c0b5f766587664"
     },
     "e1071": {
       "Package": "e1071",
@@ -2128,25 +2128,25 @@
     },
     "teal.code": {
       "Package": "teal.code",
-      "Version": "0.4.1.9007",
+      "Version": "0.4.1.9008",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "insightsengineering",
       "RemoteRepo": "teal.code",
       "RemoteRef": "main",
-      "RemoteSha": "cbfb89f1488c39d24f406b453ecb6a7959580f90"
+      "RemoteSha": "641e916cbdea23a42cc209b688b1b62709c72945"
     },
     "teal.data": {
       "Package": "teal.data",
-      "Version": "0.3.0.9010",
+      "Version": "0.3.0.9011",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "insightsengineering",
       "RemoteRepo": "teal.data",
       "RemoteRef": "main",
-      "RemoteSha": "809445b262f7eb7d94f28b1878c20e128ade89f7"
+      "RemoteSha": "01cc24210f69d063ee0903fcfc6543c7a976597b"
     },
     "teal.goshawk": {
       "Package": "teal.goshawk",

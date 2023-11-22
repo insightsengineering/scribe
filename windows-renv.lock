@@ -356,7 +356,7 @@
     },
     "TMB": {
       "Package": "TMB",
-      "Version": "1.9.6",
+      "Version": "1.9.7",
       "Source": "Repository",
       "Repository": "CRAN-Windows"
     },
@@ -476,7 +476,7 @@
     },
     "bslib": {
       "Package": "bslib",
-      "Version": "0.5.1",
+      "Version": "0.6.0",
       "Source": "Repository",
       "Repository": "CRAN-Windows"
     },
@@ -516,6 +516,17 @@
       "Source": "Repository",
       "Repository": "CRAN-Windows"
     },
+    "chevron": {
+      "Package": "chevron",
+      "Version": "0.2.4.9008",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "insightsengineering",
+      "RemoteRepo": "chevron",
+      "RemoteRef": "main",
+      "RemoteSha": "36c56a12d489cb539d212ad18e093c78e4263d01"
+    },
     "chromote": {
       "Package": "chromote",
       "Version": "0.1.2",
@@ -527,6 +538,28 @@
       "Version": "0.4.15",
       "Source": "Repository",
       "Repository": "CRAN-Windows"
+    },
+    "citril": {
+      "Package": "citril",
+      "Version": "0.1.9.9005",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "insightsengineering",
+      "RemoteRepo": "citril",
+      "RemoteRef": "main",
+      "RemoteSha": "224314247667c7b1b08a2cb1a6bec0307179fdf2"
+    },
+    "citril.metadata": {
+      "Package": "citril.metadata",
+      "Version": "0.1.6.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "insightsengineering",
+      "RemoteRepo": "citril.metadata",
+      "RemoteRef": "main",
+      "RemoteSha": "ddc305962f82b2c28fb9c0500d17bd7b3444da4e"
     },
     "class": {
       "Package": "class",
@@ -719,6 +752,17 @@
       "Version": "1.1.4",
       "Source": "Repository",
       "Repository": "CRAN-Windows"
+    },
+    "dunlin": {
+      "Package": "dunlin",
+      "Version": "0.1.6.9002",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "insightsengineering",
+      "RemoteRepo": "dunlin",
+      "RemoteRef": "main",
+      "RemoteSha": "8eb011e4519a345660f64d30a9c0b5f766587664"
     },
     "e1071": {
       "Package": "e1071",
@@ -1880,6 +1924,17 @@
       "RemoteRef": "main",
       "RemoteSha": "75b1289bb9b85d5d9ea56fa738525f560798d98f"
     },
+    "scda.test": {
+      "Package": "scda.test",
+      "Version": "0.0.0.9043",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "insightsengineering",
+      "RemoteRepo": "scda.test",
+      "RemoteRef": "main",
+      "RemoteSha": "c4e2a1c405bd04e114106a0dcac96bd165ef1c18"
+    },
     "selectr": {
       "Package": "selectr",
       "Version": "0.4-2",
@@ -2037,25 +2092,25 @@
     },
     "teal.code": {
       "Package": "teal.code",
-      "Version": "0.4.1.9007",
+      "Version": "0.4.1.9008",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "insightsengineering",
       "RemoteRepo": "teal.code",
       "RemoteRef": "main",
-      "RemoteSha": "cbfb89f1488c39d24f406b453ecb6a7959580f90"
+      "RemoteSha": "641e916cbdea23a42cc209b688b1b62709c72945"
     },
     "teal.data": {
       "Package": "teal.data",
-      "Version": "0.3.0.9010",
+      "Version": "0.3.0.9011",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "insightsengineering",
       "RemoteRepo": "teal.data",
       "RemoteRef": "main",
-      "RemoteSha": "809445b262f7eb7d94f28b1878c20e128ade89f7"
+      "RemoteSha": "01cc24210f69d063ee0903fcfc6543c7a976597b"
     },
     "teal.goshawk": {
       "Package": "teal.goshawk",

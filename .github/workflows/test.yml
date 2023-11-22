@@ -121,31 +121,31 @@ jobs:
           name: scribe-windows
           path: dist/scribe_windows_amd64_v1/scribe.exe
 
-  # macos-test:
-  #   needs: compilation
-  #   runs-on: macos-latest
-  #   steps:
-  #     - name: Checkout Repo 🛎
-  #       uses: actions/checkout@v3
+  macos-test:
+    needs: compilation
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repo 🛎
+        uses: actions/checkout@v3
 
-  #     - name: Download macOS binary
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: scribe-macos
+      - name: Download macOS binary
+        uses: actions/download-artifact@v3
+        with:
+          name: scribe-macos
 
-  #     - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r@v2
 
-  #     - name: Run scribe
-  #       run: |
-  #         chmod +x scribe
-  #         export GITHUB_TOKEN="${{ secrets.REPO_GITHUB_TOKEN }}"
-  #         ./scribe --renvLockFilename macos-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings
+      - name: Run scribe
+        run: |
+          chmod +x scribe
+          export GITHUB_TOKEN="${{ secrets.REPO_GITHUB_TOKEN }}"
+          ./scribe --renvLockFilename macos-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings,teal,teal.*
 
-  #     - name: Upload report as artifact
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: output-report
-  #         path: outputReport
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: output-report
+          path: outputReport
 
   windows-test:
     needs: compilation
@@ -165,7 +165,7 @@ jobs:
         run: |
           $env:GITHUB_TOKEN = "${{ secrets.REPO_GITHUB_TOKEN }}"
           $env:TMP = $pwd
-          ./scribe.exe --renvLockFilename windows-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings
+          ./scribe.exe --renvLockFilename windows-renv.lock --installOptions '--no-docs' --buildOptions '--no-manual --no-build-vignettes' --checkOptions '--ignore-vignettes' --numberOfWorkers 100 --maxCheckRoutines 15 --checkPackage formatters,rtables,nestcolor,rlistings,teal,teal.*
 
       - name: Upload report as artifact
         uses: actions/upload-artifact@v3
