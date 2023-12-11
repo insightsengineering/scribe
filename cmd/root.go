@@ -70,8 +70,8 @@ func setLogLevel() {
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.ForceColors = true
 	log.SetFormatter(customFormatter)
-	log.SetReportCaller(true)
-	customFormatter.FullTimestamp = true
+	log.SetReportCaller(false)
+	customFormatter.FullTimestamp = false
 	fmt.Println("Loglevel =", logLevel)
 	switch logLevel {
 	case "trace":
@@ -191,16 +191,14 @@ for a collection of R packages that are defined in an
 				getRenvLock(renvLockFilenameOld, &renvLockOld)
 			}
 
-			mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
-			if mkdirerr != nil {
-				log.Errorf("Cannot make dir %s %v", tempCacheDirectory, mkdirerr)
-			}
+			err := os.MkdirAll(tempCacheDirectory, os.ModePerm)
+			checkError(err)
 
 			// Perform package download, except when cache contains JSON with previous
 			// download results.
 			downloadInfoFile := filepath.Join(tempCacheDirectory, "downloadInfo.json")
 			var allDownloadInfo []DownloadInfo
-			if _, err := os.Stat(downloadInfoFile); err == nil {
+			if _, err = os.Stat(downloadInfoFile); err == nil {
 				// File with downloaded packages information is already present.
 				readJSON(downloadInfoFile, &allDownloadInfo)
 			} else {
@@ -211,9 +209,9 @@ for a collection of R packages that are defined in an
 
 			// Perform package installation, except when cache contains JSON with previous
 			// installation results.
-			err2 := os.MkdirAll(buildLogPath, os.ModePerm)
-			checkError(err2)
-			installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfos.json")
+			err = os.MkdirAll(buildLogPath, os.ModePerm)
+			checkError(err)
+			installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfo.json")
 			var allInstallInfo []InstallResultInfo
 			if _, err := os.Stat(installInfoFile); err == nil {
 				readJSON(installInfoFile, &allInstallInfo)
@@ -230,7 +228,7 @@ for a collection of R packages that are defined in an
 			} else {
 				log.Infof("%s doesn't exist.", checkInfoFile)
 				checkPackages(checkInfoFile, checkOptions)
-				// If no packages were checked (because of e.g. not matching the CLI parameter)
+				// If no packages were checked (because of e.g. their names didn't match the CLI parameter)
 				// the file with check results will not be generated, so we're checking
 				// its existence once again.
 				if _, err := os.Stat(checkInfoFile); err == nil {
@@ -242,7 +240,7 @@ for a collection of R packages that are defined in an
 			var reportData ReportInfo
 			processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
 				renvLock, renvLockOld, renvLockFilenameOld)
-			err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
+			err = os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 			checkError(err)
 			err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
 			checkError(err)

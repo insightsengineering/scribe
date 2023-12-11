@@ -209,11 +209,11 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 			var refName string
 			var checkoutRefName string
 			if match {
-				log.Debug(branchOrTagName + " matches tag name regexp.")
+				log.Trace(branchOrTagName + " matches tag name regexp.")
 				checkoutRefName = fmt.Sprintf("refs/tags/%s", branchOrTagName)
 				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
 			} else {
-				log.Debug(branchOrTagName, " doesn't match tag name regexp.")
+				log.Trace(branchOrTagName, " doesn't match tag name regexp.")
 				checkoutRefName = fmt.Sprintf("refs/heads/%s", branchOrTagName)
 				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
 			}
@@ -450,14 +450,14 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		return action, packageType, packageURL, "", outputLocation, "", savedBandwidth
 
 	case packageSource == GitHub:
-		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
+		// For now we only support GitHub instance than https://github.com.
 		gitDirectory := localOutputDirectory + "/github" +
 			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
 		return github, "", repoURL, "", gitDirectory, "", 0
 
 	case packageSource == GitLab:
-		// repoURL == https://example.com/remote-user/some/remote/repo/path
+		// Expected repoURL format: https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]
 		remoteRepo := strings.Join(strings.Split(repoURL, "/")[4:], "/")

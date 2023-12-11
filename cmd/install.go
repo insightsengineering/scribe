@@ -68,16 +68,6 @@ const buildStatusNotBuilt = "NOT_BUILT"
 
 const rLibsVarName = "R_LIBS="
 
-func mkLibPathDir(temporaryLibPath string) {
-	for _, libPath := range strings.Split(temporaryLibPath, ":") {
-		if _, err := os.Stat(libPath); os.IsNotExist(err) {
-			err := os.MkdirAll(libPath, os.ModePerm)
-			checkError(err)
-			log.Tracef("Created dir %s", libPath)
-		}
-	}
-}
-
 func getInstalledPackagesWithVersionWithBaseRPackages(libPaths []string) map[string]string {
 	installedPackages := getInstalledPackagesWithVersion(libPaths)
 	basePackages := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base"}
@@ -414,15 +404,21 @@ func installPackages(
 	additionalBuildOptions string,
 	additionalInstallOptions string,
 ) {
-	mkLibPathDir(temporaryLibPath)
-	mkLibPathDir(packageLogPath)
+	err := os.MkdirAll(temporaryLibPath, os.ModePerm)
+	checkError(err)
+	err = os.MkdirAll(packageLogPath, os.ModePerm)
+	checkError(err)
 
 	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporaryLibPath})
 	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporaryLibPath)
+	log.Info(installedDeps)
+
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
 	for _, v := range *allDownloadInfo {
-		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
+		log.Info(v)
+		// packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
 	}
+	os.Exit(0)
 
 	depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
 
@@ -511,7 +507,7 @@ func installPackages(
 		}
 	}
 
-	installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfos.json")
+	installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfo.json")
 	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
 	writeJSON(installResultInfosFilePath, *installResultInfos)
 	log.Infof("Installation for %d is done", len(*installResultInfos))

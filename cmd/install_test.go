@@ -31,23 +31,6 @@ func Test_getInstalledPackagesWithVersionWithBaseRPackages(t *testing.T) {
 	}
 }
 
-func Test_mkLibPathDir(t *testing.T) {
-	dirs := []string{"/tmp/scribe/testdir1", "/tmp/scribe/testdir2"}
-	dirsCon := ""
-	for _, d := range dirs {
-		os.RemoveAll(d)
-		dirsCon += ":" + d
-		assert.NoDirExists(t, d)
-	}
-
-	assert.NotEmpty(t, dirsCon)
-	mkLibPathDir(dirsCon)
-	for _, d := range dirs {
-		assert.DirExists(t, d)
-		os.RemoveAll(d)
-	}
-}
-
 func Test_executeInstallation(t *testing.T) {
 	t.Skip("skipping integration test")
 	_, err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out", "build-test.out", "tar.gz", "--no-manual", "--no-docs")
