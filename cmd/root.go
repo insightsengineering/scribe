@@ -122,15 +122,10 @@ for a collection of R packages that are defined in an
 		Run: func(cmd *cobra.Command, args []string) {
 			setLogLevel()
 
-			// TODO this function should be used during renv.lock generation
-			var allPackages []PackagesFile
-			getPackagesFileFromURL("https://cloud.r-project.org/src/contrib/PACKAGES", &allPackages)
-			writeJSON("packages.json", allPackages)
-
 			fmt.Println("cfgfile =", cfgFile)
 			fmt.Println("maskedEnvVars =", maskedEnvVars)
 			fmt.Println("renvLockFilename =", renvLockFilename)
-			fmt.Println("includeSuggests = ", includeSuggests)
+			fmt.Println("includeSuggests =", includeSuggests)
 			fmt.Println("checkPackage =", checkPackageExpression)
 			fmt.Println("updatePackages =", updatePackages)
 			fmt.Println("checkAllPackages =", checkAllPackages)
@@ -139,12 +134,12 @@ for a collection of R packages that are defined in an
 			fmt.Println("maxCheckRoutines =", maxCheckRoutines)
 			fmt.Println("numberOfWorkers =", numberOfWorkers)
 			fmt.Println("clearCache =", clearCache)
-			fmt.Println("failOnError = ", failOnError)
-			fmt.Println("buildOptions = ", buildOptions)
-			fmt.Println("installOptions = ", installOptions)
-			fmt.Println("checkOptions = ", checkOptions)
-			fmt.Println("rCmdCheckFailRegex = ", rCmdCheckFailRegex)
-			fmt.Println("rExecutablePath = ", rExecutablePath)
+			fmt.Println("failOnError =", failOnError)
+			fmt.Println("buildOptions =", buildOptions)
+			fmt.Println("installOptions =", installOptions)
+			fmt.Println("checkOptions =", checkOptions)
+			fmt.Println("rCmdCheckFailRegex =", rCmdCheckFailRegex)
+			fmt.Println("rExecutablePath =", rExecutablePath)
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
