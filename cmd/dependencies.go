@@ -19,16 +19,15 @@ package cmd
 import (
 	"archive/tar"
 	"compress/gzip"
-	"crypto/tls"
 	"encoding/json"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	yaml "gopkg.in/yaml.v3"
+	locksmith "github.com/insightsengineering/locksmith/cmd"
 )
 
 func getMapKeyDiffOrEmpty(originMap map[string]bool, mapskeysToRemove map[string][]string) map[string]bool {
@@ -94,32 +93,9 @@ func cleanDescription(description string) string {
 	return content
 }
 
-func request(url string) (string, error) { // #nosec G402
-	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-	client := &http.Client{Transport: tr}
-	log.Tracef("Requesting %s" + url)
-	resp, errc := client.Get(url)
-	checkError(errc)
-
-	if errc == nil {
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
-			b, errr := io.ReadAll(resp.Body)
-			if errr != nil {
-				log.Error(errr)
-				return "", errr
-			}
-			return string(b), nil
-		}
-	}
-	return "", errc
-}
 func getPackageContent() string {
 	url := "https://cloud.r-project.org/src/contrib/PACKAGES"
-	content, err := request(url)
-	if err != nil {
-		log.Errorf("Failed to get package content for URL %s", url)
-	}
+	_, _, content := locksmith.DownloadTextFile(url, make(map[string]string))
 	return content
 }
 
@@ -255,8 +231,7 @@ func getPackageDepsFromCrandb(packagesWithVersion map[string]string, includeSugg
 	depsFields := getDependenciesFields(includeSuggests)
 	url := getCrandbURL(packagesWithVersion)
 	log.Trace("Requesting dependency info from: ", url)
-	depsJSON, err := request(url)
-	checkError(err)
+	_, _, depsJSON := locksmith.DownloadTextFile(url, make(map[string]string))
 	deps := make(map[string][]string)
 	var m map[string]map[string]map[string]string
 	errunmarshal := json.Unmarshal([]byte(depsJSON), &m)
@@ -302,15 +277,10 @@ func getPackageDepsFromRepositoryURL(repositoryURL string, packages map[string]b
 	if !strings.HasSuffix(repositoryURL, endPoint) {
 		repositoryURL = repositoryURL + "/" + endPoint
 	}
-	content, err := request(repositoryURL)
-	if err != nil {
-		log.Error(err)
-	} else {
-		deps := getPackageDepsFromPackagesFileContent(content, packages, includeSuggests)
-		return deps
-	}
+	_, _, content := locksmith.DownloadTextFile(repositoryURL, make(map[string]string))
 
-	return nil
+	deps := getPackageDepsFromPackagesFileContent(content, packages, includeSuggests)
+	return deps
 }
 
 func getPackageDepsFromPackagesFileContent(packagesFileContent string, packages map[string]bool, includeSuggests bool) map[string][]string {

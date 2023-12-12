@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	yaml "gopkg.in/yaml.v3"
+	locksmith "github.com/insightsengineering/locksmith/cmd"
 )
 
 type PackagesFile struct {
@@ -37,10 +38,7 @@ type Dependency struct {
 }
 
 func getPackagesFileFromURL(url string, allPackages *[]PackagesFile) {
-	content, err := request(url)
-	if err != nil {
-		log.Error("Failed to get package content for URL ", url)
-	}
+	_, _, content := locksmith.DownloadTextFile(url, make(map[string]string))
 	processPackagesFile(content, allPackages)
 }
 
