@@ -87,7 +87,21 @@ The order of precedence is:
 
 CLI flag → environment variable → configuration file → default value.
 
-## Binary dependencies
+## Package repositories
+
+If `scribe` should use source packages, then the repository URLs in the `renv.lock` header should point
+to the location where the `/src/contrib` directory is located (without the trailing `/`), for example:
+
+```json
+"R": {
+  "Repositories": [
+    {
+      "Name": "CRAN",
+      "URL": "https://packagemanager.posit.co/cran/latest"
+    }
+  ]
+}
+```
 
 For `scribe` to use binary packages, it expects the `renv.lock` to contain the repository definitions pointing to the binary repositories.
 
@@ -108,7 +122,7 @@ Examples of expected format of binary repository URLs:
 
 where `<r-version>` is e.g. `4.2`, `4.3` etc.
 
-In all cases the URL points to a directory where the `PACKAGES` file is located.
+In all cases the URL points to a directory where the `PACKAGES` file is located, without the trailing `/`.
 
 Additionally, on Windows it might be required to tell `scribe` where the R executable is located by using flag: `--rExecutablePath 'C:\Program Files\R\R-4.3.2\bin\R.exe'`.
 

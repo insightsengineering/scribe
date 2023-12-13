@@ -272,7 +272,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 
 func getOrderedDependencies(
 	renvLock Renvlock,
-	packagesLocation map[string]struct{ PackageType, Location string },
+	packagesLocation map[string]struct{PackageType, PackageVersion, PackageRepository, Location string},
 	installedDeps []string,
 	includeSuggests bool,
 ) {
@@ -339,15 +339,16 @@ func installPackages(
 	}
 	log.Info(installedDeps)
 
-	packagesLocation := make(map[string]struct{ PackageType, Location string })
+	packagesLocation := make(map[string]struct{
+		PackageType, PackageVersion, PackageRepository, Location string
+	})
 	for _, v := range *allDownloadInfo {
-		log.Info(v)
-		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
+		packagesLocation[v.PackageName] = struct{
+				PackageType, PackageVersion, PackageRepository, Location string
+			}{
+			v.DownloadedPackageType, v.PackageVersion, v.PackageRepository, v.OutputLocation,
+		}
 	}
-	for k, v := range packagesLocation {
-		log.Info("Package ", k, " = ", v)
-	}
-
 
 	// depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
 	getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)

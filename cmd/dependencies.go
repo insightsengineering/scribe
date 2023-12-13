@@ -50,20 +50,44 @@ func getDependenciesFields(includeSuggests bool) []string {
 	return res
 }
 
+// getDepsFromPackagesFiles downloads PACKAGES files from each of R package repositories.
+// It returns a map from package name to the list of package dependencies.
+func getDepsFromPackagesFiles(rRepositories []Rrepository) {
+	for _, repository := range rRepositories {
+		log.Info("repository = ", repository)
+		_, _, content := locksmith.DownloadTextFile(repository.URL + "/src/contrib/PACKAGES", make(map[string]string))
+		packagesFile := locksmith.ProcessPackagesFile(content)
+		// Go through the list of packages, and add information to the output data structure
+		// about dependencies but only those which were downloaded from this repository.
+		// Additionally, save information that package B is a dependency of A, only if B occurs in the renv.lock
+		// and has been successfully downloaded.
+		log.Trace(packagesFile)
+	}
+}
+
 func getPackageDeps(
 	rPackages map[string]Rpackage,
 	bioconductorVersion string,
 	rRepositories []Rrepository,
-	packagesLocation map[string]struct{ PackageType, Location string },
+	packagesLocation map[string]struct{PackageType, PackageVersion, PackageRepository, Location string},
 	includeSuggests bool,
 ) map[string][]string {
-	log.Debugf("Getting package dependencies for %d packages", len(rPackages))
-	packagesSet := make(map[string]bool)
-	packagesWithVersion := make(map[string]string)
+	log.Debug("Getting package dependencies for %d packages", len(rPackages))
 	deps := make(map[string][]string)
-	for k, v := range rPackages {
-		packagesSet[k] = true
-		packagesWithVersion[k] = v.Version
+
+	getDepsFromPackagesFiles(rRepositories)
+
+	for packageName, _ := range rPackages {
+		downloadedPackageData, ok := packagesLocation[packageName]
+		if ok {
+			if downloadedPackageData.Location == "" {
+				log.Error("Package ", packageName, " has not been downloaded correctly.")
+			} else {
+				log.Info("Downloaded package = ", packageName, ", data = ", downloadedPackageData)
+			}
+		} else {
+			log.Error("No download data about package ", packageName, " occurring in renv.lock.")
+		}
 	}
 
 	// If package is stored in tar.gz, get its dependencies from a corresponding entry in PACKAGES file

@@ -84,7 +84,10 @@ type DownloadInfo struct {
 	PackageVersion        string `json:"packageVersion"`
 	// Contains git SHA of cloned package, or exceptionally git tag or branch, if SHA was not provided in renv.lock.
 	GitPackageShaOrRef string `json:"gitPackageShaOrRef"`
-	// Name of R package repository (e.g. CRAN, RSPM), or GitHub/GitLab.
+	// Name of R package repository ("Repository" renv.lock field, e.g. CRAN, RSPM) in case package
+	// source ("Source" renv.lock field) is "Repository".
+	// Otherwise, "GitHub" or "GitLab" depending on "Source" renv.lock field.
+	// Empty in case of errors.
 	PackageRepository string `json:"packageRepository"`
 }
 
@@ -668,7 +671,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*failedDownloads = 0
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
-	// Such big idle timeout is (unfortunately) required for some big packages like rmint.sdtm.
+	// Such big idle timeout is (unfortunately) required for some big packages.
 	const maxIdleSeconds = 200
 	for {
 		select {
