@@ -17,12 +17,9 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
-
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -67,55 +64,6 @@ const buildStatusFailed = "FAILED"
 const buildStatusNotBuilt = "NOT_BUILT"
 
 const rLibsVarName = "R_LIBS="
-
-func getInstalledPackagesWithVersionWithBaseRPackages(libPaths []string) map[string]string {
-	installedPackages := getInstalledPackagesWithVersion(libPaths)
-	basePackages := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base"}
-	for _, p := range basePackages {
-		installedPackages[p] = ""
-	}
-	return installedPackages
-}
-
-func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
-	log.Debug("Getting installed packages")
-	res := make(map[string]string)
-	for _, libPathMultiple := range libPaths {
-		for _, libPath := range strings.Split(libPathMultiple, ":") {
-			log.Debugf("Searching for installed package under %s", libPath)
-			descFilePaths := make([]string, 0)
-
-			files, err := os.ReadDir(libPath)
-			if err != nil {
-				log.Errorf("libPath: %s Error: %v", libPath, err)
-			}
-			for _, f := range files {
-				log.Tracef("Checking dir %s", f)
-				if f.IsDir() {
-					descFilePath := filepath.Join(libPath, f.Name(), "DESCRIPTION")
-					log.Tracef("Checking file %s", descFilePath)
-					if _, errStat := os.Stat(descFilePath); errStat == nil {
-						descFilePaths = append(descFilePaths, descFilePath)
-					}
-				}
-			}
-
-			for _, descFilePath := range descFilePaths {
-				descItems := parseDescriptionFile(descFilePath)
-				packageName := descItems["Package"]
-				packageVersion := descItems["Version"]
-				if _, ok := res[packageName]; !ok {
-					res[packageName] = packageVersion
-				} else {
-					log.Warnf("Duplicate package %s with version %s under %s libPath",
-						packageName, packageVersion, libPath)
-				}
-			}
-		}
-	}
-	log.Debugf("There are %d installed packages", len(res))
-	return res
-}
 
 // Returns tar.gz file name where built package is saved.
 // Searches for tar.gz file in current working directory.
@@ -325,74 +273,47 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 func getOrderedDependencies(
 	renvLock Renvlock,
 	packagesLocation map[string]struct{ PackageType, Location string },
-	installedDeps map[string]string,
+	installedDeps []string,
 	includeSuggests bool,
-) ([]string, map[string][]string) {
-	deps := make(map[string][]string)
-	var depsOrdered []string
+) {
+// ) ([]string, map[string][]string) {
+	// deps := make(map[string][]string)
+	// var depsOrdered []string
 
-	var reposURLs []string
-	for _, v := range renvLock.R.Repositories {
-		reposURLs = append(reposURLs, v.URL)
-	}
+	depsAll := getPackageDeps(
+		renvLock.Packages,
+		renvLock.Bioconductor.Version,
+		renvLock.R.Repositories,
+		packagesLocation,
+		includeSuggests,
+	)
+	log.Info(depsAll)
 
-	readFile := filepath.Join(tempCacheDirectory, "deps.json")
-	if _, err := os.Stat(readFile); err == nil {
-		log.Info("Reading file ", readFile)
-		jsonFile, errr := os.ReadFile(readFile)
-		checkError(errr)
-		errunmarshal := json.Unmarshal(jsonFile, &deps)
-		checkError(errunmarshal)
-	} else {
-		depsAll := getPackageDeps(
-			renvLock.Packages,
-			renvLock.Bioconductor.Version,
-			reposURLs,
-			packagesLocation,
-			includeSuggests,
-		)
+	// for p, depAll := range depsAll {
+	// 	if _, ok := packagesLocation[p]; ok {
+	// 		dep := make([]string, 0)
+	// 		for _, d := range depAll {
+	// 			_, okInpackagesLocation := packagesLocation[d]
+	// 			_, okInInstalledDeps := installedDeps[d]
+	// 			if okInpackagesLocation || okInInstalledDeps {
+	// 				dep = append(dep, d)
+	// 			}
+	// 		}
+	// 		deps[p] = dep
+	// 	}
+	// }
 
-		for p, depAll := range depsAll {
-			if _, ok := packagesLocation[p]; ok {
-				dep := make([]string, 0)
-				for _, d := range depAll {
-					_, okInpackagesLocation := packagesLocation[d]
-					_, okInInstalledDeps := installedDeps[d]
-					if okInpackagesLocation || okInInstalledDeps {
-						dep = append(dep, d)
-					}
-				}
-				deps[p] = dep
-			}
-		}
-		writeJSON(readFile, deps)
-	}
-	defer os.Remove(readFile)
+	// log.Debug("Running a topological sort on ", len(deps), " packages")
+	// depsOrdered = tsort(deps)
+	// log.Debugf("Success running topological sort on %d packages. Ordering complete for %d packages", len(deps), len(depsOrdered))
 
-	readFile = filepath.Join(tempCacheDirectory, "depsOrdered.json")
-	if _, err := os.Stat(readFile); err == nil {
-		log.Infof("Reading %s", readFile)
-		jsonFile, errr := os.ReadFile(readFile)
-		checkError(errr)
-		errUnmarshal := json.Unmarshal(jsonFile, &depsOrdered)
-		checkError(errUnmarshal)
-	} else {
-		log.Debugf("Running a topological sort on %d packages", len(deps))
-		depsOrdered = tsort(deps)
-		log.Debugf("Success running topological sort on %d packages. Ordering complete for %d packages", len(deps), len(depsOrdered))
-		writeJSON(readFile, depsOrdered)
-	}
-	defer os.Remove(readFile)
-
-	depsOrderedToInstall := make([]string, 0)
-	for _, packageName := range depsOrdered {
-		if _, ok := packagesLocation[packageName]; ok {
-			depsOrderedToInstall = append(depsOrderedToInstall, packageName)
-		}
-	}
-	// TODO: What does this mean?
-	log.Tracef("There are %d packages, but after cleaning it is %d", len(depsOrdered), len(depsOrderedToInstall))
-	return depsOrderedToInstall, deps
+	// depsOrderedToInstall := make([]string, 0)
+	// for _, packageName := range depsOrdered {
+	// 	if _, ok := packagesLocation[packageName]; ok {
+	// 		depsOrderedToInstall = append(depsOrderedToInstall, packageName)
+	// 	}
+	// }
+	// return depsOrderedToInstall, deps
 }
 
 // nolint: gocyclo
@@ -409,106 +330,113 @@ func installPackages(
 	err = os.MkdirAll(packageLogPath, os.ModePerm)
 	checkError(err)
 
-	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporaryLibPath})
-	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporaryLibPath)
+	// We treat base R packages as always installed (they have to be distinguished from other packages
+	// that might occur in DESCRIPTION files).
+	installedDeps := []string{
+		"base", "compiler", "datasets", "graphics", "grDevices", "grid",
+		"methods", "parallel", "splines", "stats", "stats4", "tcltk", "tools",
+		"translations", "utils", "R",
+	}
 	log.Info(installedDeps)
 
 	packagesLocation := make(map[string]struct{ PackageType, Location string })
 	for _, v := range *allDownloadInfo {
 		log.Info(v)
-		// packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
+		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
 	}
+	for k, v := range packagesLocation {
+		log.Info("Package ", k, " = ", v)
+	}
+
+
+	// depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
+	getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
 	os.Exit(0)
 
-	depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
+	// installChan := make(chan InstallInfo)
+	// defer close(installChan)
+	// installResultChan := make(chan InstallResultInfo)
+	// defer close(installResultChan)
 
-	installChan := make(chan InstallInfo)
-	defer close(installChan)
-	installResultChan := make(chan InstallResultInfo)
-	defer close(installResultChan)
+	// for i := range depsOrderedToInstall {
+	// 	log.Tracef("Starting installation worker #%d", i)
+	// 	go installSinglePackageWorker(installChan, installResultChan, additionalBuildOptions, additionalInstallOptions)
+	// }
 
-	for i := range depsOrderedToInstall {
-		log.Tracef("Starting installation worker #%d", i)
-		go installSinglePackageWorker(installChan, installResultChan, additionalBuildOptions, additionalInstallOptions)
-	}
+	// installing := make(map[string]bool)
+	// processed := make(map[string]bool)
+	// for k := range installedDeps {
+	// 	processed[k] = true
+	// }
 
-	installing := make(map[string]bool)
-	processed := make(map[string]bool)
-	for k := range installedDeps {
-		processed[k] = true
-	}
+	// minI := 0
+	// maxI := int(numberOfWorkers) // max number of parallel installing workers
 
-	minI := 0
-	maxI := int(numberOfWorkers) // max number of parallel installing workers
+	// // running packages which have no dependencies
+	// counter := minI // number of currently installing packages in queue
 
-	// running packages which have no dependencies
-	counter := minI // number of currently installing packages in queue
+	// for _, p := range depsOrderedToInstall {
+	// 	log.Tracef("Checking %s", p)
+	// 	ver, ok := installedDeps[p]
+	// 	if !ok {
+	// 		if isDependencyFulfilled(p, deps, installedDeps) {
+	// 			counter++
+	// 			log.Tracef("Triggering %s", p)
+	// 			installing[p] = true
+	// 			installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
+	// 		}
+	// 		if counter >= maxI {
+	// 			// TODO: What does this mean?
+	// 			log.Infof("All the rest packages have dependencies. Counter:%d", counter)
+	// 			break
+	// 		}
+	// 	} else {
+	// 		*installResultInfos = append(*installResultInfos, InstallResultInfo{
+	// 			InstallInfo: InstallInfo{
+	// 				PackageName:   p,
+	// 				InputLocation: packagesLocation[p].Location,
+	// 				PackageType:   packagesLocation[p].PackageType,
+	// 			},
+	// 			PackageVersion: ver,
+	// 			LogFilePath:    "",
+	// 			Status:         InstallResultInfoStatusSkipped,
+	// 		})
+	// 	}
+	// }
 
-	for _, p := range depsOrderedToInstall {
-		log.Tracef("Checking %s", p)
-		ver, ok := installedDeps[p]
-		if !ok {
-			if isDependencyFulfilled(p, deps, installedDeps) {
-				counter++
-				log.Tracef("Triggering %s", p)
-				installing[p] = true
-				installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
-			}
-			if counter >= maxI {
-				// TODO: What does this mean?
-				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
-				break
-			}
-		} else {
-			*installResultInfos = append(*installResultInfos, InstallResultInfo{
-				InstallInfo: InstallInfo{
-					PackageName:   p,
-					InputLocation: packagesLocation[p].Location,
-					PackageType:   packagesLocation[p].PackageType,
-				},
-				PackageVersion: ver,
-				LogFilePath:    "",
-				Status:         InstallResultInfoStatusSkipped,
-			})
-		}
-	}
+	// if len(*installResultInfos) < len(depsOrderedToInstall) {
+	// Loop:
+	// 	for installResultInfo := range installResultChan {
+	// 		*installResultInfos = append(*installResultInfos, installResultInfo)
+	// 		delete(installing, installResultInfo.PackageName)
+	// 		processed[installResultInfo.PackageName] = true
+	// 		installedDeps[installResultInfo.PackageName] = ""
+	// 		for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
+	// 			nextPackage := depsOrderedToInstall[i]
+	// 			if !processed[nextPackage] {
+	// 				if !installing[nextPackage] {
+	// 					if isDependencyFulfilled(nextPackage, deps, installedDeps) {
+	// 						installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location,
+	// 							packagesLocation[nextPackage].PackageType}
+	// 						installing[nextPackage] = true
+	// 					}
+	// 				}
+	// 			} else {
+	// 				if i == minI {
+	// 					minI++ // increment if package with index minI has been installed
+	// 					maxI++
+	// 				}
+	// 			}
+	// 		}
+	// 		if minI >= len(depsOrderedToInstall) {
+	// 			break Loop
+	// 		}
+	// 		// TODO: What does this mean?
+	// 		log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
+	// 	}
+	// }
 
-	if len(*installResultInfos) < len(depsOrderedToInstall) {
-		// TODO: What does this mean?
-		log.Tracef("Running on channels")
-	Loop:
-		for installResultInfo := range installResultChan {
-			*installResultInfos = append(*installResultInfos, installResultInfo)
-			delete(installing, installResultInfo.PackageName)
-			processed[installResultInfo.PackageName] = true
-			installedDeps[installResultInfo.PackageName] = ""
-			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
-				nextPackage := depsOrderedToInstall[i]
-				if !processed[nextPackage] {
-					if !installing[nextPackage] {
-						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
-							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location,
-								packagesLocation[nextPackage].PackageType}
-							installing[nextPackage] = true
-						}
-					}
-				} else {
-					if i == minI {
-						minI++ // increment if package with index minI has been installed
-						maxI++
-					}
-				}
-			}
-			if minI >= len(depsOrderedToInstall) {
-				break Loop
-			}
-			// TODO: What does this mean?
-			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
-		}
-	}
-
-	installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfo.json")
-	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
-	writeJSON(installResultInfosFilePath, *installResultInfos)
-	log.Infof("Installation for %d is done", len(*installResultInfos))
+	// installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfo.json")
+	// writeJSON(installResultInfosFilePath, *installResultInfos)
+	// log.Info("Installation of ", len(*installResultInfos), " packages completed.")
 }

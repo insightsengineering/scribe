@@ -177,7 +177,7 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 				localOutputDirectory + "/git_updates/" + k + remoteSubdir + "/DESCRIPTION",
 			)
 			checkError(err3)
-			descriptionContents := parseDescription(string(description))
+			descriptionContents := parseDescriptionFile(string(description))
 			newPackageVersion := descriptionContents["Version"]
 			// Update renv structure with new package version and SHA.
 			if entry, ok := renvLock.Packages[k]; ok {
