@@ -282,7 +282,7 @@ func getOrderedDependencies(
 	downloadedPackages map[string]DownloadedPackage,
 	includeSuggests bool,
 ) {
-// ) ([]string, map[string][]string) {
+	// ) ([]string, map[string][]string) {
 	// deps := make(map[string][]string)
 	// var depsOrdered []string
 
@@ -294,11 +294,9 @@ func getOrderedDependencies(
 		includeSuggests,
 	)
 
-	log.Info(depsAll)
+	log.Trace(depsAll)
 
 	// packagesLocation -> downloadedPackages
-
-
 
 	// for p, depAll := range depsAll {
 	// 	if _, ok := packagesLocation[p]; ok {
@@ -343,9 +341,7 @@ func installPackages(
 
 	downloadedPackages := make(map[string]DownloadedPackage)
 	for _, v := range *allDownloadInfo {
-		downloadedPackages[v.PackageName] = struct{
-				PackageType, PackageVersion, PackageRepository, Location string
-			}{
+		downloadedPackages[v.PackageName] = DownloadedPackage{
 			v.DownloadedPackageType, v.PackageVersion, v.PackageRepository, v.OutputLocation,
 		}
 	}

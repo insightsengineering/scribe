@@ -20,8 +20,8 @@ import (
 	"os"
 	"sort"
 
-	yaml "gopkg.in/yaml.v3"
 	locksmith "github.com/insightsengineering/locksmith/cmd"
+	yaml "gopkg.in/yaml.v3"
 )
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
@@ -92,12 +92,12 @@ func getDepsFromPackagesFiles(
 	packageDependencies map[string][]string,
 ) {
 	for _, repository := range rRepositories {
-		log.Info("repository = ", repository)
-		_, _, content := locksmith.DownloadTextFile(repository.URL + "/src/contrib/PACKAGES", make(map[string]string))
+		log.Debug("repository = ", repository)
+		_, _, content := locksmith.DownloadTextFile(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
 		packagesFile := locksmith.ProcessPackagesFile(content)
 		// Go through the list of packages, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
-		for packageName, _ := range rPackages {
+		for packageName := range rPackages {
 			var packageRepository string
 			downloadedPackage, ok := downloadedPackages[packageName]
 			if ok {
@@ -124,7 +124,52 @@ func getDepsFromDescriptionFiles(
 	downloadedPackages map[string]DownloadedPackage,
 	packageDependencies map[string][]string,
 ) {
+	for packageName := range rPackages {
+		var packageRepository string
+		var packageLocation string
+		downloadedPackage, ok := downloadedPackages[packageName]
+		if ok {
+			packageRepository = downloadedPackage.PackageRepository
+			packageLocation = downloadedPackage.Location
+		}
+		if packageRepository == "GitLab" || packageRepository == "GitHub" {
+			if packageLocation == "" {
+				log.Warn("Skipping installation of ", packageName, " as it hasn't been downloaded properly.")
+				continue
+			}
+			log.Trace(packageName, " = ", downloadedPackage)
+			// Read package dependencies from its DESCRIPTION file.
+			byteValue, err := os.ReadFile(packageLocation + "/DESCRIPTION")
+			checkError(err)
+			cleanedDescription := locksmith.CleanDescriptionOrPackagesEntry(string(byteValue))
+			packageMap := make(map[string]string)
+			err = yaml.Unmarshal([]byte(cleanedDescription), &packageMap)
+			checkError(err)
+			var packageDeps []locksmith.Dependency
+			locksmith.ProcessDependencyFields(packageMap, &packageDeps)
 
+			// Filter only relevant dependencies.
+			var filteredDependencies []string
+			for _, dependency := range packageDeps {
+				// Check if the dependency has been successfully downloaded.
+				downloadedDependency, ok := downloadedPackages[dependency.DependencyName]
+				var dependencyLocation string
+				if ok {
+					dependencyLocation = downloadedDependency.Location
+				}
+				// Only add the dependency to the list of package dependencies,
+				// if it's not a base R package, and it has been successfully downloaded,
+				// and it hasn't been added to the list yet.
+				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
+					dependencyLocation != "" &&
+					!stringInSlice(dependency.DependencyName, filteredDependencies) {
+					filteredDependencies = append(filteredDependencies, dependency.DependencyName)
+				}
+			}
+			log.Debug(packageName, " → ", filteredDependencies)
+			packageDependencies[packageName] = filteredDependencies
+		}
+	}
 }
 
 func getPackageDeps(
@@ -137,23 +182,12 @@ func getPackageDeps(
 	log.Debug("Getting package dependencies for ", len(rPackages), " packages")
 	packageDependencies := make(map[string][]string)
 
-	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies)
-	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
-
 	// If package is stored in tar.gz, get its dependencies from a corresponding entry in PACKAGES file
 	// in the repository pointed by renv.lock.
-	// If the package is stored in a cloned git repository, get its dependencies from its DESCRIPTION file.
+	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies)
 
-	// for pName, pInfo := range packagesLocation {
-	// 	if pInfo.PackageType == gitConst {
-	// 		if _, err := os.Stat(pInfo.Location); !os.IsNotExist(err) {
-	// 			packageDeps := getPackageDepsFromSinglePackageLocation(pInfo.Location, true)
-	// 			deps[pName] = packageDeps
-	// 		} else {
-	// 			log.Errorf("Directory %s for package %s does not exist", pInfo.PackageType, pInfo.Location)
-	// 		}
-	// 	}
-	// }
+	// If the package is stored in a cloned git repository, get its dependencies from its DESCRIPTION file.
+	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
 
 	return packageDependencies
 }
