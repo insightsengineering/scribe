@@ -50,45 +50,95 @@ func getDependenciesFields(includeSuggests bool) []string {
 	return res
 }
 
-// getDepsFromPackagesFiles downloads PACKAGES files from each of R package repositories.
-// It returns a map from package name to the list of package dependencies.
-func getDepsFromPackagesFiles(rRepositories []Rrepository) {
+// getPackageDepsFromPackagesFile retrieves the list of relevant dependencies
+// of a given package from PACKAGES file structure of the repository from which
+// the package has been downloaded.
+func getPackageDepsFromPackagesFile(
+	packageName string,
+	packagesFile locksmith.PackagesFile,
+	downloadedPackages map[string]DownloadedPackage,
+) []string {
+	var packageDependencies []string
+	for _, packagesEntry := range packagesFile.Packages {
+		if packagesEntry.Package == packageName {
+			for _, dependency := range packagesEntry.Dependencies {
+				// Check if the dependency has been successfully downloaded.
+				downloadedDependency, ok := downloadedPackages[dependency.DependencyName]
+				var dependencyLocation string
+				if ok {
+					dependencyLocation = downloadedDependency.Location
+				}
+				// Only add the dependency to the list of package dependencies,
+				// if it's not a base R package, and it has been successfully downloaded,
+				// and it hasn't been added to the list yet.
+				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
+					dependencyLocation != "" &&
+					!stringInSlice(dependency.DependencyName, packageDependencies) {
+					packageDependencies = append(packageDependencies, dependency.DependencyName)
+				}
+			}
+			break
+		}
+	}
+	return packageDependencies
+}
+
+// getDepsFromPackagesFiles downloads PACKAGES files from each of rRepositories.
+// It saves map entries (to packageDependencies) from package name to the list of package dependencies.
+func getDepsFromPackagesFiles(
+	rPackages map[string]Rpackage,
+	rRepositories []Rrepository,
+	downloadedPackages map[string]DownloadedPackage,
+	packageDependencies map[string][]string,
+) {
 	for _, repository := range rRepositories {
 		log.Info("repository = ", repository)
 		_, _, content := locksmith.DownloadTextFile(repository.URL + "/src/contrib/PACKAGES", make(map[string]string))
 		packagesFile := locksmith.ProcessPackagesFile(content)
 		// Go through the list of packages, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
-		// Additionally, save information that package B is a dependency of A, only if B occurs in the renv.lock
-		// and has been successfully downloaded.
-		log.Trace(packagesFile)
+		for packageName, _ := range rPackages {
+			var packageRepository string
+			downloadedPackage, ok := downloadedPackages[packageName]
+			if ok {
+				packageRepository = downloadedPackage.PackageRepository
+			}
+			// Retrieve information about package dependencies from the PACKAGES file
+			// downloaded from the repository from which this package has been downloaded
+			// according to the renv.lock.
+			// In particular, dependencies for GitHub/GitLab packages will NOT be read
+			// from PACKAGES file, since the packageRepository == "GitHub"/"GitLab" for them.
+			if packageRepository == repository.Name {
+				packageDeps := getPackageDepsFromPackagesFile(
+					packageName, packagesFile, downloadedPackages,
+				)
+				log.Debug(packageName, " → ", packageDeps)
+				packageDependencies[packageName] = packageDeps
+			}
+		}
 	}
+}
+
+func getDepsFromDescriptionFiles(
+	rPackages map[string]Rpackage,
+	downloadedPackages map[string]DownloadedPackage,
+	packageDependencies map[string][]string,
+) {
+
 }
 
 func getPackageDeps(
 	rPackages map[string]Rpackage,
 	bioconductorVersion string,
 	rRepositories []Rrepository,
-	packagesLocation map[string]struct{PackageType, PackageVersion, PackageRepository, Location string},
+	downloadedPackages map[string]DownloadedPackage,
 	includeSuggests bool,
 ) map[string][]string {
-	log.Debug("Getting package dependencies for %d packages", len(rPackages))
-	deps := make(map[string][]string)
+	log.Debug("Getting package dependencies for ", len(rPackages), " packages")
+	packageDependencies := make(map[string][]string)
 
-	getDepsFromPackagesFiles(rRepositories)
-
-	for packageName, _ := range rPackages {
-		downloadedPackageData, ok := packagesLocation[packageName]
-		if ok {
-			if downloadedPackageData.Location == "" {
-				log.Error("Package ", packageName, " has not been downloaded correctly.")
-			} else {
-				log.Info("Downloaded package = ", packageName, ", data = ", downloadedPackageData)
-			}
-		} else {
-			log.Error("No download data about package ", packageName, " occurring in renv.lock.")
-		}
-	}
+	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies)
+	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
 
 	// If package is stored in tar.gz, get its dependencies from a corresponding entry in PACKAGES file
 	// in the repository pointed by renv.lock.
@@ -105,7 +155,7 @@ func getPackageDeps(
 	// 	}
 	// }
 
-	return deps
+	return packageDependencies
 }
 
 func sortByCounter(counter map[string]int, nodes []string) []string {

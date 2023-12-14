@@ -54,6 +54,13 @@ type ExecRCmdInstallChanInfo struct {
 	Err    error
 }
 
+type DownloadedPackage struct {
+	PackageType       string
+	PackageVersion    string
+	PackageRepository string
+	Location          string
+}
+
 const InstallResultInfoStatusSucceeded = "SUCCEEDED"
 const InstallResultInfoStatusSkipped = "SKIPPED"
 const InstallResultInfoStatusFailed = "FAILED"
@@ -272,8 +279,7 @@ func installSinglePackageWorker(installChan chan InstallInfo, installResultChan 
 
 func getOrderedDependencies(
 	renvLock Renvlock,
-	packagesLocation map[string]struct{PackageType, PackageVersion, PackageRepository, Location string},
-	installedDeps []string,
+	downloadedPackages map[string]DownloadedPackage,
 	includeSuggests bool,
 ) {
 // ) ([]string, map[string][]string) {
@@ -284,10 +290,15 @@ func getOrderedDependencies(
 		renvLock.Packages,
 		renvLock.Bioconductor.Version,
 		renvLock.R.Repositories,
-		packagesLocation,
+		downloadedPackages,
 		includeSuggests,
 	)
+
 	log.Info(depsAll)
+
+	// packagesLocation -> downloadedPackages
+
+
 
 	// for p, depAll := range depsAll {
 	// 	if _, ok := packagesLocation[p]; ok {
@@ -330,28 +341,17 @@ func installPackages(
 	err = os.MkdirAll(packageLogPath, os.ModePerm)
 	checkError(err)
 
-	// We treat base R packages as always installed (they have to be distinguished from other packages
-	// that might occur in DESCRIPTION files).
-	installedDeps := []string{
-		"base", "compiler", "datasets", "graphics", "grDevices", "grid",
-		"methods", "parallel", "splines", "stats", "stats4", "tcltk", "tools",
-		"translations", "utils", "R",
-	}
-	log.Info(installedDeps)
-
-	packagesLocation := make(map[string]struct{
-		PackageType, PackageVersion, PackageRepository, Location string
-	})
+	downloadedPackages := make(map[string]DownloadedPackage)
 	for _, v := range *allDownloadInfo {
-		packagesLocation[v.PackageName] = struct{
+		downloadedPackages[v.PackageName] = struct{
 				PackageType, PackageVersion, PackageRepository, Location string
 			}{
 			v.DownloadedPackageType, v.PackageVersion, v.PackageRepository, v.OutputLocation,
 		}
 	}
 
-	// depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
-	getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
+	// depsOrderedToInstall, deps := getOrderedDependencies(renvLock, downloadedPackages, includeSuggests)
+	getOrderedDependencies(renvLock, downloadedPackages, includeSuggests)
 	os.Exit(0)
 
 	// installChan := make(chan InstallInfo)
