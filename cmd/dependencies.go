@@ -28,8 +28,7 @@ func parseDescriptionFile(descriptionFilePath string) map[string]string {
 	log.Trace("Parsing ", descriptionFilePath)
 	jsonFile, err := os.ReadFile(descriptionFilePath)
 	checkError(err)
-	// TODO after aligining with locksmith release, we'll have to add second argument = true
-	cleaned := locksmith.CleanDescriptionOrPackagesEntry(string(jsonFile))
+	cleaned := locksmith.CleanDescriptionOrPackagesEntry(string(jsonFile), true)
 	packageMap := make(map[string]string)
 	err = yaml.Unmarshal([]byte(cleaned), &packageMap)
 	checkError(err)
@@ -141,7 +140,7 @@ func getDepsFromDescriptionFiles(
 			// Read package dependencies from its DESCRIPTION file.
 			byteValue, err := os.ReadFile(packageLocation + "/DESCRIPTION")
 			checkError(err)
-			cleanedDescription := locksmith.CleanDescriptionOrPackagesEntry(string(byteValue))
+			cleanedDescription := locksmith.CleanDescriptionOrPackagesEntry(string(byteValue), true)
 			packageMap := make(map[string]string)
 			err = yaml.Unmarshal([]byte(cleanedDescription), &packageMap)
 			checkError(err)
