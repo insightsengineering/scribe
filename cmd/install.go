@@ -28,14 +28,10 @@ const buildLogPath = "/tmp/scribe/build_logs"
 const gitConst = "git"
 const htmlExtension = ".html"
 
-type InstallInfo struct {
-	PackageName   string `json:"packageName"`
-	InputLocation string `json:"inputLocation"`
-	PackageType   string `json:"packageType"`
-}
-
 type InstallResultInfo struct {
-	InstallInfo
+	PackageName      string `json:"packageName"`
+	InputLocation    string `json:"inputLocation"`
+	PackageType      string `json:"packageType"`
 	PackageVersion   string `json:"packageVersion"`
 	Status           string `json:"status"`
 	LogFilePath      string `json:"logFilePath"`
@@ -159,7 +155,7 @@ func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd st
 // Returns error and build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string,
 	additionalBuildOptions string, additionalInstallOptions string) (string, error) {
-	log.Infof("Executing installation step on package %s located in %s", packageName, outputLocation)
+	log.Tracef("Executing installation step on package %s located in %s", packageName, outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
 	var err error
@@ -239,93 +235,89 @@ r_cmd_install_loop:
 			packageName, closeHTMLTagsErr, logFilePath)
 		return buildStatus, closeHTMLTagsErr
 	}
-	log.Infof("Executed installation step on package %s located in %s", packageName, outputLocation)
+	log.Tracef("Executed installation step on package %s located in %s", packageName, outputLocation)
 	return buildStatus, err
 }
 
-func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo,
-	additionalBuildOptions string, additionalInstallOptions string) {
-	for installInfo := range installChan {
-		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+htmlExtension)
-		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+htmlExtension)
-		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
-			logFilePath, buildLogFilePath, installInfo.PackageType, additionalBuildOptions, additionalInstallOptions)
-		packageVersion := ""
-		var status string
-		switch {
-		case err == nil:
-			log.Tracef("No error after installation of %s", installInfo.PackageName)
-			descFilePath := filepath.Join(temporaryLibPath, installInfo.PackageName, "DESCRIPTION")
-			installedDesc := parseDescriptionFile(descFilePath)
-			packageVersion = installedDesc["Version"]
-			status = InstallResultInfoStatusSucceeded
-		case buildStatus == buildStatusFailed:
-			status = InstallResultInfoStatusBuildFailed
-		default:
-			status = InstallResultInfoStatusFailed
+func installSinglePackage(installResultChan chan InstallResultInfo, packageName string, packageType string,
+	inputLocation string, additionalBuildOptions string, additionalInstallOptions string) {
+	logFilePath := filepath.Join(packageLogPath, packageName+htmlExtension)
+	buildLogFilePath := filepath.Join(buildLogPath, packageName+htmlExtension)
+	buildStatus, err := executeInstallation(inputLocation, packageName,
+		logFilePath, buildLogFilePath, packageType, additionalBuildOptions, additionalInstallOptions)
+	packageVersion := ""
+	var status string
+	switch {
+	case err == nil:
+		log.Tracef("No error after installation of %s", packageName)
+		descFilePath := filepath.Join(temporaryLibPath, packageName, "DESCRIPTION")
+		installedDesc := parseDescriptionFile(descFilePath)
+		packageVersion = installedDesc["Version"]
+		status = InstallResultInfoStatusSucceeded
+	case buildStatus == buildStatusFailed:
+		status = InstallResultInfoStatusBuildFailed
+	default:
+		status = InstallResultInfoStatusFailed
+	}
+	log.Tracef("Sending response from %s", packageName)
+	installResultChan <- InstallResultInfo{
+		PackageName:      packageName,
+		InputLocation:    inputLocation,
+		PackageType:      packageType,
+		Status:           status,
+		PackageVersion:   packageVersion,
+		LogFilePath:      logFilePath,
+		BuildStatus:      buildStatus,
+		BuildLogFilePath: buildLogFilePath,
+	}
+	log.Tracef("Installation of package %s is done", packageName)
+}
+
+func getPackagesReadyToInstall(
+	dependencies map[string][]string,
+	installedPackages []string,
+	packagesBeingInstalled map[string]bool,
+	readyPackages map[string]bool,
+) {
+	for packageName, packageDeps := range dependencies {
+		packageReady := true
+		for _, d := range packageDeps {
+			if !stringInSlice(d, installedPackages) {
+				packageReady = false
+			}
 		}
-		log.Tracef("Sending response from %s", installInfo.PackageName)
-		installResultChan <- InstallResultInfo{
-			InstallInfo:      installInfo,
-			Status:           status,
-			PackageVersion:   packageVersion,
-			LogFilePath:      logFilePath,
-			BuildStatus:      buildStatus,
-			BuildLogFilePath: buildLogFilePath,
+		_, isPackageBeingInstalled := packagesBeingInstalled[packageName]
+		if packageReady && !stringInSlice(packageName, installedPackages) &&
+			!isPackageBeingInstalled {
+			readyPackages[packageName] = true
 		}
-		log.Tracef("Installation of package %s is done", installInfo.PackageName)
 	}
 }
 
-func getOrderedDependencies(
-	renvLock Renvlock,
-	downloadedPackages map[string]DownloadedPackage,
-	includeSuggests bool,
-) {
-	// ) ([]string, map[string][]string) {
-	// deps := make(map[string][]string)
-	// var depsOrdered []string
-
-	depsAll := getPackageDeps(
-		renvLock.Packages,
-		renvLock.Bioconductor.Version,
-		renvLock.R.Repositories,
-		downloadedPackages,
-		includeSuggests,
-	)
-
-	log.Trace(depsAll)
-
-	// packagesLocation -> downloadedPackages
-
-	// for p, depAll := range depsAll {
-	// 	if _, ok := packagesLocation[p]; ok {
-	// 		dep := make([]string, 0)
-	// 		for _, d := range depAll {
-	// 			_, okInpackagesLocation := packagesLocation[d]
-	// 			_, okInInstalledDeps := installedDeps[d]
-	// 			if okInpackagesLocation || okInInstalledDeps {
-	// 				dep = append(dep, d)
-	// 			}
-	// 		}
-	// 		deps[p] = dep
-	// 	}
-	// }
-
-	// log.Debug("Running a topological sort on ", len(deps), " packages")
-	// depsOrdered = tsort(deps)
-	// log.Debugf("Success running topological sort on %d packages. Ordering complete for %d packages", len(deps), len(depsOrdered))
-
-	// depsOrderedToInstall := make([]string, 0)
-	// for _, packageName := range depsOrdered {
-	// 	if _, ok := packagesLocation[packageName]; ok {
-	// 		depsOrderedToInstall = append(depsOrderedToInstall, packageName)
-	// 	}
-	// }
-	// return depsOrderedToInstall, deps
+func mapToList(m map[string]bool) []string {
+	var outputList []string
+	for k, v := range m {
+		if v {
+			outputList = append(outputList, k)
+		}
+	}
+	return outputList
 }
 
-// nolint: gocyclo
+func getPackageToInstall(
+	packagesBeingInstalled map[string]bool,
+	readyPackages map[string]bool,
+) string {
+	for k, v := range readyPackages {
+		if v {
+			packagesBeingInstalled[k] = true
+			readyPackages[k] = false
+			return k
+		}
+	}
+	return ""
+}
+
 func installPackages(
 	renvLock Renvlock,
 	allDownloadInfo *[]DownloadInfo,
@@ -346,31 +338,68 @@ func installPackages(
 		}
 	}
 
-	// depsOrderedToInstall, deps := getOrderedDependencies(renvLock, downloadedPackages, includeSuggests)
-	getOrderedDependencies(renvLock, downloadedPackages, includeSuggests)
+	dependencies := getPackageDeps(
+		renvLock.Packages,
+		renvLock.R.Repositories,
+		downloadedPackages,
+	)
+
+	var installedPackages []string
+	readyPackages := make(map[string]bool)
+	packagesBeingInstalled := make(map[string]bool)
+
+	installationResultChan := make(chan InstallResultInfo)
+
+	getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
+	log.Info(readyPackages)
+
+package_installation_loop:
+	for {
+		select {
+		case msg := <-installationResultChan:
+			// Remove package from packagesBeingInstalled and add to installedPackages.
+			receivedPackageName := msg.PackageName
+			// receivedInputLocation := msg.InputLocation
+			// receivedPackageType := msg.PackageType
+			// receivedPackageVersion := msg.PackageVersion
+			receivedStatus := msg.Status
+			// receivedLogFilePath := msg.LogFilePath
+			// receivedBuildStatus := msg.BuildStatus
+			// receivedBuildLogFilePath := msg.BuildLogFilePath
+			log.Info("Installation of ", receivedPackageName, " completed, status = ", receivedStatus, ".")
+			installedPackages = append(installedPackages, receivedPackageName)
+			packagesBeingInstalled[receivedPackageName] = false
+			// Recalculate the list of packages ready to be installed.
+			getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
+			log.Info(
+				len(mapToList(readyPackages)), " packages ready. ",
+				len(mapToList(packagesBeingInstalled)), " packages being installed. ",
+				len(installedPackages), "/", len(downloadedPackages), " packages processed.",
+			)
+		default:
+			if len(mapToList(readyPackages))+len(mapToList(packagesBeingInstalled)) == 0 {
+				break package_installation_loop
+			}
+			if uint(len(mapToList(packagesBeingInstalled))) < numberOfWorkers {
+				packageName := getPackageToInstall(packagesBeingInstalled, readyPackages)
+				if packageName != "" {
+					log.Info("Installing ", packageName, "...")
+					go installSinglePackage(installationResultChan, packageName,
+						downloadedPackages[packageName].PackageType,
+						downloadedPackages[packageName].Location,
+						additionalBuildOptions, additionalInstallOptions)
+				} else {
+					// No package ready to install.
+					time.Sleep(2 * time.Second)
+				}
+			} else {
+				// Maximum number of concurrent installations reached.
+				time.Sleep(2 * time.Second)
+			}
+		}
+	}
+
 	os.Exit(0)
-
-	// installChan := make(chan InstallInfo)
-	// defer close(installChan)
-	// installResultChan := make(chan InstallResultInfo)
-	// defer close(installResultChan)
-
-	// for i := range depsOrderedToInstall {
-	// 	log.Tracef("Starting installation worker #%d", i)
-	// 	go installSinglePackageWorker(installChan, installResultChan, additionalBuildOptions, additionalInstallOptions)
-	// }
-
-	// installing := make(map[string]bool)
-	// processed := make(map[string]bool)
-	// for k := range installedDeps {
-	// 	processed[k] = true
-	// }
-
-	// minI := 0
-	// maxI := int(numberOfWorkers) // max number of parallel installing workers
-
-	// // running packages which have no dependencies
-	// counter := minI // number of currently installing packages in queue
 
 	// for _, p := range depsOrderedToInstall {
 	// 	log.Tracef("Checking %s", p)

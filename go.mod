@@ -3,7 +3,6 @@ module github.com/insightsengineering/scribe
 go 1.21
 
 require (
-	github.com/deckarep/golang-set/v2 v2.5.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/insightsengineering/locksmith v0.1.3
 	github.com/jamiealquiza/envy v1.1.0
@@ -12,7 +11,7 @@ require (
 	github.com/spf13/viper v1.18.1
 	github.com/stretchr/testify v1.8.4
 	go.szostok.io/version v1.2.0
-	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
+	golang.org/x/exp v0.0.0-20231214170342-aacd6d4b4611
 	golang.org/x/sys v0.15.0
 	gopkg.in/yaml.v3 v3.0.1
 )

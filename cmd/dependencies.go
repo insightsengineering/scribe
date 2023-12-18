@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"os"
-	"sort"
 
 	locksmith "github.com/insightsengineering/locksmith/cmd"
 	yaml "gopkg.in/yaml.v3"
@@ -33,20 +32,6 @@ func parseDescriptionFile(descriptionFilePath string) map[string]string {
 	err = yaml.Unmarshal([]byte(cleaned), &packageMap)
 	checkError(err)
 	return packageMap
-}
-
-func getPackageContent() string {
-	url := "https://cloud.r-project.org/src/contrib/PACKAGES"
-	_, _, content := locksmith.DownloadTextFile(url, make(map[string]string))
-	return content
-}
-
-func getDependenciesFields(includeSuggests bool) []string {
-	res := []string{"Depends", "Imports", "LinkingTo"}
-	if includeSuggests {
-		res = append(res, "Suggests")
-	}
-	return res
 }
 
 // getPackageDepsFromPackagesFile retrieves the list of relevant dependencies
@@ -72,7 +57,8 @@ func getPackageDepsFromPackagesFile(
 				// and it hasn't been added to the list yet.
 				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
 					dependencyLocation != "" &&
-					!stringInSlice(dependency.DependencyName, packageDependencies) {
+					!stringInSlice(dependency.DependencyName, packageDependencies) &&
+					dependency.DependencyType != "Suggests" {
 					packageDependencies = append(packageDependencies, dependency.DependencyName)
 				}
 			}
@@ -101,6 +87,11 @@ func getDepsFromPackagesFiles(
 			downloadedPackage, ok := downloadedPackages[packageName]
 			if ok {
 				packageRepository = downloadedPackage.PackageRepository
+			} else {
+				log.Warn(
+					"Skipping package ", packageName, " because it hasn't been",
+					" downloaded properly.",
+				)
 			}
 			// Retrieve information about package dependencies from the PACKAGES file
 			// downloaded from the repository from which this package has been downloaded
@@ -118,6 +109,9 @@ func getDepsFromPackagesFiles(
 	}
 }
 
+// getDepsFromDescriptionFiles for each package downloaded as git repository, reads its dependencies
+// from the DESCRIPTION file. It saves map entries (to packageDependencies) from package name to
+// the list of package dependencies.
 func getDepsFromDescriptionFiles(
 	rPackages map[string]Rpackage,
 	downloadedPackages map[string]DownloadedPackage,
@@ -173,10 +167,8 @@ func getDepsFromDescriptionFiles(
 
 func getPackageDeps(
 	rPackages map[string]Rpackage,
-	bioconductorVersion string,
 	rRepositories []Rrepository,
 	downloadedPackages map[string]DownloadedPackage,
-	includeSuggests bool,
 ) map[string][]string {
 	log.Debug("Getting package dependencies for ", len(rPackages), " packages")
 	packageDependencies := make(map[string][]string)
@@ -189,29 +181,4 @@ func getPackageDeps(
 	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
 
 	return packageDependencies
-}
-
-func sortByCounter(counter map[string]int, nodes []string) []string {
-	sort.Slice(nodes, func(i, j int) bool {
-		if counter[nodes[i]] == counter[nodes[j]] {
-			return nodes[i] < nodes[j]
-		}
-		return counter[nodes[i]] < counter[nodes[j]]
-	})
-	return nodes
-}
-
-func isDependencyFulfilled(packageName string, dependency map[string][]string, installedPackagesWithVersion map[string]string) bool {
-	// TODO: What does this mean?
-	log.Tracef("Checking if package %s has fulfilled dependencies", packageName)
-	deps := dependency[packageName]
-	if len(deps) > 0 {
-		for _, dep := range deps {
-			if _, ok := installedPackagesWithVersion[dep]; !ok {
-				log.Tracef("Not all dependencies are installed for package %s. Dependency not installed: %s", packageName, dep)
-				return false
-			}
-		}
-	}
-	return true
 }
