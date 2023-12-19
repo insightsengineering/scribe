@@ -778,11 +778,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	startTime := time.Now()
 	computeChecksums(localOutputDirectory+"/package_archives", localArchiveChecksums)
 	elapsedTime := time.Since(startTime)
-	log.Info("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()),
+	log.Debug("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()),
 		" seconds.")
-	for k, v := range localArchiveChecksums {
-		log.Debug(k, " = ", v)
-	}
 
 	messages := make(chan DownloadInfo)
 

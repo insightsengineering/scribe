@@ -186,7 +186,6 @@ results_receiver_loop:
 				break results_receiver_loop
 			}
 		default:
-			// TODO should there be any timeout in case checking some package doesn't complete?
 			time.Sleep(time.Second)
 		}
 	}
