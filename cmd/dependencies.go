@@ -79,6 +79,7 @@ func getDepsFromPackagesFiles(
 ) {
 	for _, repository := range rRepositories {
 		log.Debug("repository = ", repository)
+		// TODO mock download function
 		_, _, content := locksmith.DownloadTextFile(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
 		packagesFile := locksmith.ProcessPackagesFile(content)
 		// Go through the list of packages, and add information to the output data structure

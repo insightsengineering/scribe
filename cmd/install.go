@@ -58,7 +58,6 @@ type DownloadedPackage struct {
 }
 
 const InstallResultInfoStatusSucceeded = "SUCCEEDED"
-const InstallResultInfoStatusSkipped = "SKIPPED"
 const InstallResultInfoStatusFailed = "FAILED"
 const InstallResultInfoStatusBuildFailed = "BUILD_FAILED"
 
@@ -131,7 +130,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, closeHTMLTagsErr}
 		return
 	}
-	log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
+	log.Tracef("Executed build step on package %s located in %s", packageName, outputLocation)
 	builtPackageName := getBuiltPackageFileName(packageName)
 	if builtPackageName != "" {
 		// Build succeeded.
@@ -359,6 +358,9 @@ func installPackages(
 
 	getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
 
+	packagesInstalledSuccessfully := 0
+	packagesInstalledUnsuccessfully := 0
+
 package_installation_loop:
 	for {
 		select {
@@ -367,6 +369,12 @@ package_installation_loop:
 			receivedStatus := msg.Status
 			log.Info("Installation of ", receivedPackageName, " completed, status = ", receivedStatus, ".")
 			*allInstallInfo = append(*allInstallInfo, msg)
+
+			if receivedStatus == InstallResultInfoStatusSucceeded {
+				packagesInstalledSuccessfully++
+			} else {
+				packagesInstalledUnsuccessfully++
+			}
 
 			// Mark the package as installed, and not one being installed.
 			installedPackages = append(installedPackages, receivedPackageName)
@@ -378,7 +386,9 @@ package_installation_loop:
 			log.Info(
 				len(mapToList(readyPackages)), " packages ready. ",
 				len(mapToList(packagesBeingInstalled)), " packages being installed. ",
-				len(installedPackages), "/", len(downloadedPackages), " packages processed.",
+				len(installedPackages), "/", len(downloadedPackages), " packages processed (",
+				packagesInstalledSuccessfully, " succeeded, ", packagesInstalledUnsuccessfully,
+				" failed).",
 			)
 		default:
 			if len(mapToList(readyPackages))+len(mapToList(packagesBeingInstalled)) == 0 {

@@ -109,8 +109,6 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 		switch p.Status {
 		case InstallResultInfoStatusSucceeded:
 			installStatusText = filePath + HTMLStatusOK + HTMLLinkEnd
-		case InstallResultInfoStatusSkipped:
-			installStatusText = filePath + "<span class=\"badge bg-info text-dark\">skipped</span></a>"
 		case InstallResultInfoStatusFailed:
 			installStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
 		case InstallResultInfoStatusBuildFailed:

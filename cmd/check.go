@@ -194,7 +194,7 @@ results_receiver_loop:
 func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName string, logFilePath string,
 	additionalOptions string) {
 	log.Info("Checking package ", packageFile)
-	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
+	log.Trace("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
 	defer logFile.Close()
@@ -287,13 +287,13 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPack
 			match, err := regexp.MatchString(checkRegexp, fileName)
 			checkError(err)
 			if match {
-				log.Debug(fileName + " matches regexp " + checkRegexp)
+				log.Trace(fileName + " matches regexp " + checkRegexp)
 				checkPackageFiles = append(
 					checkPackageFiles,
 					fileName,
 				)
 			} else {
-				log.Debug(fileName + " doesn't match regexp " + checkRegexp)
+				log.Trace(fileName + " doesn't match regexp " + checkRegexp)
 			}
 		}
 	}

@@ -806,7 +806,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 		if v.Package != "" && v.Version != "" {
 			repoURL = getRepositoryURL(v, renvLock.R.Repositories)
 			guard <- struct{}{}
-			log.Debug("Downloading package ", v.Package)
+			log.Trace("Downloading package ", v.Package)
 			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef,
 				v.Source, v.Repository, v.RemoteSubdir, currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, downloadFileFunction, gitCloneFunction, messages, guard)
