@@ -16,13 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/slices"
 )
 
 func Test_stringInSlice(t *testing.T) {
@@ -73,17 +71,6 @@ func Test_execCommandWithEnvs(t *testing.T) {
 
 }
 
-// nolint
-func Test_tsort_many_packages(t *testing.T) {
-	var deps map[string][]string
-	jsonFile, _ := os.ReadFile("testdata/deps.json")
-	json.Unmarshal(jsonFile, &deps)
-	ordered := tsort(deps)
-	assert.NotEmpty(t, deps)
-	assert.NotEmpty(t, ordered)
-
-}
-
 func Test_toEmptyMapString(t *testing.T) {
 	testcases := []struct {
 		slice   []string
@@ -125,131 +112,6 @@ func Test_toEmptyMapString(t *testing.T) {
 
 		if !mapeq(c.mapping, actual) {
 			t.Fatalf("toEmptyMapString returns wrong value (%v). It should %v", actual, c.mapping)
-		}
-	}
-}
-
-func Test_tsort(t *testing.T) {
-
-	testcases := []struct {
-		testName      string
-		g             map[string][]string
-		expectedOrder []string
-	}{
-		{
-			"All nodes are disconnected",
-			map[string][]string{
-				"B": {},
-				"b": {},
-				"A": {},
-				"a": {},
-				"2": {},
-				"1": {},
-				"3": {},
-				"c": {},
-				"C": {},
-			},
-			[]string{"1", "2", "3", "A", "B", "C", "a", "b", "c"},
-		},
-
-		{
-			"Linear",
-			map[string][]string{
-				"2": {"5"},
-				"3": {"7"},
-				"4": {"1"},
-				"1": {},
-				"7": {"2"},
-				"5": {"4"},
-			},
-			[]string{"1", "4", "5", "2", "7", "3"},
-		},
-		{
-			"Small Binomial TREE",
-			map[string][]string{
-
-				"21": {"32", "31"},
-				"22": {"34", "33"},
-				"11": {"22", "21"},
-			},
-			[]string{"31", "32", "33", "34", "21", "22", "11"},
-		},
-		{
-			"Small revert Binomial TREE",
-			map[string][]string{
-
-				"21": {"11"},
-				"22": {"11"},
-
-				"31": {"21"},
-				"32": {"21"},
-
-				"33": {"22"},
-				"34": {"22"},
-			},
-			[]string{"11", "21", "22", "31", "32", "33", "34"},
-		},
-		{
-			"Normal Binomial TREE + 2<->3 mix",
-			map[string][]string{
-				"11": {"21", "22"},
-
-				"21": {"31", "32", "34", "33"},
-				"22": {"33", "34", "32", "31"},
-
-				"31": {"41", "42"},
-				"32": {"43", "44"},
-				"33": {"45", "46"},
-				"34": {"47", "48"},
-			},
-			[]string{"41", "42", "43", "44", "45", "46", "47", "48", "31", "32", "33", "34", "21", "22", "11"},
-		},
-		{
-			"Sample example 2",
-			map[string][]string{
-				"A": {"B", "F"},
-				"B": {"H"},
-				"G": {"A", "C"},
-				"D": {"E", "C", "I"},
-				"I": {"C"},
-				"J": {"E"},
-				"E": {"I"},
-				"K": {"G", "D"},
-			},
-			[]string{"C", "F", "H", "B", "I", "E", "J", "A", "G", "D", "K"},
-		},
-		{
-			"Sample example 3",
-			map[string][]string{
-				"E": {"K", "H"},
-				"C": {"F", "I"},
-				"D": {"G", "E"},
-				"A": {"B", "C", "D"},
-				"B": {"J"},
-			},
-			[]string{"F", "G", "H", "I", "J", "K", "B", "C", "E", "D", "A"},
-		},
-		{
-			"Sample example 3",
-			map[string][]string{
-				"1": {},
-				"2": {"1"},
-				"3": {"2"},
-				"4": {"1"},
-				"5": {"4"},
-				"6": {"1"},
-				"7": {},
-				"8": {"5"},
-			},
-			[]string{"1", "7", "2", "3", "4", "5", "6", "8"},
-		},
-	}
-	for _, tc := range testcases {
-
-		order := tsort(tc.g)
-		assert.NotNil(t, order)
-		if !slices.Equal(tc.expectedOrder, order) {
-			t.Fatalf("[%s]\nactual:  %v\nexpected:%v", tc.testName, order, tc.expectedOrder)
 		}
 	}
 }

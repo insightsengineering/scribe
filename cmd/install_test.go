@@ -22,15 +22,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getInstalledPackagesWithVersionWithBaseRPackages(t *testing.T) {
-	pkgs := getInstalledPackagesWithVersionWithBaseRPackages([]string{})
-	basePkgs := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base"}
-	for i := 0; i < len(basePkgs); i++ {
-		pkg := basePkgs[i]
-		assert.Contains(t, pkgs, pkg)
-	}
-}
-
 func Test_executeInstallation(t *testing.T) {
 	t.Skip("skipping integration test")
 	_, err := executeInstallation("/testdata/BiocBaseUtils", "BiocBaseUtils", "test.out", "build-test.out", "tar.gz", "--no-manual", "--no-docs")
@@ -75,12 +66,6 @@ func Test_executeInstallationFromTargz(t *testing.T) {
 		_, err := executeInstallation(v.targz, v.packageName, v.packageName+".out", "build-"+v.packageName+".out", "tar.gz", "--no-manual", "--no-docs")
 		assert.NoError(t, err)
 	}
-}
-
-func Test_getInstalledPackagesWithVersion(t *testing.T) {
-	t.Skip("skipping integration test")
-	pkgVer := getInstalledPackagesWithVersion([]string{"/usr/lib/R/site-library"})
-	assert.NotEmpty(t, pkgVer)
 }
 
 func Test_getBuiltPackageFileName(t *testing.T) {

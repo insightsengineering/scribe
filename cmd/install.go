@@ -273,6 +273,10 @@ func installSinglePackage(installResultChan chan InstallResultInfo, packageName 
 	log.Tracef("Installation of package %s is done", packageName)
 }
 
+// getPackagesReadyToInstall iterates through all packages which should eventually be
+// installed, and marks package in readyPackages as ready to install, if all
+// package dependencies have been installed, the package is not currently being installed
+// and has not yet been installed.
 func getPackagesReadyToInstall(
 	dependencies map[string][]string,
 	installedPackages []string,
@@ -286,14 +290,18 @@ func getPackagesReadyToInstall(
 				packageReady = false
 			}
 		}
-		_, isPackageBeingInstalled := packagesBeingInstalled[packageName]
+		pkgBeingInstalled, ok := packagesBeingInstalled[packageName]
+		if !ok {
+			pkgBeingInstalled = false
+		}
 		if packageReady && !stringInSlice(packageName, installedPackages) &&
-			!isPackageBeingInstalled {
+			!pkgBeingInstalled {
 			readyPackages[packageName] = true
 		}
 	}
 }
 
+// mapToList returns a slice of map keys for those elements of the map for which the value is true.
 func mapToList(m map[string]bool) []string {
 	var outputList []string
 	for k, v := range m {
@@ -304,6 +312,7 @@ func mapToList(m map[string]bool) []string {
 	return outputList
 }
 
+// getPackageToInstall gets the first available package from the ready-to-install queue.
 func getPackageToInstall(
 	packagesBeingInstalled map[string]bool,
 	readyPackages map[string]bool,
@@ -321,8 +330,7 @@ func getPackageToInstall(
 func installPackages(
 	renvLock Renvlock,
 	allDownloadInfo *[]DownloadInfo,
-	installResultInfos *[]InstallResultInfo,
-	includeSuggests bool,
+	allInstallInfo *[]InstallResultInfo,
 	additionalBuildOptions string,
 	additionalInstallOptions string,
 ) {
@@ -347,30 +355,26 @@ func installPackages(
 	var installedPackages []string
 	readyPackages := make(map[string]bool)
 	packagesBeingInstalled := make(map[string]bool)
-
 	installationResultChan := make(chan InstallResultInfo)
 
 	getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
-	log.Info(readyPackages)
 
 package_installation_loop:
 	for {
 		select {
 		case msg := <-installationResultChan:
-			// Remove package from packagesBeingInstalled and add to installedPackages.
 			receivedPackageName := msg.PackageName
-			// receivedInputLocation := msg.InputLocation
-			// receivedPackageType := msg.PackageType
-			// receivedPackageVersion := msg.PackageVersion
 			receivedStatus := msg.Status
-			// receivedLogFilePath := msg.LogFilePath
-			// receivedBuildStatus := msg.BuildStatus
-			// receivedBuildLogFilePath := msg.BuildLogFilePath
 			log.Info("Installation of ", receivedPackageName, " completed, status = ", receivedStatus, ".")
+			*allInstallInfo = append(*allInstallInfo, msg)
+
+			// Mark the package as installed, and not one being installed.
 			installedPackages = append(installedPackages, receivedPackageName)
 			packagesBeingInstalled[receivedPackageName] = false
+
 			// Recalculate the list of packages ready to be installed.
 			getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
+
 			log.Info(
 				len(mapToList(readyPackages)), " packages ready. ",
 				len(mapToList(packagesBeingInstalled)), " packages being installed. ",
@@ -399,70 +403,7 @@ package_installation_loop:
 		}
 	}
 
-	os.Exit(0)
-
-	// for _, p := range depsOrderedToInstall {
-	// 	log.Tracef("Checking %s", p)
-	// 	ver, ok := installedDeps[p]
-	// 	if !ok {
-	// 		if isDependencyFulfilled(p, deps, installedDeps) {
-	// 			counter++
-	// 			log.Tracef("Triggering %s", p)
-	// 			installing[p] = true
-	// 			installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
-	// 		}
-	// 		if counter >= maxI {
-	// 			// TODO: What does this mean?
-	// 			log.Infof("All the rest packages have dependencies. Counter:%d", counter)
-	// 			break
-	// 		}
-	// 	} else {
-	// 		*installResultInfos = append(*installResultInfos, InstallResultInfo{
-	// 			InstallInfo: InstallInfo{
-	// 				PackageName:   p,
-	// 				InputLocation: packagesLocation[p].Location,
-	// 				PackageType:   packagesLocation[p].PackageType,
-	// 			},
-	// 			PackageVersion: ver,
-	// 			LogFilePath:    "",
-	// 			Status:         InstallResultInfoStatusSkipped,
-	// 		})
-	// 	}
-	// }
-
-	// if len(*installResultInfos) < len(depsOrderedToInstall) {
-	// Loop:
-	// 	for installResultInfo := range installResultChan {
-	// 		*installResultInfos = append(*installResultInfos, installResultInfo)
-	// 		delete(installing, installResultInfo.PackageName)
-	// 		processed[installResultInfo.PackageName] = true
-	// 		installedDeps[installResultInfo.PackageName] = ""
-	// 		for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
-	// 			nextPackage := depsOrderedToInstall[i]
-	// 			if !processed[nextPackage] {
-	// 				if !installing[nextPackage] {
-	// 					if isDependencyFulfilled(nextPackage, deps, installedDeps) {
-	// 						installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location,
-	// 							packagesLocation[nextPackage].PackageType}
-	// 						installing[nextPackage] = true
-	// 					}
-	// 				}
-	// 			} else {
-	// 				if i == minI {
-	// 					minI++ // increment if package with index minI has been installed
-	// 					maxI++
-	// 				}
-	// 			}
-	// 		}
-	// 		if minI >= len(depsOrderedToInstall) {
-	// 			break Loop
-	// 		}
-	// 		// TODO: What does this mean?
-	// 		log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
-	// 	}
-	// }
-
-	// installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfo.json")
-	// writeJSON(installResultInfosFilePath, *installResultInfos)
-	// log.Info("Installation of ", len(*installResultInfos), " packages completed.")
+	installResultFilePath := filepath.Join(tempCacheDirectory, "installResultInfo.json")
+	writeJSON(installResultFilePath, *allInstallInfo)
+	log.Info("Installation of ", len(*allInstallInfo), " packages completed.")
 }

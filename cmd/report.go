@@ -61,7 +61,7 @@ func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory s
 		if !file.IsDir() {
 			oldFileName := sourceDirectory + "/" + filepath.Base(file.Name())
 			newFileName := destinationDirectory + "/" + filePrefix + filepath.Base(file.Name())
-			log.Debugf("Copying %s to %s.", oldFileName, newFileName)
+			log.Tracef("Copying %s to %s.", oldFileName, newFileName)
 			data, err := os.ReadFile(oldFileName)
 			checkError(err)
 			err = os.WriteFile(newFileName, data, 0644) //#nosec

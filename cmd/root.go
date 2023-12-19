@@ -208,17 +208,17 @@ for a collection of R packages that are defined in an
 			checkError(err)
 			installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfo.json")
 			var allInstallInfo []InstallResultInfo
-			if _, err := os.Stat(installInfoFile); err == nil {
+			if _, err = os.Stat(installInfoFile); err == nil {
 				readJSON(installInfoFile, &allInstallInfo)
 			} else {
 				log.Infof("%s doesn't exist.", installInfoFile)
-				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests, buildOptions, installOptions)
+				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, buildOptions, installOptions)
 			}
 
 			// Perform R CMD check, except when cache contains JSON with previous check results.
 			checkInfoFile := filepath.Join(tempCacheDirectory, "checkInfo.json")
 			var allCheckInfo []PackageCheckInfo
-			if _, err := os.Stat(checkInfoFile); err == nil {
+			if _, err = os.Stat(checkInfoFile); err == nil {
 				readJSON(checkInfoFile, &allCheckInfo)
 			} else {
 				log.Infof("%s doesn't exist.", checkInfoFile)
@@ -226,7 +226,7 @@ for a collection of R packages that are defined in an
 				// If no packages were checked (because of e.g. their names didn't match the CLI parameter)
 				// the file with check results will not be generated, so we're checking
 				// its existence once again.
-				if _, err := os.Stat(checkInfoFile); err == nil {
+				if _, err = os.Stat(checkInfoFile); err == nil {
 					readJSON(checkInfoFile, &allCheckInfo)
 				}
 			}

@@ -125,7 +125,8 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 	return repoURL
 }
 
-// Returns HTTP status code for downloaded file and number of bytes in downloaded content.
+// downloadFile saves the file at url to outputFile and returns the HTTP status code
+// for downloaded file and number of bytes in downloaded content.
 func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 	// Get the data
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
@@ -489,9 +490,9 @@ func getPackageOutputLocation(outputLocation, packageSubdir string) string {
 	return outputLocation
 }
 
-// Function executed in parallel goroutines.
-// First, it determines in what way to retrieve the package.
-// Then, it performs appropriate action based on what's been determined.
+// downloadSinglePackage executes (in parallel goroutines) and .
+// determines in what way to retrieve the package, and then
+// retrieves the package accordingly.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
 	packageSource string, packageRepository string, packageSubdir string,
@@ -565,7 +566,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	<-guard
 }
 
-// Read PACKAGES file and save:
+// parsePackagesFile reads PACKAGES file and saves:
 // * map from package names to their versions as stored in the PACKAGES file.
 // * map from package names to their MD5 checksums as stored in the PACKAGES file.
 func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
@@ -623,7 +624,7 @@ func getBiocUrls(biocVersion string, biocUrls map[string]string) {
 	}
 }
 
-// Retrieve lists of package versions from predefined BioConductor categories.
+// getBioConductorPackages retrieves lists of package versions from predefined BioConductor categories.
 func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[string]*PackageInfo,
 	biocUrls map[string]string, downloadFileFunction func(string, string) (int, int64)) {
 	log.Info("Retrieving PACKAGES from BioConductor version ", biocVersion, ".")
@@ -644,8 +645,7 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 	}
 }
 
-// Iterate through files in directoryName and save the checksums of .tar.gz files found there.
-// TODO parallelize this if required - takes around 3 seconds for 820 MB of data
+// computeChecksums iterates through files in directoryName and save the checksums of .tar.gz files found there.
 func computeChecksums(directoryPath string, localArchiveChecksums map[string]*CacheInfo) {
 	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(info.Name(), tarGzExtension) {
@@ -662,7 +662,7 @@ func computeChecksums(directoryPath string, localArchiveChecksums map[string]*Ca
 	checkError(err)
 }
 
-// Receive messages from goroutines responsible for package downloads.
+// downloadResultReceiver receives messages from goroutines responsible for package downloads.
 func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int,
 	failedDownloads *int, totalPackages int, totalDownloadedBytes *int64,
 	totalSavedBandwidth *int64, downloadWaiter chan struct{},

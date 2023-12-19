@@ -55,6 +55,7 @@ func getPackageDepsFromPackagesFile(
 				// Only add the dependency to the list of package dependencies,
 				// if it's not a base R package, and it has been successfully downloaded,
 				// and it hasn't been added to the list yet.
+				// For non-git packages, Suggested packages are not treated as dependencies.
 				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
 					dependencyLocation != "" &&
 					!stringInSlice(dependency.DependencyName, packageDependencies) &&
@@ -125,7 +126,7 @@ func getDepsFromDescriptionFiles(
 			packageRepository = downloadedPackage.PackageRepository
 			packageLocation = downloadedPackage.Location
 		}
-		if packageRepository == "GitLab" || packageRepository == "GitHub" {
+		if packageRepository == GitLab || packageRepository == GitHub {
 			if packageLocation == "" {
 				log.Warn("Skipping installation of ", packageName, " as it hasn't been downloaded properly.")
 				continue
@@ -153,13 +154,14 @@ func getDepsFromDescriptionFiles(
 				// Only add the dependency to the list of package dependencies,
 				// if it's not a base R package, and it has been successfully downloaded,
 				// and it hasn't been added to the list yet.
+				// For git packages, the Suggested packages are treated as ordinary dependencies.
 				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
 					dependencyLocation != "" &&
 					!stringInSlice(dependency.DependencyName, filteredDependencies) {
 					filteredDependencies = append(filteredDependencies, dependency.DependencyName)
 				}
 			}
-			log.Debug(packageName, " → ", filteredDependencies)
+			log.Info(packageName, " → ", filteredDependencies)
 			packageDependencies[packageName] = filteredDependencies
 		}
 	}
@@ -173,11 +175,12 @@ func getPackageDeps(
 	log.Debug("Getting package dependencies for ", len(rPackages), " packages")
 	packageDependencies := make(map[string][]string)
 
-	// If package is stored in tar.gz, get its dependencies from a corresponding entry in PACKAGES file
-	// in the repository pointed by renv.lock.
+	// If package is stored in tar.gz, get its dependencies from a corresponding
+	// entry in PACKAGES file in the repository pointed by renv.lock.
 	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies)
 
-	// If the package is stored in a cloned git repository, get its dependencies from its DESCRIPTION file.
+	// If the package is stored in a cloned git repository, get its dependencies
+	// from its DESCRIPTION file.
 	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
 
 	return packageDependencies
