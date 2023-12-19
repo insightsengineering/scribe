@@ -71,51 +71,6 @@ func Test_execCommandWithEnvs(t *testing.T) {
 
 }
 
-func Test_toEmptyMapString(t *testing.T) {
-	testcases := []struct {
-		slice   []string
-		mapping map[string]string
-	}{}
-
-	mapeq := func(map1 map[string]string, map2 map[string]string) bool {
-		if map1 == nil || map2 == nil {
-			return false
-		}
-		if len(map1) != len(map2) {
-			return false
-		}
-
-		for k, v := range map1 {
-			v2, ok := map2[k]
-			if !ok {
-				return false
-			}
-			if v != v2 {
-				return false
-			}
-		}
-
-		for k, v := range map2 {
-			v1, ok := map1[k]
-			if !ok {
-				return false
-			}
-			if v != v1 {
-				return false
-			}
-		}
-		return true
-	}
-
-	for _, c := range testcases {
-		actual := toEmptyMapString(c.slice)
-
-		if !mapeq(c.mapping, actual) {
-			t.Fatalf("toEmptyMapString returns wrong value (%v). It should %v", actual, c.mapping)
-		}
-	}
-}
-
 func Test_fillEnvFromSystem(t *testing.T) {
 	os.Setenv("LANG", "en_US.UTF-8")
 	envs := fillEnvFromSystem([]string{"LANG"})

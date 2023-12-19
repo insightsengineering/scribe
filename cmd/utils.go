@@ -147,11 +147,3 @@ func execCommand(command string, returnOutput bool, envs []string, file *os.File
 
 	return outStr, errCombinedOutput
 }
-
-func toEmptyMapString(slice []string) map[string]string {
-	rmap := make(map[string]string)
-	for _, s := range slice {
-		rmap[s] = ""
-	}
-	return rmap
-}
