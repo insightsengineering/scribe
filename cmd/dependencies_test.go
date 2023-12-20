@@ -84,3 +84,21 @@ func Test_getDepsFromPackagesFiles(t *testing.T) {
 	assert.Equal(t, len(packageDependencies["package3"]), 0)
 	assert.Equal(t, len(packageDependencies["package4"]), 0)
 }
+
+func Test_getDepsFromDescriptionFiles(t *testing.T) {
+	rPackages := make(map[string]Rpackage)
+	downloadedPackages := make(map[string]DownloadedPackage)
+	packageDependencies := make(map[string][]string)
+	rPackages["package1"] = Rpackage{"package1", "", "", "", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package2"] = Rpackage{"package2", "", "", "", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package3"] = Rpackage{"package3", "", "", "", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package4"] = Rpackage{"package4", "", "", "", "", "", []string{}, "", "", "", "", "", ""}
+	downloadedPackages["package1"] = DownloadedPackage{"", "", "GitHub", "testdata/package1"}
+	downloadedPackages["package2"] = DownloadedPackage{"", "", "GitLab", "testdata/package2"}
+	downloadedPackages["package3"] = DownloadedPackage{"", "", "GitHub", "testdata/package3"}
+	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
+	assert.Equal(t, packageDependencies["package1"], []string{"package2", "package3"})
+	assert.Equal(t, packageDependencies["package2"], []string{"package3"})
+	assert.Equal(t, len(packageDependencies["package3"]), 0)
+	assert.Equal(t, len(packageDependencies["package4"]), 0)
+}
