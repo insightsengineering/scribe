@@ -96,6 +96,7 @@ func Test_getDepsFromDescriptionFiles(t *testing.T) {
 	downloadedPackages["package1"] = DownloadedPackage{"", "", "GitHub", "testdata/package1"}
 	downloadedPackages["package2"] = DownloadedPackage{"", "", "GitLab", "testdata/package2"}
 	downloadedPackages["package3"] = DownloadedPackage{"", "", "GitHub", "testdata/package3"}
+	downloadedPackages["package4"] = DownloadedPackage{"", "", "GitLub", ""}
 	getDepsFromDescriptionFiles(rPackages, downloadedPackages, packageDependencies)
 	assert.Equal(t, packageDependencies["package1"], []string{"package2", "package3"})
 	assert.Equal(t, packageDependencies["package2"], []string{"package3"})
