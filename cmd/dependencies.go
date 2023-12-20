@@ -76,11 +76,11 @@ func getDepsFromPackagesFiles(
 	rRepositories []Rrepository,
 	downloadedPackages map[string]DownloadedPackage,
 	packageDependencies map[string][]string,
+	downloadFileFunction func(string, map[string]string) (int, int64, string),
 ) {
 	for _, repository := range rRepositories {
-		log.Debug("repository = ", repository)
-		// TODO mock download function
-		_, _, content := locksmith.DownloadTextFile(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
+		log.Debug("Processing packages from repository: ", repository)
+		_, _, content := downloadFileFunction(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
 		packagesFile := locksmith.ProcessPackagesFile(content)
 		// Go through the list of packages, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
@@ -173,12 +173,12 @@ func getPackageDeps(
 	rRepositories []Rrepository,
 	downloadedPackages map[string]DownloadedPackage,
 ) map[string][]string {
-	log.Debug("Getting package dependencies for ", len(rPackages), " packages")
 	packageDependencies := make(map[string][]string)
 
 	// If package is stored in tar.gz, get its dependencies from a corresponding
 	// entry in PACKAGES file in the repository pointed by renv.lock.
-	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies)
+	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies,
+		locksmith.DownloadTextFile)
 
 	// If the package is stored in a cloned git repository, get its dependencies
 	// from its DESCRIPTION file.

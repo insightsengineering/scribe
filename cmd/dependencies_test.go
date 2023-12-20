@@ -36,3 +36,51 @@ func Test_parseDescriptionFile(t *testing.T) {
 		assert.Equal(t, c.fieldValue, kv[c.field])
 	}
 }
+
+func mockedDownloadTextFile(url string, _ map[string]string) (int, int64, string) { // nolint: gocyclo
+	switch {
+	case url == "https://repository1.example.com/src/contrib/PACKAGES":
+		return 200, 0, `Package: package1
+Version: 1.0.0
+Imports: package2, package3 (>= 1.0.2)
+Suggests: package5
+
+Package: package2
+Version: 1.0.0
+Imports: package3
+Depends: package4
+`
+	case url == "https://repository2.example.com/src/contrib/PACKAGES":
+		return 200, 0, `Package: package3
+Version: 1.0.0
+Depends: package4
+
+Package: package4
+Version: 2.0.0
+`
+	}
+	return 200, 0, ""
+}
+
+func Test_getDepsFromPackagesFiles(t *testing.T) {
+	rPackages := make(map[string]Rpackage)
+	downloadedPackages := make(map[string]DownloadedPackage)
+	packageDependencies := make(map[string][]string)
+	rPackages["package1"] = Rpackage{"package1", "", "", "Repository1", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package2"] = Rpackage{"package2", "", "", "Repository1", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package3"] = Rpackage{"package3", "", "", "Repository2", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package4"] = Rpackage{"package4", "", "", "Repository2", "", "", []string{}, "", "", "", "", "", ""}
+	downloadedPackages["package1"] = DownloadedPackage{"", "", "Repository1", "/tmp/scribe/downloaded_packages/package_archives/package1_1.0.0.tar.gz"}
+	downloadedPackages["package2"] = DownloadedPackage{"", "", "Repository1", "/tmp/scribe/downloaded_packages/package_archives/package2_1.0.0.tar.gz"}
+	downloadedPackages["package3"] = DownloadedPackage{"", "", "Repository2", "/tmp/scribe/downloaded_packages/package_archives/package3_1.0.0.tar.gz"}
+	rRepositories := []Rrepository{
+		{"Repository1", "https://repository1.example.com"},
+		{"Repository2", "https://repository2.example.com"},
+	}
+	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies,
+		mockedDownloadTextFile)
+	assert.Equal(t, packageDependencies["package1"], []string{"package2", "package3"})
+	assert.Equal(t, packageDependencies["package2"], []string{"package3"})
+	assert.Equal(t, len(packageDependencies["package3"]), 0)
+	assert.Equal(t, len(packageDependencies["package4"]), 0)
+}
