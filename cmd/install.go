@@ -91,15 +91,15 @@ func getBuiltPackageFileName(packageName string) string {
 }
 
 func logError(outputLocation string, packageName string, e error, path string) {
-	log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, e, path)
+	log.Error("Error details: outputLocation: ", outputLocation, " packageName: ", packageName,
+		"\nerr:", e, "\nfile:", path)
 }
 
 func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string,
 	outputLocation string, buildLogFilePath string, additionalOptions string) {
-	log.Infof("Package %s located in %s is a source package so it has to be built first.",
-		packageName, outputLocation)
+	log.Info("Package ", packageName, " located in ", outputLocation, " is a source package so it has to be built first.")
 	cmd := rExecutable + " CMD build " + additionalOptions + " " + outputLocation
-	log.Trace("execCommand:" + cmd)
+	log.Trace("Executing command: " + cmd)
 	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if buildLogFileErr != nil {
 		logError(outputLocation, packageName, buildLogFileErr, buildLogFilePath)
@@ -117,8 +117,8 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	output, err := execCommand(cmd, false,
 		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, buildLogFile)
 	if err != nil {
-		log.Errorf("Error with build: %s . Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s",
-			cmd, outputLocation, packageName, err, output)
+		log.Error("Error running ", cmd, "\nDetails: outputLocation: ", outputLocation, " packageName: ",
+			packageName, "\nerr: ", err, "\noutput: ", output)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, err}
 		return
 	}
@@ -128,11 +128,11 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, closeHTMLTagsErr}
 		return
 	}
-	log.Tracef("Executed build step on package %s located in %s", packageName, outputLocation)
+	log.Trace("Executed build step on package ", packageName, " located in ", outputLocation)
 	builtPackageName := getBuiltPackageFileName(packageName)
 	if builtPackageName != "" {
 		// Build succeeded.
-		log.Infof("Built package is stored in %s", builtPackageName)
+		log.Info("Built package is stored in ", builtPackageName)
 		// Install tar.gz file instead of directory with git source code of the package.
 		buildPackageChan <- BuildPackageChanInfo{buildStatusSucceeded, builtPackageName, err}
 		return
@@ -149,7 +149,7 @@ func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd st
 // Returns error and build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string,
 	additionalBuildOptions string, additionalInstallOptions string) (string, error) {
-	log.Tracef("Executing installation step on package %s located in %s", packageName, outputLocation)
+	log.Trace("Executing installation step on package ", packageName, " located in ", outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
 	var err error
@@ -182,7 +182,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 				log.Info("Building package ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 				break build_package_loop
 			default:
-				if totalWaitTime%20 == 0 {
+				if totalWaitTime%30 == 0 && totalWaitTime > 0 {
 					log.Info("Building package ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 				}
 				time.Sleep(time.Duration(waitInterval) * time.Second)
@@ -211,7 +211,7 @@ r_cmd_install_loop:
 			log.Info("R CMD INSTALL ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break r_cmd_install_loop
 		default:
-			if totalWaitTime%20 == 0 {
+			if totalWaitTime%30 == 0 && totalWaitTime > 0 {
 				log.Info("R CMD INSTALL ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
@@ -219,13 +219,14 @@ r_cmd_install_loop:
 		}
 	}
 	if err != nil {
-		log.Errorf("Error running: %s. Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
+		log.Error("Error running: ", cmd, "\nDetails: outputLocation: ", outputLocation,
+			" packageName: ", packageName, "\nerr: ", err, "\noutput: ", output)
 	}
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
 		logError(outputLocation, packageName, closeHTMLTagsErr, logFilePath)
 		return buildStatus, closeHTMLTagsErr
 	}
-	log.Tracef("Executed installation step on package %s located in %s", packageName, outputLocation)
+	log.Trace("Executed installation step on package ", packageName, " located in ", outputLocation)
 	return buildStatus, err
 }
 

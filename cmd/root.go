@@ -197,7 +197,7 @@ for a collection of R packages that are defined in an
 				// File with downloaded packages information is already present.
 				readJSON(downloadInfoFile, &allDownloadInfo)
 			} else {
-				log.Infof("%s doesn't exist.", downloadInfoFile)
+				log.Info(downloadInfoFile, " doesn't exist.")
 				downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 				writeJSON(downloadInfoFile, &allDownloadInfo)
 			}
@@ -211,7 +211,7 @@ for a collection of R packages that are defined in an
 			if _, err = os.Stat(installInfoFile); err == nil {
 				readJSON(installInfoFile, &allInstallInfo)
 			} else {
-				log.Infof("%s doesn't exist.", installInfoFile)
+				log.Info(installInfoFile, " doesn't exist.")
 				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, buildOptions, installOptions)
 			}
 
@@ -221,7 +221,7 @@ for a collection of R packages that are defined in an
 			if _, err = os.Stat(checkInfoFile); err == nil {
 				readJSON(checkInfoFile, &allCheckInfo)
 			} else {
-				log.Infof("%s doesn't exist.", checkInfoFile)
+				log.Info(checkInfoFile, " doesn't exist.")
 				checkPackages(checkInfoFile, checkOptions)
 				// If no packages were checked (because of e.g. their names didn't match the CLI parameter)
 				// the file with check results will not be generated, so we're checking
@@ -349,24 +349,10 @@ func Execute() {
 
 func initializeConfig() {
 	for _, v := range []string{
-		"logLevel",
-		"maskedEnvVars",
-		"renvLockFilename",
-		"checkPackage",
-		"updatePackages",
-		"checkAllPackages",
-		"reportDir",
-		"maxDownloadRoutines",
-		"maxCheckRoutines",
-		"numberOfWorkers",
-		"clearCache",
-		"includeSuggests",
-		"failOnError",
-		"buildOptions",
-		"installOptions",
-		"checkOptions",
-		"rCmdCheckFailRegex",
-		"rExecutablePath",
+		"logLevel", "maskedEnvVars", "renvLockFilename", "checkPackage", "updatePackages",
+		"checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines", "numberOfWorkers",
+		"clearCache", "includeSuggests", "failOnError", "buildOptions", "installOptions",
+		"checkOptions", "rCmdCheckFailRegex", "rExecutablePath",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been

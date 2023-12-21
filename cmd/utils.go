@@ -139,7 +139,7 @@ func execCommand(command string, returnOutput bool, envs []string, file *os.File
 		return string(data), err
 	}
 
-	log.Tracef("Command to execute: %v", cmd)
+	log.Trace("Command to execute: ", cmd)
 	out, errCombinedOutput := cmd.CombinedOutput()
 	checkError(errCombinedOutput)
 
