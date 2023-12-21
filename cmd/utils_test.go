@@ -76,3 +76,19 @@ func Test_fillEnvFromSystem(t *testing.T) {
 	envs := fillEnvFromSystem([]string{"LANG"})
 	assert.Equal(t, "LANG=en_US.UTF-8", envs[0])
 }
+
+func Test_parseDescriptionFile(t *testing.T) {
+	cases := []struct {
+		filename   string
+		field      string
+		fieldValue string
+		extracted  []string
+	}{
+		{"testdata/DESCRIPTION/NominalLogisticBiplot.txt", "Depends", "R (>= 2.15.1),mirt,gmodels,MASS", []string{"R", "mirt", "gmodels", "MASS"}},
+		{"testdata/DESCRIPTION/RcppNumerical.txt", "LinkingTo", "Rcpp, RcppEigen", []string{"Rcpp", "RcppEigen"}},
+	}
+	for _, c := range cases {
+		kv := parseDescriptionFile(c.filename)
+		assert.Equal(t, c.fieldValue, kv[c.field])
+	}
+}

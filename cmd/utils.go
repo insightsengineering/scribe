@@ -23,6 +23,9 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	locksmith "github.com/insightsengineering/locksmith/cmd"
+	yaml "gopkg.in/yaml.v3"
 )
 
 func stringInSlice(a string, list []string) bool {
@@ -146,4 +149,15 @@ func execCommand(command string, returnOutput bool, envs []string, file *os.File
 	checkError(errWriteString)
 
 	return outStr, errCombinedOutput
+}
+
+func parseDescriptionFile(descriptionFilePath string) map[string]string {
+	log.Trace("Parsing ", descriptionFilePath)
+	jsonFile, err := os.ReadFile(descriptionFilePath)
+	checkError(err)
+	cleaned := locksmith.CleanDescriptionOrPackagesEntry(string(jsonFile), true)
+	packageMap := make(map[string]string)
+	err = yaml.Unmarshal([]byte(cleaned), &packageMap)
+	checkError(err)
+	return packageMap
 }

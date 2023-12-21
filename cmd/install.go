@@ -113,10 +113,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	}
 	// Execute the command
 	output, err := execCommand(cmd, false,
-		[]string{
-			rLibsVarName + rLibsPaths,
-			"LANG=en_US.UTF-8",
-		}, buildLogFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, buildLogFile)
 	if err != nil {
 		log.Errorf("Error with build: %s . Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s",
 			cmd, outputLocation, packageName, err, output)
@@ -144,10 +141,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
-		[]string{
-			rLibsVarName + rLibsPaths,
-			"LANG=en_US.UTF-8",
-		}, logFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
 }
 
@@ -164,7 +158,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 		return buildStatus, logFileErr
 	}
 	defer logFile.Close()
-	// Add HTML tags to highlight logs
+	// Add HTML tags to highlight logs.
 	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
 		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
 			packageName, createHTMLTagsErr, logFilePath)
@@ -202,7 +196,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	}
 
 	cmd := rExecutable + " CMD INSTALL --no-lock -l " + temporaryLibPath + " " + additionalInstallOptions + " " + outputLocation
-	log.Trace("Executing command:" + cmd)
+	log.Trace("Executing command: " + cmd)
 	execRCmdInstallChan := make(chan ExecRCmdInstallChanInfo)
 	go executeRCmdInstall(execRCmdInstallChan, cmd, logFile)
 	var waitInterval = 1
@@ -248,7 +242,6 @@ func installSinglePackage(installResultChan chan InstallResultInfo, packageName 
 	var status string
 	switch {
 	case err == nil:
-		log.Tracef("No error after installation of %s", packageName)
 		descFilePath := filepath.Join(temporaryLibPath, packageName, "DESCRIPTION")
 		installedDesc := parseDescriptionFile(descFilePath)
 		packageVersion = installedDesc["Version"]
@@ -258,7 +251,6 @@ func installSinglePackage(installResultChan chan InstallResultInfo, packageName 
 	default:
 		status = InstallResultInfoStatusFailed
 	}
-	log.Tracef("Sending response from %s", packageName)
 	installResultChan <- InstallResultInfo{
 		PackageName:      packageName,
 		InputLocation:    inputLocation,
@@ -269,7 +261,6 @@ func installSinglePackage(installResultChan chan InstallResultInfo, packageName 
 		BuildStatus:      buildStatus,
 		BuildLogFilePath: buildLogFilePath,
 	}
-	log.Tracef("Installation of package %s is done", packageName)
 }
 
 // getPackagesReadyToInstall iterates through all packages which should eventually be

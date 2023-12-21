@@ -208,10 +208,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	cmd := rExecutable + " CMD check " + additionalOptions + " " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
-		[]string{
-			rLibsVarName + rLibsPaths,
-			"LANG=en_US.UTF-8",
-		}, logFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
 	checkError(err)
 	// Close HTML tags
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
@@ -253,7 +250,7 @@ check_single_package_loop:
 	}
 }
 
-// Returns list of package names coming from tarballs with built packages.
+// getCheckedPackages returns list of package names coming from tarballs with built packages.
 // The packages are filtered based on the wildcard expression from command line.
 // R CMD check should be performed on the returned list of packages.
 func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPackagesDirectory string) []string {
@@ -305,7 +302,7 @@ func checkPackages(outputFile string, additionalOptions string) {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	// Built packages are stored in current directory.
-	// The assumption in the whole check component is that tar.gz packages that should be checked
+	// Check component assumes that tar.gz packages which should be checked
 	// have been previously built and saved to current working directory.
 	checkPackagesFiles := getCheckedPackages(checkPackageExpression, checkAllPackages, ".")
 	// Channel to wait until all checks have completed.

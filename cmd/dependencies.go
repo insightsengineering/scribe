@@ -23,17 +23,6 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-func parseDescriptionFile(descriptionFilePath string) map[string]string {
-	log.Trace("Parsing ", descriptionFilePath)
-	jsonFile, err := os.ReadFile(descriptionFilePath)
-	checkError(err)
-	cleaned := locksmith.CleanDescriptionOrPackagesEntry(string(jsonFile), true)
-	packageMap := make(map[string]string)
-	err = yaml.Unmarshal([]byte(cleaned), &packageMap)
-	checkError(err)
-	return packageMap
-}
-
 // getPackageDepsFromPackagesFile retrieves the list of relevant dependencies
 // of a given package from PACKAGES file structure of the repository from which
 // the package has been downloaded.
@@ -55,7 +44,9 @@ func getPackageDepsFromPackagesFile(
 				// Only add the dependency to the list of package dependencies,
 				// if it's not a base R package, and it has been successfully downloaded,
 				// and it hasn't been added to the list yet.
-				// For non-git packages, Suggested packages are not treated as dependencies.
+				// Dependencies are retrieved from PACKAGES file only for packages not downloaded
+				// from git repositories, and for such packages Suggested packages are not treated
+				// as dependencies.
 				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
 					dependencyLocation != "" &&
 					!stringInSlice(dependency.DependencyName, packageDependencies) &&
@@ -82,7 +73,7 @@ func getDepsFromPackagesFiles(
 		log.Debug("Processing packages from repository: ", repository)
 		_, _, content := downloadFileFunction(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
 		packagesFile := locksmith.ProcessPackagesFile(content)
-		// Go through the list of packages, and add information to the output data structure
+		// Go through the list of packages from renv.lock, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
 		for packageName := range rPackages {
 			var packageRepository string
@@ -95,9 +86,9 @@ func getDepsFromPackagesFiles(
 					" downloaded properly.",
 				)
 			}
-			// Retrieve information about package dependencies from the PACKAGES file
-			// downloaded from the repository from which this package has been downloaded
-			// according to the renv.lock.
+			// Retrieve information about package dependencies from the PACKAGES file.
+			// The PACKAGES file is downloaded from the same repository as the package
+			// (according to the renv.lock).
 			// In particular, dependencies for GitHub/GitLab packages will NOT be read
 			// from PACKAGES file, since the packageRepository == "GitHub"/"GitLab" for them.
 			if packageRepository == repository.Name {
@@ -119,6 +110,7 @@ func getDepsFromDescriptionFiles(
 	downloadedPackages map[string]DownloadedPackage,
 	packageDependencies map[string][]string,
 ) {
+	// Iterate through packages from renv.lock.
 	for packageName := range rPackages {
 		var packageRepository string
 		var packageLocation string
@@ -154,8 +146,8 @@ func getDepsFromDescriptionFiles(
 				}
 				// Only add the dependency to the list of package dependencies,
 				// if it's not a base R package, and it has been successfully downloaded,
-				// and it hasn't been added to the list yet.
-				// For git packages, the Suggested packages are treated as ordinary dependencies.
+				// and it hasn't been added to the list yet. For packages downloaded
+				// from git, the Suggested packages are treated as ordinary dependencies.
 				if !locksmith.CheckIfBasePackage(dependency.DependencyName) &&
 					dependencyLocation != "" &&
 					!stringInSlice(dependency.DependencyName, filteredDependencies) {
