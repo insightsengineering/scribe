@@ -454,7 +454,7 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		return action, packageType, packageURL, "", outputLocation, "", savedBandwidth
 
 	case packageSource == GitHub:
-		// For now we only support GitHub instance than https://github.com.
+		// For now we only support GitHub instance at https://github.com.
 		gitDirectory := localOutputDirectory + "/github" +
 			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
@@ -490,9 +490,8 @@ func getPackageOutputLocation(outputLocation, packageSubdir string) string {
 	return outputLocation
 }
 
-// downloadSinglePackage executes (in parallel goroutines) and .
-// determines in what way to retrieve the package, and then
-// retrieves the package accordingly.
+// downloadSinglePackage executes (in parallel goroutines) and determines in what way
+// to retrieve the package, and then retrieves the package accordingly.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
 	packageSource string, packageRepository string, packageSubdir string,

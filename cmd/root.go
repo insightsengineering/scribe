@@ -223,7 +223,7 @@ for a collection of R packages that are defined in an
 			} else {
 				log.Info(checkInfoFile, " doesn't exist.")
 				checkPackages(checkInfoFile, checkOptions)
-				// If no packages were checked (because of e.g. their names didn't match the CLI parameter)
+				// If no packages were checked (e.g. because their names didn't match the CLI parameter)
 				// the file with check results will not be generated, so we're checking
 				// its existence once again.
 				if _, err = os.Stat(checkInfoFile); err == nil {

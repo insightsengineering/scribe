@@ -70,7 +70,7 @@ func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory s
 	}
 }
 
-// processDownloadInfo for each item from download info JSON, generates HTML code for badge
+// processDownloadInfo, for each item from download info JSON, generates HTML code for badge
 // in the report corresponding to the package. Returns map from package name to HTML code.
 func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	downloadStatuses := make(map[string]string)
