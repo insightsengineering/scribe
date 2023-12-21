@@ -834,12 +834,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	log.Info("Saved ", totalSavedBandwidth, " bytes of bandwidth and ",
 		fmt.Sprintf("%.2f", downloadTimeSaved), " seconds of download time due to caching.")
 	log.Info("Average throughput = ", averageThroughputMbps, " Mbps.")
-	log.Info(
-		"Download succeeded for ", successfulDownloads, " packages out of ",
-		numberOfDownloads, " requested packages.",
-	)
-	log.Info(
-		"Download failed for ", failedDownloads, " packages out of ",
-		numberOfDownloads, " requested packages.",
-	)
+	log.Info("Download succeeded for ", successfulDownloads, " packages out of ",
+		numberOfDownloads, " requested packages.")
+	log.Info("Download failed for ", failedDownloads, " packages out of ",
+		numberOfDownloads, " requested packages.")
 }

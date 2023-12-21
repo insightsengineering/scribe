@@ -200,8 +200,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	defer logFile.Close()
 	// Add HTML tags to highlight logs
 	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
-		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
-			createHTMLTagsErr, logFilePath)
+		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName, createHTMLTagsErr, logFilePath)
 		cmdCheckChan <- ""
 		return
 	}
@@ -212,8 +211,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName strin
 	checkError(err)
 	// Close HTML tags
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
-			closeHTMLTagsErr, logFilePath)
+		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName, closeHTMLTagsErr, logFilePath)
 		cmdCheckChan <- ""
 		return
 	}
@@ -285,10 +283,7 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPack
 			checkError(err)
 			if match {
 				log.Trace(fileName + " matches regexp " + checkRegexp)
-				checkPackageFiles = append(
-					checkPackageFiles,
-					fileName,
-				)
+				checkPackageFiles = append(checkPackageFiles, fileName)
 			} else {
 				log.Trace(fileName + " doesn't match regexp " + checkRegexp)
 			}

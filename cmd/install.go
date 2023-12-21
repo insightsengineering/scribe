@@ -90,6 +90,10 @@ func getBuiltPackageFileName(packageName string) string {
 	return ""
 }
 
+func logError(outputLocation string, packageName string, e error, path string) {
+	log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName, e, path)
+}
+
 func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string,
 	outputLocation string, buildLogFilePath string, additionalOptions string) {
 	log.Infof("Package %s located in %s is a source package so it has to be built first.",
@@ -98,16 +102,14 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	log.Trace("execCommand:" + cmd)
 	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if buildLogFileErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
-			buildLogFileErr, buildLogFilePath)
+		logError(outputLocation, packageName, buildLogFileErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, buildLogFileErr}
 		return
 	}
 	defer buildLogFile.Close()
 	// Add HTML tags to highlight logs
 	if _, createHTMLTagsErr := buildLogFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
-			createHTMLTagsErr, buildLogFilePath)
+		logError(outputLocation, packageName, createHTMLTagsErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, createHTMLTagsErr}
 		return
 	}
@@ -122,8 +124,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	}
 	// Close HTML tags
 	if _, closeHTMLTagsErr := buildLogFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
-			closeHTMLTagsErr, buildLogFilePath)
+		logError(outputLocation, packageName, closeHTMLTagsErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, closeHTMLTagsErr}
 		return
 	}
@@ -153,15 +154,13 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	buildStatus := buildStatusNotBuilt
 	var err error
 	if logFileErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, logFileErr, logFilePath)
+		logError(outputLocation, packageName, logFileErr, logFilePath)
 		return buildStatus, logFileErr
 	}
 	defer logFile.Close()
 	// Add HTML tags to highlight logs.
 	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, createHTMLTagsErr, logFilePath)
+		logError(outputLocation, packageName, createHTMLTagsErr, logFilePath)
 		return buildStatus, createHTMLTagsErr
 	}
 
@@ -220,12 +219,10 @@ r_cmd_install_loop:
 		}
 	}
 	if err != nil {
-		log.Error(cmd)
 		log.Errorf("Error running: %s. Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
 	}
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, closeHTMLTagsErr, logFilePath)
+		logError(outputLocation, packageName, closeHTMLTagsErr, logFilePath)
 		return buildStatus, closeHTMLTagsErr
 	}
 	log.Tracef("Executed installation step on package %s located in %s", packageName, outputLocation)
