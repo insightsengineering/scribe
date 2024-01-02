@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func mockedDownloadTextFile(url string, _ map[string]string) (int, int64, string) { // nolint: gocyclo
+func mockedDownloadTextFile(url string, _ map[string]string) (int, int64, string) {
 	switch {
 	case url == "https://repository1.example.com/src/contrib/PACKAGES":
 		return 200, 0, `Package: package1

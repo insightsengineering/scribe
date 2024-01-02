@@ -490,7 +490,7 @@ func getPackageOutputLocation(outputLocation, packageSubdir string) string {
 	return outputLocation
 }
 
-// downloadSinglePackage executes (in parallel goroutines) and determines in what way
+// downloadSinglePackage executes in parallel goroutines and determines in what way
 // to retrieve the package, and then retrieves the package accordingly.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
