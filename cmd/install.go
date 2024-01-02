@@ -302,15 +302,15 @@ func getPackagesReadyToInstall(
 	}
 }
 
-// mapToList returns a slice of map keys for those elements of the map for which the value is true.
-func mapToList(m map[string]bool) []string {
-	var outputList []string
-	for k, v := range m {
+// mapTrueLength returns number of elements in the map for which the value is true.
+func mapTrueLength(m map[string]bool) uint {
+	var trueLength uint
+	for _, v := range m {
 		if v {
-			outputList = append(outputList, k)
+			trueLength++
 		}
 	}
-	return outputList
+	return trueLength
 }
 
 // getPackageToInstall gets the first available package from the ready-to-install queue.
@@ -388,19 +388,19 @@ package_installation_loop:
 			getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
 
 			log.Info(
-				len(mapToList(readyPackages)), " packages ready. ",
-				len(mapToList(packagesBeingInstalled)), " packages being installed. ",
+				mapTrueLength(readyPackages), " packages ready. ",
+				mapTrueLength(packagesBeingInstalled), " packages being installed. ",
 				len(installedPackages), "/", len(downloadedPackages), " packages processed (",
 				packagesInstalledSuccessfully, " succeeded, ", packagesInstalledUnsuccessfully,
 				" failed).",
 			)
 		// Try to run a new package installation.
 		default:
-			if len(mapToList(readyPackages))+len(mapToList(packagesBeingInstalled)) == 0 {
+			if mapTrueLength(readyPackages)+mapTrueLength(packagesBeingInstalled) == 0 {
 				// No ready packages and no ongoing installations - all packages installed.
 				break package_installation_loop
 			}
-			if uint(len(mapToList(packagesBeingInstalled))) < numberOfWorkers {
+			if mapTrueLength(packagesBeingInstalled) < numberOfWorkers {
 				// The number of ongoing package installations less that maximum desired
 				// number of installation processes.
 				packageName := getPackageToInstall(packagesBeingInstalled, readyPackages)

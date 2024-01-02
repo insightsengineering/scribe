@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"os"
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,16 +96,14 @@ func Test_getBuiltPackageFileName(t *testing.T) {
 	assert.Equal(t, getBuiltPackageFileName("teal.modules.clinical"), "teal.modules.clinical_1.1.tar.gz")
 }
 
-func Test_mapToList(t *testing.T) {
+func Test_mapTrueLength(t *testing.T) {
 	m := make(map[string]bool)
 	m["test1"] = true
 	m["test2"] = false
 	m["test3"] = true
 	m["test4"] = false
 	m["test5"] = true
-	list := mapToList(m)
-	sort.Strings(list)
-	assert.Equal(t, list, []string{"test1", "test3", "test5"})
+	assert.Equal(t, mapTrueLength(m), uint(3))
 }
 
 func Test_getPackageToInstall(t *testing.T) {
