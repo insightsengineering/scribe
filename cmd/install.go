@@ -401,11 +401,11 @@ package_installation_loop:
 						additionalBuildOptions, additionalInstallOptions)
 				} else {
 					// No package ready to install.
-					time.Sleep(0.5 * time.Second)
+					time.Sleep(500 * time.Millisecond)
 				}
 			} else {
 				// Maximum number of concurrent installations reached.
-				time.Sleep(0.5 * time.Second)
+				time.Sleep(500 * time.Millisecond)
 			}
 		}
 	}
