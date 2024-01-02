@@ -262,13 +262,6 @@ func installSinglePackage(installResultChan chan InstallResultInfo, packageName 
 	}
 }
 
-func timer(name string) func() {
-    start := time.Now()
-    return func() {
-        log.Infof("%s took %v\n", name, time.Since(start))
-    }
-}
-
 // getPackagesReadyToInstall iterates through all packages which should eventually be
 // installed, and marks package in readyPackages as ready to install, if all
 // package dependencies have been installed, the package is not currently being installed
@@ -279,7 +272,6 @@ func getPackagesReadyToInstall(
 	packagesBeingInstalled map[string]bool,
 	readyPackages map[string]bool,
 ) {
-	defer timer("getPackagesReadyToInstall")()
 	for packageName, packageDeps := range dependencies {
 		packageReady := true
 		for _, d := range packageDeps {
