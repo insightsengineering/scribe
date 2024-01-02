@@ -55,6 +55,8 @@ const archivesSubdirectory = "/package_archives/"
 const srcContrib = "/src/contrib/"
 const biocPackagesPrefix = "/package_files/BIOC_PACKAGES_"
 
+var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
+
 type DownloadInfo struct {
 	// if statusCode > 0 it is identical to HTTP status code from download, or 200 in case of successful
 	// git repository clone
@@ -128,7 +130,6 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 // downloadFile saves the file at url to outputFile and returns the HTTP status code
 // for downloaded file and number of bytes in downloaded content.
 func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
-	// Get the data
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
@@ -137,11 +138,9 @@ func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 	if err == nil {
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
-			// Create the file
 			out, err := os.Create(outputFile)
 			checkError(err)
 			defer out.Close()
-			// Write the body to file
 			_, err = io.Copy(out, resp.Body)
 			checkError(err)
 		}

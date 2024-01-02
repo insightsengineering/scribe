@@ -107,13 +107,13 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 		return
 	}
 	defer buildLogFile.Close()
-	// Add HTML tags to highlight logs
+	// Add HTML tags to highlight logs.
 	if _, createHTMLTagsErr := buildLogFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
 		logError(outputLocation, packageName, createHTMLTagsErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, createHTMLTagsErr}
 		return
 	}
-	// Execute the command
+	// Execute the command.
 	output, err := execCommand(cmd, false,
 		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, buildLogFile)
 	if err != nil {
@@ -122,7 +122,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, err}
 		return
 	}
-	// Close HTML tags
+	// Close HTML tags.
 	if _, closeHTMLTagsErr := buildLogFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
 		logError(outputLocation, packageName, closeHTMLTagsErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, closeHTMLTagsErr}

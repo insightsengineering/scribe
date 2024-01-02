@@ -74,7 +74,7 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 			return v.URL
 		}
 	}
-	// return default mirror if the repository is not defined in lock file
+	// Return default mirror if the repository is not defined in lock file.
 	return defaultCranMirrorURL
 }
 
@@ -114,7 +114,7 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 	return numberOfWarnings
 }
 
-// validateRenvLock returns number of warnings during validation of renv.lock file
+// validateRenvLock returns number of warnings during validation of renv.lock file.
 func validateRenvLock(renvLock Renvlock) int {
 	var repositories []string
 	var numberOfWarnings int

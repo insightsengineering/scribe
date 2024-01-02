@@ -54,7 +54,7 @@ var temporaryLibPath string
 var rLibsPaths string
 var rExecutable string
 
-// within below directory:
+// Within localOutputDirectory:
 // tar.gz packages are downloaded to package_archives subdirectory
 // GitHub repositories are cloned into github subdirectory
 // GitLab repositories are cloned into gitlab subdirectory
@@ -62,8 +62,6 @@ var localOutputDirectory string
 
 const tempCacheDirectory = "/tmp/scribe/cache"
 const defaultDownloadDirectory = "/tmp/scribe/downloaded_packages"
-
-var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
 
 func setLogLevel() {
 	customFormatter := new(logrus.TextFormatter)
@@ -330,7 +328,8 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".scribe")
 	}
-	viper.AutomaticEnv() // read in environment variables that match
+	// Read in environment variables that match.
+	viper.AutomaticEnv()
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

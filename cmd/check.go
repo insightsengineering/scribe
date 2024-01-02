@@ -191,6 +191,7 @@ results_receiver_loop:
 	}
 }
 
+// runCmdCheck executes R CMD check for a given package in a goroutine.
 func runCmdCheck(cmdCheckChan chan string, packageFile string, logFilePath string,
 	additionalOptions string) {
 	log.Trace("Check logs/outputs will be saved to ", logFilePath, ".")
