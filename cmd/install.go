@@ -67,7 +67,7 @@ const buildStatusNotBuilt = "NOT_BUILT"
 
 const rLibsVarName = "R_LIBS="
 
-// Returns tar.gz file name where built package is saved.
+// getBuiltPackageFileName returns tar.gz file name where built package is saved.
 // Searches for tar.gz file in current working directory.
 // If not found, returns empty string.
 func getBuiltPackageFileName(packageName string) string {
@@ -146,7 +146,8 @@ func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd st
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
 }
 
-// Returns error and build status (succeeded, failed or package not built).
+// executeInstallation runs the R CMD build goroutine (for git packages), R CMD INSTALL goroutine
+// and returns the build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string,
 	additionalBuildOptions string, additionalInstallOptions string) (string, error) {
 	log.Trace("Executing installation step on package ", packageName, " located in ", outputLocation)

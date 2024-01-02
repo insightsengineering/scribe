@@ -151,7 +151,7 @@ func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 	return -4, 0
 }
 
-// Clones git repository and returns string with error value (empty if cloning was
+// cloneGitRepo clones git repository and returns string with error value (empty if cloning was
 // successful), approximate number of downloaded bytes, and cloned version of the package (tag, branch or commit SHA).
 // If commitSha or branchOrTagName is specified, the respective commit, branch or tag are checked out.
 // If environmentCredentialsType is "gitlab", this function expects username and token to be set in
@@ -395,8 +395,8 @@ func getBioconductorPackageDetails(packageName string, packageVersion string, re
 	return "notfound_bioc", "", "", "", 0
 }
 
-// Returns:
-// * information how the package should be accessed:
+// getPackageDetails returns the following information:
+// * how the package should be accessed:
 //
 //   - "download" means the package should be downloaded as a tar.gz file from CRAN, Bioconductor or some other repo
 //
@@ -719,7 +719,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	downloadWaiter <- struct{}{}
 }
 
-// Download packages from renv.lock file, saves download result structs to allDownloadInfo.
+// downloadPackages downloads packages from renv.lock file and saves download result structs to allDownloadInfo.
 func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	downloadFileFunction func(string, string) (int, int64),
 	gitCloneFunction func(string, string, string, string, string) (string, int64, string)) {

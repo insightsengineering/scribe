@@ -78,7 +78,8 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 	return defaultCranMirrorURL
 }
 
-// Returns number of warnings occurring during validation
+// validatePackageFields returns the number of warnings occurring during validation of
+// package fields in the renv.lock.
 func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) int {
 	var numberOfWarnings int
 	switch {
@@ -113,7 +114,7 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 	return numberOfWarnings
 }
 
-// Returns number of warnings during validation of renv.lock file
+// validateRenvLock returns number of warnings during validation of renv.lock file
 func validateRenvLock(renvLock Renvlock) int {
 	var repositories []string
 	var numberOfWarnings int
@@ -127,7 +128,7 @@ func validateRenvLock(renvLock Renvlock) int {
 	return numberOfWarnings
 }
 
-// Checks if any packages in renv.lock file should be updated.
+// updatePackagesRenvLock checks if any packages in renv.lock file should be updated.
 // A copy of renv.lock file is created - it contains updated versions
 // of selected packages as well as updated git HEAD SHAs.
 // This is checked by cloning the packages' git repositories.

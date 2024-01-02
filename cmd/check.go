@@ -45,8 +45,8 @@ type PackageCheckInfo struct {
 	ShouldFail          bool // Whether a NOTE or WARNING occurred that would cause the check to fail.
 }
 
-// Check if checkItemType is more severe than currently most severe (mostSevereCheckItem).
-// If yes, return new one, otherwise return previously most severe.
+// getNewMaximumSeverity checks if checkItemType is more severe than currently most severe (mostSevereCheckItem).
+// If yes, returns new one, otherwise returns previously most severe.
 func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) string {
 	newMostSevereCheckItem := mostSevereCheckItem
 	switch {
@@ -83,7 +83,7 @@ func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool,
 	}
 }
 
-// Parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
+// parseCheckOutput parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
 // Returns most severe of statuses found (OK, NOTE, WARNING, ERROR).
 func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo, packageName string) (string, bool) {
 	scanner := bufio.NewScanner(strings.NewReader(stringToParse))
@@ -161,7 +161,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 	return mostSevereCheckItem, shouldFail
 }
 
-// Go routine receiving data from go routines performing R CMD checks on the packages.
+// checkResultsReceiver receives data from go routines performing R CMD checks on the packages.
 func checkResultsReceiver(messages chan PackageCheckInfo,
 	checkWaiter chan struct{}, totalPackages int, outputFile string) {
 	var allPackagesCheckInfo []PackageCheckInfo
@@ -217,6 +217,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, logFilePath strin
 	cmdCheckChan <- output
 }
 
+// checkSinglePackage runs the goroutine with R CMD check for a single package, and waits for its completion.
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packageFile string, additionalOptions string) {
 	cmdCheckChan := make(chan string)
