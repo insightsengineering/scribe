@@ -346,6 +346,7 @@ func installPackages(
 	packagesBeingInstalled := make(map[string]bool)
 	installationResultChan := make(chan InstallResultInfo)
 
+	// Compute the initial list of ready packages (those having no dependencies at all).
 	getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
 
 	packagesInstalledSuccessfully := 0
@@ -354,6 +355,7 @@ func installPackages(
 package_installation_loop:
 	for {
 		select {
+		// One of the package installation goroutines finished.
 		case msg := <-installationResultChan:
 			receivedPackageName := msg.PackageName
 			receivedStatus := msg.Status
@@ -380,13 +382,18 @@ package_installation_loop:
 				packagesInstalledSuccessfully, " succeeded, ", packagesInstalledUnsuccessfully,
 				" failed).",
 			)
+		// Try to run a new package installation.
 		default:
 			if len(mapToList(readyPackages))+len(mapToList(packagesBeingInstalled)) == 0 {
+				// No ready packages and no ongoing installations - all packages installed.
 				break package_installation_loop
 			}
 			if uint(len(mapToList(packagesBeingInstalled))) < numberOfWorkers {
+				// The number of ongoing package installations less that maximum desired
+				// number of installation processes.
 				packageName := getPackageToInstall(packagesBeingInstalled, readyPackages)
 				if packageName != "" {
+					// Run a new package installation.
 					log.Info("Installing ", packageName, "...")
 					go installSinglePackage(installationResultChan, packageName,
 						downloadedPackages[packageName].PackageType,
@@ -394,11 +401,11 @@ package_installation_loop:
 						additionalBuildOptions, additionalInstallOptions)
 				} else {
 					// No package ready to install.
-					time.Sleep(2 * time.Second)
+					time.Sleep(0.5 * time.Second)
 				}
 			} else {
 				// Maximum number of concurrent installations reached.
-				time.Sleep(2 * time.Second)
+				time.Sleep(0.5 * time.Second)
 			}
 		}
 	}

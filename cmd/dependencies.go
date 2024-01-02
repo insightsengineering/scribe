@@ -165,6 +165,9 @@ func getPackageDeps(
 	rRepositories []Rrepository,
 	downloadedPackages map[string]DownloadedPackage,
 ) map[string][]string {
+	// A map with keys being renv.lock package names, and values being lists of dependencies
+	// (packages that should be installed in the system before the package corresponding
+	// to map key can be installed).
 	packageDependencies := make(map[string][]string)
 
 	// If package is stored in tar.gz, get its dependencies from a corresponding
