@@ -51,15 +51,21 @@ func Test_parseCheckOutput(t *testing.T) {
 		"* checking Rd metadata ... ERROR   Some error 7   Some error 8  ")
 	assert.Equal(t, allCheckInfo[2].CheckItemType, "NOTE")
 	assert.Equal(t, allCheckInfo[2].CheckItemContent,
-		"* checking Rd contents ... NOTE   Some note 3 Some note 4  Some note 5  ")
-	assert.Equal(t, allCheckInfo[3].CheckItemType, "ERROR")
+		"* checking Rd contents ... Some note 3 NOTE Some note 4 ")
+	assert.Equal(t, allCheckInfo[3].CheckItemType, "NOTE")
 	assert.Equal(t, allCheckInfo[3].CheckItemContent,
-		"* checking for unstated dependencies in ‘tests’ ... ERROR Some error 1   Some error 2  Some error 3 ")
-	assert.Equal(t, allCheckInfo[4].CheckItemType, "WARNING")
+		"* checking Rd contents ... NOTE   Some note 3 Some note 4  Some note 5  ")
+	assert.Equal(t, allCheckInfo[4].CheckItemType, "ERROR")
 	assert.Equal(t, allCheckInfo[4].CheckItemContent,
-		"* checking for unstated dependencies in ‘tests’ ... WARNING     Some error 4   Some error 5 Some error 6 ")
-	assert.Equal(t, allCheckInfo[5].CheckItemType, "ERROR")
+		"* checking for unstated dependencies in ‘tests’ ... ERROR Some error 1   Some error 2  Some error 3 ")
+	assert.Equal(t, allCheckInfo[5].CheckItemType, "WARNING")
 	assert.Equal(t, allCheckInfo[5].CheckItemContent,
+		"* checking for unstated dependencies in ‘tests’ ... Some error 8 WARNING   Some error 9     Some error 10  ")
+	assert.Equal(t, allCheckInfo[6].CheckItemType, "WARNING")
+	assert.Equal(t, allCheckInfo[6].CheckItemContent,
+		"* checking for unstated dependencies in ‘tests’ ... WARNING     Some error 4   Some error 5 Some error 6 ")
+	assert.Equal(t, allCheckInfo[7].CheckItemType, "ERROR")
+	assert.Equal(t, allCheckInfo[7].CheckItemContent,
 		"* checking tests ...   Running ‘testthat.R’  ERROR Running the tests in ‘tests/testthat.R’ failed. ")
 }
 

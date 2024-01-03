@@ -16,6 +16,10 @@ Some error 7
   Some error 8
 
 * checking Rd \usage sections ... OK
+* checking Rd contents ...
+Some note 3
+NOTE
+Some note 4
 * checking Rd contents ... NOTE
   Some note 3
 Some note 4
@@ -32,6 +36,12 @@ Some error 3
 * checking tests ... OK
   Running ‘testthat.R’
 * checking for unstated dependencies in vignettes ... OK
+* checking for unstated dependencies in ‘tests’ ...
+Some error 8
+WARNING
+  Some error 9
+    Some error 10
+
 * checking for unstated dependencies in ‘tests’ ... WARNING
     Some error 4
   Some error 5
@@ -46,5 +56,8 @@ Some error 6
  ERROR
 Running the tests in ‘tests/testthat.R’ failed.
 * checking PDF version of manual ... OK
+* checking PDF version of
+manual
+... OK
 * DONE
 Status: 1 WARNING
