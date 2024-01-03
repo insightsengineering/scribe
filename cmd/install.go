@@ -67,7 +67,7 @@ const buildStatusNotBuilt = "NOT_BUILT"
 
 const rLibsVarName = "R_LIBS="
 
-// getBuiltPackageFileName returns tar.gz file name where built package is saved.
+// getBuiltPackageFileName returns the tar.gz file name where the built package is saved.
 // Searches for tar.gz file in current working directory.
 // If not found, returns empty string.
 func getBuiltPackageFileName(packageName string) string {
@@ -90,11 +90,13 @@ func getBuiltPackageFileName(packageName string) string {
 	return ""
 }
 
+// logError logs errors during package build or installation.
 func logError(outputLocation string, packageName string, e error, path string) {
 	log.Error("Error details: outputLocation: ", outputLocation, " packageName: ", packageName,
 		"\nerr:", e, "\nfile:", path)
 }
 
+// buildPackage runs R CMD build on packages downloaded from git repositories.
 func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string,
 	outputLocation string, buildLogFilePath string, additionalOptions string) {
 	log.Info("Package ", packageName, " located in ", outputLocation, " is a source package so it has to be built first.")
@@ -140,6 +142,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	buildPackageChan <- BuildPackageChanInfo{buildStatusSucceeded, outputLocation, err}
 }
 
+// executeRCmdInstall runs the R CMD INSTALL in a goroutine and sends back the result to executeInstallation.
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
 		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
@@ -231,6 +234,7 @@ r_cmd_install_loop:
 	return buildStatus, err
 }
 
+// installSinglePackage triggers installation of a single R package and sends back the result to installPackages.
 func installSinglePackage(installResultChan chan InstallResultInfo, packageName string, packageType string,
 	inputLocation string, additionalBuildOptions string, additionalInstallOptions string) {
 	logFilePath := filepath.Join(packageLogPath, packageName+htmlExtension)
@@ -328,6 +332,8 @@ func getPackageToInstall(
 	return ""
 }
 
+// installPackages concurrently builds and installs packages specified in the renv.lock.
+// The installation is executed in order resulting from the way packages depend on each other.
 func installPackages(
 	renvLock Renvlock,
 	allDownloadInfo *[]DownloadInfo,
