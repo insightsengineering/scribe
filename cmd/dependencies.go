@@ -32,8 +32,10 @@ func getPackageDepsFromPackagesFile(
 	downloadedPackages map[string]DownloadedPackage,
 ) []string {
 	var packageDependencies []string
+	// Find the packageName in the PACKAGES file.
 	for _, packagesEntry := range packagesFile.Packages {
 		if packagesEntry.Package == packageName {
+			// Read its dependencies.
 			for _, dependency := range packagesEntry.Dependencies {
 				// Check if the dependency has been successfully downloaded.
 				downloadedDependency, ok := downloadedPackages[dependency.DependencyName]
@@ -114,6 +116,7 @@ func getDepsFromDescriptionFiles(
 	for packageName := range rPackages {
 		var packageRepository string
 		var packageLocation string
+		// Check if the package has been successfully downloaded and where.
 		downloadedPackage, ok := downloadedPackages[packageName]
 		if ok {
 			packageRepository = downloadedPackage.PackageRepository

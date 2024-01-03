@@ -302,7 +302,7 @@ func getPackagesReadyToInstall(
 	}
 }
 
-// mapTrueLength returns number of elements in the map for which the value is true.
+// mapTrueLength returns the number of elements in the map for which the value is true.
 func mapTrueLength(m map[string]bool) uint {
 	var trueLength uint
 	for _, v := range m {
@@ -347,11 +347,7 @@ func installPackages(
 		}
 	}
 
-	dependencies := getPackageDeps(
-		renvLock.Packages,
-		renvLock.R.Repositories,
-		downloadedPackages,
-	)
+	dependencies := getPackageDeps(renvLock.Packages, renvLock.R.Repositories, downloadedPackages)
 
 	var installedPackages []string
 	readyPackages := make(map[string]bool)

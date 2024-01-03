@@ -669,8 +669,12 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*failedDownloads = 0
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
-	// Such big idle timeout is (unfortunately) required for some big packages.
+
+	// Maximum number of seconds to wait between receiving download statuses.
+	// If we got the last message about download completion more than maxIdleSeconds ago,
+	// we ignore the rest of packages.
 	const maxIdleSeconds = 200
+
 	for {
 		select {
 		case msg := <-messages:
@@ -708,8 +712,6 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			time.Sleep(time.Second)
 			idleSeconds++
 		}
-		// Last maxIdleWaits attempts at receiving status from package downloaders didn't yield any
-		// messages. Or all packages have been downloaded. Hence, we finish waiting for any other statuses.
 		if idleSeconds >= maxIdleSeconds {
 			break
 		}
