@@ -79,8 +79,11 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 }
 
 // validatePackageFields returns the number of warnings occurring during validation of
-// package fields in the renv.lock.
-func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) int {
+// package fields in the renv.lock. If, according to renv.lock, the package should be downloaded
+// from a repository not defined in the renv.lock header, validatePackageFields appends
+// that repository name to erroneousRepositoryNames.
+func validatePackageFields(packageName string, packageFields Rpackage,
+	repositories []string, erroneousRepositoryNames *[]string) int {
 	var numberOfWarnings int
 	switch {
 	case packageFields.Package == "":
@@ -94,11 +97,12 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 		numberOfWarnings++
 	}
 	if packageFields.Repository == "" {
+		*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
 		switch {
 		case packageFields.Source == "Repository":
 			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
 			numberOfWarnings++
-		case packageFields.Source == GitHub &&
+		case (packageFields.Source == GitHub || packageFields.Source == GitLab) &&
 			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" ||
 				packageFields.RemoteRepo == "" || packageFields.RemoteUsername == "" ||
 				(packageFields.RemoteRef == "" && packageFields.RemoteSha == "")):
@@ -107,6 +111,7 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {
+		*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
 		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
 			" file for package ", packageName, ".\n")
 		numberOfWarnings++
@@ -115,14 +120,14 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 }
 
 // validateRenvLock returns number of warnings during validation of renv.lock file.
-func validateRenvLock(renvLock Renvlock) int {
+func validateRenvLock(renvLock Renvlock, erroneousRepositoryNames *[]string) int {
 	var repositories []string
 	var numberOfWarnings int
 	for _, v := range renvLock.R.Repositories {
 		repositories = append(repositories, v.Name)
 	}
 	for k, v := range renvLock.Packages {
-		newWarnings := validatePackageFields(k, v, repositories)
+		newWarnings := validatePackageFields(k, v, repositories, erroneousRepositoryNames)
 		numberOfWarnings += newWarnings
 	}
 	return numberOfWarnings

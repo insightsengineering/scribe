@@ -70,6 +70,7 @@ func getDepsFromPackagesFiles(
 	downloadedPackages map[string]DownloadedPackage,
 	packageDependencies map[string][]string,
 	downloadFileFunction func(string, map[string]string) (int, int64, string),
+	erroneousRepositoryNames []string,
 ) {
 	for _, repository := range rRepositories {
 		log.Debug("Processing packages from repository: ", repository)
@@ -78,6 +79,7 @@ func getDepsFromPackagesFiles(
 		// Go through the list of packages from renv.lock, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
 		for packageName := range rPackages {
+			// Check if packages downloaded successfully.
 			var packageRepository string
 			downloadedPackage, ok := downloadedPackages[packageName]
 			if ok {
@@ -96,6 +98,35 @@ func getDepsFromPackagesFiles(
 			if packageRepository == repository.Name {
 				packageDeps := getPackageDepsFromPackagesFile(
 					packageName, packagesFile, downloadedPackages,
+				)
+				log.Debug(packageName, " → ", packageDeps)
+				packageDependencies[packageName] = packageDeps
+			}
+		}
+	}
+	// Iterate through packages which have the repository name set to one which is not defined
+	// in the renv.lock header. For these packages we'll use PACKAGES file from CRAN to determine
+	// their dependencies.
+	_, _, cranPackagesContent := downloadFileFunction(
+		"https://cloud.r-project.org/src/contrib/PACKAGES", make(map[string]string),
+	)
+	cranPackagesFile := locksmith.ProcessPackagesFile(cranPackagesContent)
+	for _, repositoryName := range erroneousRepositoryNames {
+		for packageName := range rPackages {
+			// Check if packages downloaded successfully.
+			var packageRepository string
+			downloadedPackage, ok := downloadedPackages[packageName]
+			if ok {
+				packageRepository = downloadedPackage.PackageRepository
+			} else {
+				log.Warn(
+					"Skipping package ", packageName, " because it hasn't been",
+					" downloaded properly.",
+				)
+			}
+			if packageRepository == repositoryName {
+				packageDeps := getPackageDepsFromPackagesFile(
+					packageName, cranPackagesFile, downloadedPackages,
 				)
 				log.Debug(packageName, " → ", packageDeps)
 				packageDependencies[packageName] = packageDeps
@@ -167,6 +198,7 @@ func getPackageDeps(
 	rPackages map[string]Rpackage,
 	rRepositories []Rrepository,
 	downloadedPackages map[string]DownloadedPackage,
+	erroneousRepositoryNames []string,
 ) map[string][]string {
 	// A map with keys being renv.lock package names, and values being lists of dependencies
 	// (packages that should be installed in the system before the package corresponding
@@ -176,7 +208,7 @@ func getPackageDeps(
 	// If package is stored in tar.gz, get its dependencies from a corresponding
 	// entry in PACKAGES file in the repository pointed by renv.lock.
 	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies,
-		locksmith.DownloadTextFile)
+		locksmith.DownloadTextFile, erroneousRepositoryNames)
 
 	// If the package is stored in a cloned git repository, get its dependencies
 	// from its DESCRIPTION file.

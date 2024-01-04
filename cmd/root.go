@@ -173,8 +173,9 @@ for a collection of R packages that are defined in an
 			var renvLock Renvlock
 			var renvLockOld Renvlock
 			var renvLockFilenameOld string
+			var erroneousRepositoryNames []string
 			getRenvLock(renvLockFilename, &renvLock)
-			validateRenvLock(renvLock)
+			validateRenvLock(renvLock, &erroneousRepositoryNames)
 			if updatePackages != "" {
 				renvLockFilenameOld = renvLockFilename
 				renvLockFilename += ".updated"
@@ -210,7 +211,8 @@ for a collection of R packages that are defined in an
 				readJSON(installInfoFile, &allInstallInfo)
 			} else {
 				log.Info(installInfoFile, " doesn't exist.")
-				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, buildOptions, installOptions)
+				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, buildOptions,
+					installOptions, erroneousRepositoryNames)
 			}
 
 			// Perform R CMD check, except when cache contains JSON with previous check results.

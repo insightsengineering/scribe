@@ -340,6 +340,7 @@ func installPackages(
 	allInstallInfo *[]InstallResultInfo,
 	additionalBuildOptions string,
 	additionalInstallOptions string,
+	erroneousRepositoryNames []string,
 ) {
 	err := os.MkdirAll(temporaryLibPath, os.ModePerm)
 	checkError(err)
@@ -353,7 +354,8 @@ func installPackages(
 		}
 	}
 
-	dependencies := getPackageDeps(renvLock.Packages, renvLock.R.Repositories, downloadedPackages)
+	dependencies := getPackageDeps(renvLock.Packages, renvLock.R.Repositories,
+		downloadedPackages, erroneousRepositoryNames)
 
 	var installedPackages []string
 	readyPackages := make(map[string]bool)
