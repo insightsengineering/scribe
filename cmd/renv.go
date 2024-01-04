@@ -78,6 +78,14 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 	return defaultCranMirrorURL
 }
 
+// appendIfNotInSlice checks whether itemToAppend already exists in slice.
+// If not, it appends itemToAppend to slice.
+func appendIfNotInSlice(itemToAppend string, slice *[]string) {
+	if !stringInSlice(itemToAppend, *slice) {
+		*slice = append(*slice, itemToAppend)
+	}
+}
+
 // validatePackageFields returns the number of warnings occurring during validation of
 // package fields in the renv.lock. If, according to renv.lock, the package should be downloaded
 // from a repository not defined in the renv.lock header, validatePackageFields appends
@@ -97,9 +105,7 @@ func validatePackageFields(packageName string, packageFields Rpackage,
 		numberOfWarnings++
 	}
 	if packageFields.Repository == "" {
-		if !stringInSlice(packageFields.Repository, *erroneousRepositoryNames) {
-			*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
-		}
+		appendIfNotInSlice(packageFields.Repository, erroneousRepositoryNames)
 		switch {
 		case packageFields.Source == "Repository":
 			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
@@ -113,9 +119,7 @@ func validatePackageFields(packageName string, packageFields Rpackage,
 			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {
-		if !stringInSlice(packageFields.Repository, *erroneousRepositoryNames) {
-			*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
-		}
+		appendIfNotInSlice(packageFields.Repository, erroneousRepositoryNames)
 		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
 			" file for package ", packageName, ".\n")
 		numberOfWarnings++
