@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -340,6 +341,7 @@ func installPackages(
 	allInstallInfo *[]InstallResultInfo,
 	additionalBuildOptions string,
 	additionalInstallOptions string,
+	erroneousRepositoryNames []string,
 ) {
 	err := os.MkdirAll(temporaryLibPath, os.ModePerm)
 	checkError(err)
@@ -353,7 +355,8 @@ func installPackages(
 		}
 	}
 
-	dependencies := getPackageDeps(renvLock.Packages, renvLock.R.Repositories, downloadedPackages)
+	dependencies := getPackageDeps(renvLock.Packages, renvLock.R.Repositories,
+		downloadedPackages, erroneousRepositoryNames)
 
 	var installedPackages []string
 	readyPackages := make(map[string]bool)
@@ -392,9 +395,9 @@ package_installation_loop:
 			log.Info(
 				mapTrueLength(readyPackages), " packages ready. ",
 				mapTrueLength(packagesBeingInstalled), " packages being installed. ",
-				len(installedPackages), "/", len(downloadedPackages), " packages processed (",
-				packagesInstalledSuccessfully, " succeeded, ", packagesInstalledUnsuccessfully,
-				" failed).",
+				strconv.Itoa(int(100*float64(len(installedPackages))/float64(len(downloadedPackages)))),
+				"% of packages processed (", packagesInstalledSuccessfully,
+				" succeeded, ", packagesInstalledUnsuccessfully, " failed).",
 			)
 		// Try to run a new package installation.
 		default:

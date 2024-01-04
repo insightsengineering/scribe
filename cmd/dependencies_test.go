@@ -42,6 +42,11 @@ Depends: package4
 Package: package4
 Version: 2.0.0
 `
+	case url == "https://cloud.r-project.org/src/contrib/PACKAGES":
+		return 200, 0, `Package: package5
+Version: 1.2.3
+Imports: package1
+`
 	}
 	return 200, 0, ""
 }
@@ -54,19 +59,22 @@ func Test_getDepsFromPackagesFiles(t *testing.T) {
 	rPackages["package2"] = Rpackage{"package2", "", "", "Repository1", "", "", []string{}, "", "", "", "", "", ""}
 	rPackages["package3"] = Rpackage{"package3", "", "", "Repository2", "", "", []string{}, "", "", "", "", "", ""}
 	rPackages["package4"] = Rpackage{"package4", "", "", "Repository2", "", "", []string{}, "", "", "", "", "", ""}
+	rPackages["package5"] = Rpackage{"package5", "", "", "UndefinedRepository", "", "", []string{}, "", "", "", "", "", ""}
 	downloadedPackages["package1"] = DownloadedPackage{"", "", "Repository1", "/tmp/scribe/downloaded_packages/package_archives/package1_1.0.0.tar.gz"}
 	downloadedPackages["package2"] = DownloadedPackage{"", "", "Repository1", "/tmp/scribe/downloaded_packages/package_archives/package2_1.0.0.tar.gz"}
 	downloadedPackages["package3"] = DownloadedPackage{"", "", "Repository2", "/tmp/scribe/downloaded_packages/package_archives/package3_1.0.0.tar.gz"}
+	downloadedPackages["package5"] = DownloadedPackage{"", "", "UndefinedRepository", "/tmp/scribe/downloaded_packages/package_archives/package5_1.2.3.tar.gz"}
 	rRepositories := []Rrepository{
 		{"Repository1", "https://repository1.example.com"},
 		{"Repository2", "https://repository2.example.com"},
 	}
 	getDepsFromPackagesFiles(rPackages, rRepositories, downloadedPackages, packageDependencies,
-		mockedDownloadTextFile)
+		mockedDownloadTextFile, []string{"UndefinedRepository"})
 	assert.Equal(t, packageDependencies["package1"], []string{"package2", "package3"})
 	assert.Equal(t, packageDependencies["package2"], []string{"package3"})
 	assert.Equal(t, len(packageDependencies["package3"]), 0)
 	assert.Equal(t, len(packageDependencies["package4"]), 0)
+	assert.Equal(t, packageDependencies["package5"], []string{"package1"})
 }
 
 func Test_getDepsFromDescriptionFiles(t *testing.T) {
