@@ -89,6 +89,7 @@ func getDepsFromPackagesFiles(
 					"Skipping package ", packageName, " because it hasn't been",
 					" downloaded properly.",
 				)
+				continue
 			}
 			// Retrieve information about package dependencies from the PACKAGES file.
 			// The PACKAGES file is downloaded from the same repository as the package
@@ -115,26 +116,25 @@ func getDepsFromPackagesFiles(
 		"Dependencies for packages with Repository renv.lock field equal to any of ", erroneousRepositoryNames,
 		" will be determined based on PACKAGES file from CRAN.",
 	)
-	for _, repositoryName := range erroneousRepositoryNames {
-		for packageName := range rPackages {
-			// Check if packages downloaded successfully.
-			var packageRepository string
-			downloadedPackage, ok := downloadedPackages[packageName]
-			if ok {
-				packageRepository = downloadedPackage.PackageRepository
-			} else {
-				log.Warn(
-					"Skipping package ", packageName, " because it hasn't been",
-					" downloaded properly.",
-				)
-			}
-			if packageRepository == repositoryName {
-				packageDeps := getPackageDepsFromPackagesFile(
-					packageName, cranPackagesFile, downloadedPackages,
-				)
-				log.Debug(packageName, " → ", packageDeps)
-				packageDependencies[packageName] = packageDeps
-			}
+	for packageName := range rPackages {
+		// Check if packages downloaded successfully.
+		var packageRepository string
+		downloadedPackage, ok := downloadedPackages[packageName]
+		if ok {
+			packageRepository = downloadedPackage.PackageRepository
+		} else {
+			log.Warn(
+				"Skipping package ", packageName, " because it hasn't been",
+				" downloaded properly.",
+			)
+			continue
+		}
+		if stringInSlice(packageRepository, erroneousRepositoryNames) {
+			packageDeps := getPackageDepsFromPackagesFile(
+				packageName, cranPackagesFile, downloadedPackages,
+			)
+			log.Debug(packageName, " → ", packageDeps)
+			packageDependencies[packageName] = packageDeps
 		}
 	}
 }
