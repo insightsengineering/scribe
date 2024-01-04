@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -394,9 +395,9 @@ package_installation_loop:
 			log.Info(
 				mapTrueLength(readyPackages), " packages ready. ",
 				mapTrueLength(packagesBeingInstalled), " packages being installed. ",
-				len(installedPackages), "/", len(downloadedPackages), " packages processed (",
-				packagesInstalledSuccessfully, " succeeded, ", packagesInstalledUnsuccessfully,
-				" failed).",
+				strconv.Itoa(int(100*float64(len(installedPackages))/float64(len(downloadedPackages)))),
+				"% of packages processed (", packagesInstalledSuccessfully,
+				" succeeded, ", packagesInstalledUnsuccessfully, " failed).",
 			)
 		// Try to run a new package installation.
 		default:

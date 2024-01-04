@@ -79,7 +79,7 @@ func getDepsFromPackagesFiles(
 		// Go through the list of packages from renv.lock, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
 		for packageName := range rPackages {
-			// Check if packages downloaded successfully.
+			// Check if package downloaded successfully.
 			var packageRepository string
 			downloadedPackage, ok := downloadedPackages[packageName]
 			if ok {
@@ -105,6 +105,9 @@ func getDepsFromPackagesFiles(
 			}
 		}
 	}
+	if len(erroneousRepositoryNames) == 0 {
+		return
+	}
 	// Iterate through packages which have the repository name set to one which is not defined
 	// in the renv.lock header. For these packages we'll use PACKAGES file from CRAN to determine
 	// their dependencies.
@@ -117,7 +120,7 @@ func getDepsFromPackagesFiles(
 		" will be determined based on PACKAGES file from CRAN.",
 	)
 	for packageName := range rPackages {
-		// Check if packages downloaded successfully.
+		// Check if package downloaded successfully.
 		var packageRepository string
 		downloadedPackage, ok := downloadedPackages[packageName]
 		if ok {
