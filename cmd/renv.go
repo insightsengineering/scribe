@@ -97,7 +97,9 @@ func validatePackageFields(packageName string, packageFields Rpackage,
 		numberOfWarnings++
 	}
 	if packageFields.Repository == "" {
-		*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
+		if !stringInSlice(packageFields.Repository, *erroneousRepositoryNames) {
+			*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
+		}
 		switch {
 		case packageFields.Source == "Repository":
 			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
@@ -111,7 +113,9 @@ func validatePackageFields(packageName string, packageFields Rpackage,
 			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {
-		*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
+		if !stringInSlice(packageFields.Repository, *erroneousRepositoryNames) {
+			*erroneousRepositoryNames = append(*erroneousRepositoryNames, packageFields.Repository)
+		}
 		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
 			" file for package ", packageName, ".\n")
 		numberOfWarnings++

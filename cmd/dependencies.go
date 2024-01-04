@@ -111,6 +111,10 @@ func getDepsFromPackagesFiles(
 		"https://cloud.r-project.org/src/contrib/PACKAGES", make(map[string]string),
 	)
 	cranPackagesFile := locksmith.ProcessPackagesFile(cranPackagesContent)
+	log.Info(
+		"Dependencies for packages with Repository renv.lock field equal to any of ", erroneousRepositoryNames,
+		" will be determined based on PACKAGES file from CRAN.",
+	)
 	for _, repositoryName := range erroneousRepositoryNames {
 		for packageName := range rPackages {
 			// Check if packages downloaded successfully.
@@ -188,7 +192,7 @@ func getDepsFromDescriptionFiles(
 					filteredDependencies = append(filteredDependencies, dependency.DependencyName)
 				}
 			}
-			log.Info(packageName, " → ", filteredDependencies)
+			log.Debug(packageName, " → ", filteredDependencies)
 			packageDependencies[packageName] = filteredDependencies
 		}
 	}
