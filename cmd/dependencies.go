@@ -105,11 +105,6 @@ func getDepsFromPackagesFiles(
 			}
 		}
 	}
-	log.Debug("Length = ", len(erroneousRepositoryNames))
-	if len(erroneousRepositoryNames) == 0 {
-		return
-	}
-	log.Debug("Len = ", len(erroneousRepositoryNames))
 
 	// Iterate through packages which have the repository name set to one which is not defined
 	// in the renv.lock header. For these packages we'll use PACKAGES file from CRAN to determine
