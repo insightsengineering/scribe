@@ -174,11 +174,9 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 			if v.RemoteSubdir != "" {
 				remoteSubdir = "/" + v.RemoteSubdir
 			}
-			description, err3 := os.ReadFile(
+			descriptionContents := parseDescriptionFile(
 				localOutputDirectory + "/git_updates/" + k + remoteSubdir + "/DESCRIPTION",
 			)
-			checkError(err3)
-			descriptionContents := parseDescriptionFile(string(description))
 			newPackageVersion := descriptionContents["Version"]
 			// Update renv structure with new package version and SHA.
 			if entry, ok := renvLock.Packages[k]; ok {
