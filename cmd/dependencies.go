@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"os"
+	"encoding/json"
 
 	locksmith "github.com/insightsengineering/locksmith/cmd"
 	yaml "gopkg.in/yaml.v3"
@@ -32,6 +33,9 @@ func getPackageDepsFromPackagesFile(
 	downloadedPackages map[string]DownloadedPackage,
 ) []string {
 	var packageDependencies []string
+	data, err := json.Marshal(packagesFile)
+	checkError(err)
+	log.Info("Packages: ", string(data))
 	// Find the packageName in the PACKAGES file.
 	for _, packagesEntry := range packagesFile.Packages {
 		if packagesEntry.Package == packageName {
