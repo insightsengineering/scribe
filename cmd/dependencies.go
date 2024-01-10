@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"os"
-	"encoding/json"
 
 	locksmith "github.com/insightsengineering/locksmith/cmd"
 	yaml "gopkg.in/yaml.v3"
@@ -33,9 +32,6 @@ func getPackageDepsFromPackagesFile(
 	downloadedPackages map[string]DownloadedPackage,
 ) []string {
 	var packageDependencies []string
-	data, err := json.Marshal(packagesFile)
-	checkError(err)
-	log.Info("Packages: ", string(data))
 	// Find the packageName in the PACKAGES file.
 	for _, packagesEntry := range packagesFile.Packages {
 		if packagesEntry.Package == packageName {
@@ -81,7 +77,7 @@ func getDepsFromPackagesFiles(
 ) {
 	for _, repository := range rRepositories {
 		log.Debug("Processing packages from repository: ", repository)
-		_, _, content := downloadFileFunction(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
+		content := locksmith.GetPackagesFileContent(repository.URL, downloadFileFunction)
 		packagesFile := locksmith.ProcessPackagesFile(content)
 		// Go through the list of packages from renv.lock, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
@@ -103,8 +99,7 @@ func getDepsFromPackagesFiles(
 			// from PACKAGES file, since the packageRepository == "GitHub"/"GitLab" for them.
 			if packageRepository == repository.Name {
 				packageDeps := getPackageDepsFromPackagesFile(
-					packageName, packagesFile, downloadedPackages,
-				)
+					packageName, packagesFile, downloadedPackages)
 				log.Debug(packageName, " → ", packageDeps)
 				packageDependencies[packageName] = packageDeps
 			}
