@@ -35,7 +35,6 @@ func getPackageDepsFromPackagesFile(
 	// Find the packageName in the PACKAGES file.
 	for _, packagesEntry := range packagesFile.Packages {
 		if packagesEntry.Package == packageName {
-			log.Debug("Processing package ", packageName)
 			// Read its dependencies.
 			for _, dependency := range packagesEntry.Dependencies {
 				// Check if the dependency has been successfully downloaded.
@@ -44,8 +43,6 @@ func getPackageDepsFromPackagesFile(
 				if ok {
 					dependencyLocation = downloadedDependency.Location
 				}
-				log.Debug("    Processing dependency ", dependency.DependencyName)
-				log.Debug("    Location: ", dependencyLocation)
 				// Only add the dependency to the list of package dependencies,
 				// if it's not a base R package, and it has been successfully downloaded,
 				// and it hasn't been added to the list yet.
@@ -122,10 +119,8 @@ func getDepsFromPackagesFiles(
 		if ok {
 			packageRepository = downloadedPackage.PackageRepository
 		} else {
-			log.Warn(
-				"Skipping package ", packageName, " because it hasn't been",
-				" downloaded properly.",
-			)
+			log.Warn("Skipping package ", packageName, " because it hasn't been",
+				" downloaded properly.")
 			continue
 		}
 		if stringInSlice(packageRepository, erroneousRepositoryNames) {

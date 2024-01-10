@@ -145,7 +145,6 @@ func validateRenvLock(renvLock Renvlock, erroneousRepositoryNames *[]string) int
 // A copy of renv.lock file is created - it contains updated versions
 // of selected packages as well as updated git HEAD SHAs.
 // This is checked by cloning the packages' git repositories.
-// TODO This function should be deprecated and its functionality removed from scribe.
 func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPackages string) {
 	splitUpdatePackages := strings.Split(updatedPackages, ",")
 	var allUpdateExpressions []string
