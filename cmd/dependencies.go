@@ -74,7 +74,7 @@ func getDepsFromPackagesFiles(
 ) {
 	for _, repository := range rRepositories {
 		log.Debug("Processing packages from repository: ", repository)
-		_, _, content := downloadFileFunction(repository.URL+"/src/contrib/PACKAGES", make(map[string]string))
+		content := locksmith.GetPackagesFileContent(repository.URL, downloadFileFunction)
 		packagesFile := locksmith.ProcessPackagesFile(content)
 		// Go through the list of packages from renv.lock, and add information to the output data structure
 		// about dependencies but only those which were downloaded from this repository.
@@ -85,10 +85,8 @@ func getDepsFromPackagesFiles(
 			if ok {
 				packageRepository = downloadedPackage.PackageRepository
 			} else {
-				log.Warn(
-					"Skipping package ", packageName, " because it hasn't been",
-					" downloaded properly.",
-				)
+				log.Warn("Skipping package ", packageName, " because it hasn't been",
+					" downloaded properly.")
 				continue
 			}
 			// Retrieve information about package dependencies from the PACKAGES file.
@@ -98,8 +96,7 @@ func getDepsFromPackagesFiles(
 			// from PACKAGES file, since the packageRepository == "GitHub"/"GitLab" for them.
 			if packageRepository == repository.Name {
 				packageDeps := getPackageDepsFromPackagesFile(
-					packageName, packagesFile, downloadedPackages,
-				)
+					packageName, packagesFile, downloadedPackages)
 				log.Debug(packageName, " → ", packageDeps)
 				packageDependencies[packageName] = packageDeps
 			}
@@ -113,10 +110,8 @@ func getDepsFromPackagesFiles(
 		"https://cloud.r-project.org/src/contrib/PACKAGES", make(map[string]string),
 	)
 	cranPackagesFile := locksmith.ProcessPackagesFile(cranPackagesContent)
-	log.Info(
-		"Dependencies for packages with Repository renv.lock field equal to any of ", erroneousRepositoryNames,
-		" will be determined based on PACKAGES file from CRAN.",
-	)
+	log.Info("Dependencies for packages with Repository renv.lock field equal to any of ",
+		erroneousRepositoryNames, " will be determined based on PACKAGES file from CRAN.")
 	for packageName := range rPackages {
 		// Check if package downloaded successfully.
 		var packageRepository string
@@ -124,10 +119,8 @@ func getDepsFromPackagesFiles(
 		if ok {
 			packageRepository = downloadedPackage.PackageRepository
 		} else {
-			log.Warn(
-				"Skipping package ", packageName, " because it hasn't been",
-				" downloaded properly.",
-			)
+			log.Warn("Skipping package ", packageName, " because it hasn't been",
+				" downloaded properly.")
 			continue
 		}
 		if stringInSlice(packageRepository, erroneousRepositoryNames) {

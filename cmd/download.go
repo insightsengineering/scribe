@@ -153,9 +153,9 @@ func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 // cloneGitRepo clones git repository and returns string with error value (empty if cloning was
 // successful), approximate number of downloaded bytes, and cloned version of the package (tag, branch or commit SHA).
 // If commitSha or branchOrTagName is specified, the respective commit, branch or tag are checked out.
-// If environmentCredentialsType is "gitlab", this function expects username and token to be set in
-// GITLAB_USER and GITLAB_TOKEN environment variables.
-// If environmentCredentialsType is "github", this function expects token to be set in
+// If environmentCredentialsType is "gitlab", this function expects the token to be set in
+// GITLAB_TOKEN environment variables.
+// If environmentCredentialsType is "github", this function expects the token to be set in
 // GITHUB_TOKEN environment variable.
 // This implementation assumes that RemoteSha renv.lock field contains commit SHA,
 // and that RemoteRef renv.lock field contains branch name or tag name.

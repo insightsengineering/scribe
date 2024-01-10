@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/insightsengineering/locksmith v0.1.3
+	github.com/insightsengineering/locksmith v0.1.5
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
