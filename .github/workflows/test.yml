@@ -109,25 +109,6 @@ jobs:
       - name: Check if compilation works 🧱
         run: make build
 
-      - name: Upload macOS binary
-        uses: actions/upload-artifact@v3
-        with:
-          name: scribe-macos
-          path: dist/scribe_darwin_amd64_v1/scribe
-
-      - name: Upload Windows binary
-        uses: actions/upload-artifact@v3
-        with:
-          name: scribe-windows
-          path: dist/scribe_windows_amd64_v1/scribe.exe
-
-  macos-test:
-    needs: compilation
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Repo 🛎
-        uses: actions/checkout@v3
-
       - name: Generate renv.lock
         run: |
           set -x
@@ -143,46 +124,55 @@ jobs:
           tar xzf locksmith.tar.gz
           set +x
           export LOCKSMITH_GITHUBTOKEN="$GITHUB_TOKEN"
-          ./locksmith --inputPackageList 'https://raw.githubusercontent.com/insightsengineering/formatters/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/rtables/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/scda/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/scda.2022/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/nestcolor/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/rlistings/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/citril/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/scda.test/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/citril.metadata/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/chevron/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/dunlin/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/osprey/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/goshawk/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.code/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.data/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.goshawk/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.modules.general/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.modules.hermes/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.modules.clinical/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.osprey/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.reporter/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.slice/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.transform/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.widgets/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.logger/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern.mmrm/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern.rbmi/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern.gee/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/random.cdisc.data/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/openpharma/mmrm/main/DESCRIPTION' \
-          --inputRepositoryList 'CRAN-macOS=https://cloud.r-project.org/bin/macosx/contrib/4.2,\
-          Bioc-macOS=https://www.bioconductor.org/packages/release/bioc/bin/macosx/big-sur-x86_64/contrib/4.3' \
-          --outputRenvLock macos-renv.lock --allowIncompleteRenvLock 'Imports,Depends,Suggests,LinkingTo'
+          export INPUT_PACKAGE_LIST="https://raw.githubusercontent.com/insightsengineering/formatters/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/rtables/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/scda/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/scda.2022/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/nestcolor/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/tern/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/rlistings/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/citril/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/scda.test/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/citril.metadata/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/chevron/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/dunlin/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/osprey/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/goshawk/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.code/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.data/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.goshawk/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.modules.general/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.modules.hermes/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.modules.clinical/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.osprey/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.reporter/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.slice/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.transform/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.widgets/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/teal.logger/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/tern.mmrm/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/tern.rbmi/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/tern.gee/main/DESCRIPTION,https://raw.githubusercontent.com/insightsengineering/random.cdisc.data/main/DESCRIPTION,https://raw.githubusercontent.com/openpharma/mmrm/main/DESCRIPTION"
+          ./locksmith --inputPackageList $INPUT_PACKAGE_LIST \
+            --inputRepositoryList 'CRAN-macOS=https://cloud.r-project.org/bin/macosx/contrib/4.2,Bioc-macOS=https://www.bioconductor.org/packages/release/bioc/bin/macosx/big-sur-x86_64/contrib/4.3' \
+            --outputRenvLock macos-renv.lock --allowIncompleteRenvLock 'Imports,Depends,Suggests,LinkingTo'
+          ./locksmith --inputPackageList $INPUT_PACKAGE_LIST \
+          --inputRepositoryList 'CRAN-Windows=https://cloud.r-project.org/bin/windows/contrib/4.2,Bioc-Windows=https://www.bioconductor.org/packages/release/bioc/bin/windows/contrib/4.3' \
+          --outputRenvLock windows-renv.lock --allowIncompleteRenvLock 'Imports,Depends,Suggests,LinkingTo'
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: scribe-macos
+          path: dist/scribe_darwin_amd64_v1/scribe
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: scribe-windows
+          path: dist/scribe_windows_amd64_v1/scribe.exe
+
+      - name: Upload macOS renv.lock
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-renv-lock
+          path: macos-renv.lock
+
+      - name: Upload Windows renv.lock
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-renv-lock
+          path: windows-renv.lock
+
+
+  macos-test:
+    needs: compilation
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repo 🛎
+        uses: actions/checkout@v3
 
       - name: Download macOS binary
         uses: actions/download-artifact@v3
         with:
           name: scribe-macos
+
+      - name: Download macOS renv.lock
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-renv-lock
 
       - uses: r-lib/actions/setup-r@v2
 
@@ -205,61 +195,15 @@ jobs:
       - name: Checkout Repo 🛎
         uses: actions/checkout@v3
 
-      - name: Generate renv.lock
-        run: |
-          set -x
-          # Get latest locksmith release from GitHub.
-          export GITHUB_TOKEN="${{ secrets.REPO_GITHUB_TOKEN }}"
-          RELEASES_API_URL="https://api.github.com/repos/insightsengineering/locksmith/releases"
-          ASSET_ID=$(curl -s -LJ -H "Authorization: token $GITHUB_TOKEN" -H 'Accept: application/json' \
-            $RELEASES_API_URL/latest 2>/dev/null | \
-            jq --arg name "windows_amd64" '.assets[] | select(.name | test($name)).id')
-          curl -s -LJ -o locksmith.tar.gz -H "Authorization: token $GITHUB_TOKEN" \
-            -H 'Accept: application/octet-stream' \
-            $RELEASES_API_URL/assets/$ASSET_ID
-          tar xzf locksmith.tar.gz
-          set +x
-          export LOCKSMITH_GITHUBTOKEN="$GITHUB_TOKEN"
-          ./locksmith --inputPackageList 'https://raw.githubusercontent.com/insightsengineering/formatters/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/rtables/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/scda/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/scda.2022/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/nestcolor/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/rlistings/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/citril/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/scda.test/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/citril.metadata/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/chevron/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/dunlin/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/osprey/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/goshawk/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.code/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.data/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.goshawk/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.modules.general/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.modules.hermes/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.modules.clinical/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.osprey/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.reporter/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.slice/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.transform/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.widgets/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/teal.logger/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern.mmrm/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern.rbmi/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/tern.gee/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/insightsengineering/random.cdisc.data/main/DESCRIPTION,\
-          https://raw.githubusercontent.com/openpharma/mmrm/main/DESCRIPTION' \
-          --inputRepositoryList 'CRAN-Windows=https://cloud.r-project.org/bin/windows/contrib/4.2,\
-          Bioc-Windows=https://www.bioconductor.org/packages/release/bioc/bin/windows/contrib/4.3' \
-          --outputRenvLock windows-renv.lock --allowIncompleteRenvLock 'Imports,Depends,Suggests,LinkingTo'
-
       - name: Download Windows binary
         uses: actions/download-artifact@v3
         with:
           name: scribe-windows
+
+      - name: Download Windows renv.lock
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-renv-lock
 
       - uses: r-lib/actions/setup-r@v2
 
