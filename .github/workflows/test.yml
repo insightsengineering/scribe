@@ -117,7 +117,7 @@ jobs:
       - name: Upload report as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: output-report
+          name: output-report-macos
           path: outputReport
 
   windows-test:
@@ -148,5 +148,5 @@ jobs:
       - name: Upload report as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: output-report
+          name: output-report-windows
           path: outputReport
