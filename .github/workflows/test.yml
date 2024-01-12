@@ -20,74 +20,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # test:
-  #   name: Test 🔍
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       go-version:
-  #         - 1.21.3
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #   steps:
-  #     - name: Checkout Repo 🛎
-  #       uses: actions/checkout@v3
-
-  #     - name: Setup Go 🐹
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
-  #         cache: true
-  #         cache-dependency-path: go.sum
-
-  #     - name: Run Tests 🧨
-  #       run: make test
-
-  #     - name: Check whether JUnit XML report exists 🚦
-  #       id: check-junit-xml
-  #       uses: andstor/file-existence-action@v1
-  #       with:
-  #         files: junit-report.xml
-
-  #     - name: Publish Unit Test Summary 📑
-  #       uses: EnricoMi/publish-unit-test-result-action@v2
-  #       id: test-results
-  #       if: steps.check-junit-xml.outputs.files_exists == 'true' && github.event_name == 'pull_request'
-  #       with:
-  #         check_name: Unit Tests Summary
-  #         junit_files: junit-report.xml
-
-  #     - name: Check whether coverage reports exists 💭
-  #       id: check-coverage-reports
-  #       uses: andstor/file-existence-action@v1
-  #       with:
-  #         files: >-
-  #           coverage.xml,
-  #           coverage.html
-
-  #     - name: Post coverage report 🗞
-  #       if: steps.check-coverage-reports.outputs.files_exists == 'true'
-  #       uses: insightsengineering/coverage-action@v2
-  #       with:
-  #         path: coverage.xml
-  #         threshold: 80
-  #         fail: false
-  #         publish: true
-  #         diff: true
-  #         coverage-reduction-failure: true
-  #         new-uncovered-statements-failure: true
-  #       continue-on-error: true
-
-  #     - name: Upload report 🔼
-  #       if: steps.check-coverage-reports.outputs.files_exists == 'true'
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: coverage-report
-  #         path: |
-  #           coverage.html
-  #       continue-on-error: true
-
   compilation:
     name: Build 🏗
     strategy:
@@ -117,7 +49,7 @@ jobs:
           RELEASES_API_URL="https://api.github.com/repos/insightsengineering/locksmith/releases"
           ASSET_ID=$(curl -s -LJ -H "Authorization: token $GITHUB_TOKEN" -H 'Accept: application/json' \
             $RELEASES_API_URL/latest 2>/dev/null | \
-            jq --arg name "darwin_amd64" '.assets[] | select(.name | test($name)).id')
+            jq --arg name "linux_amd64" '.assets[] | select(.name | test($name)).id')
           curl -s -LJ -o locksmith.tar.gz -H "Authorization: token $GITHUB_TOKEN" \
             -H 'Accept: application/octet-stream' \
             $RELEASES_API_URL/assets/$ASSET_ID
