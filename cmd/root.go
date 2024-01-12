@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 
 	"github.com/jamiealquiza/envy"
 	"github.com/sirupsen/logrus"
@@ -70,7 +71,7 @@ func setLogLevel() {
 	log.SetFormatter(customFormatter)
 	log.SetReportCaller(false)
 	customFormatter.FullTimestamp = false
-	fmt.Println("Loglevel =", logLevel)
+	fmt.Println(`logLevel = "` + logLevel + `"`)
 	switch logLevel {
 	case "trace":
 		log.SetLevel(logrus.TraceLevel)
@@ -108,7 +109,7 @@ var rootCmd *cobra.Command
 
 func newRootCommand() {
 	rootCmd = &cobra.Command{
-		Use:   "scribe",
+		Use: "scribe",
 		Short: "System Compatibility Report for Install & Build Evaluation",
 		Long: `scribe (acronym for System Compatibility Report for Install & Build Evaluation)
 is a project that creates complete build, check and install reports
@@ -120,24 +121,24 @@ for a collection of R packages that are defined in an
 		Run: func(cmd *cobra.Command, args []string) {
 			setLogLevel()
 
-			fmt.Println("cfgfile =", cfgFile)
-			fmt.Println("maskedEnvVars =", maskedEnvVars)
-			fmt.Println("renvLockFilename =", renvLockFilename)
-			fmt.Println("includeSuggests =", includeSuggests)
-			fmt.Println("checkPackage =", checkPackageExpression)
-			fmt.Println("updatePackages =", updatePackages)
-			fmt.Println("checkAllPackages =", checkAllPackages)
-			fmt.Println("reportDir =", outputReportDirectory)
-			fmt.Println("maxDownloadRoutines =", maxDownloadRoutines)
-			fmt.Println("maxCheckRoutines =", maxCheckRoutines)
-			fmt.Println("numberOfWorkers =", numberOfWorkers)
-			fmt.Println("clearCache =", clearCache)
-			fmt.Println("failOnError =", failOnError)
-			fmt.Println("buildOptions =", buildOptions)
-			fmt.Println("installOptions =", installOptions)
-			fmt.Println("checkOptions =", checkOptions)
-			fmt.Println("rCmdCheckFailRegex =", rCmdCheckFailRegex)
-			fmt.Println("rExecutablePath =", rExecutablePath)
+			fmt.Println(`cfgfile = "` + cfgFile + `"`)
+			fmt.Println(`maskedEnvVars = "` + maskedEnvVars + `"`)
+			fmt.Println(`renvLockFilename = "` + renvLockFilename + `"`)
+			fmt.Println(`checkPackage = "` + checkPackageExpression + `"`)
+			fmt.Println(`updatePackages = "` + updatePackages + `"`)
+			fmt.Println(`reportDir = "` + outputReportDirectory + `"`)
+			fmt.Println(`buildOptions = "` + buildOptions + `"`)
+			fmt.Println(`installOptions = "` + installOptions + `"`)
+			fmt.Println(`checkOptions = "` + checkOptions + `"`)
+			fmt.Println(`rCmdCheckFailRegex = "` + rCmdCheckFailRegex + `"`)
+			fmt.Println(`rExecutablePath = "` + rExecutablePath + `"`)
+			fmt.Println(`includeSuggests = ` + strconv.FormatBool(includeSuggests))
+			fmt.Println(`checkAllPackages = ` + strconv.FormatBool(checkAllPackages))
+			fmt.Println(`clearCache = ` + strconv.FormatBool(clearCache))
+			fmt.Println(`failOnError = ` + strconv.FormatBool(failOnError))
+			fmt.Println(`maxDownloadRoutines = ` + strconv.Itoa(maxDownloadRoutines))
+			fmt.Println(`maxCheckRoutines = ` + strconv.Itoa(maxCheckRoutines))
+			fmt.Println(`numberOfWorkers = ` + strconv.Itoa(int(numberOfWorkers)))
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -306,7 +307,7 @@ for a collection of R packages that are defined in an
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
 
 	cfg := envy.CobraConfig{
-		Prefix:     "SCRIBE",
+		Prefix: "SCRIBE",
 		Persistent: true,
 	}
 	envy.ParseCobra(rootCmd, cfg)
@@ -325,7 +326,7 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".scribe" (without extension).
+		// Search for config in home directory.
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".scribe")
