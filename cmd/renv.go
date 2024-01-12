@@ -74,12 +74,24 @@ func getRenvRepositoryURL(renvLockRepositories []Rrepository, repositoryName str
 			return v.URL
 		}
 	}
-	// return default mirror if the repository is not defined in lock file
+	// Return default mirror if the repository is not defined in lock file.
 	return defaultCranMirrorURL
 }
 
-// Returns number of warnings occurring during validation
-func validatePackageFields(packageName string, packageFields Rpackage, repositories []string) int {
+// appendIfNotInSlice checks whether itemToAppend already exists in slice.
+// If not, it appends itemToAppend to slice.
+func appendIfNotInSlice(itemToAppend string, slice *[]string) {
+	if !stringInSlice(itemToAppend, *slice) {
+		*slice = append(*slice, itemToAppend)
+	}
+}
+
+// validatePackageFields returns the number of warnings occurring during validation of
+// package fields in the renv.lock. If, according to renv.lock, the package should be downloaded
+// from a repository not defined in the renv.lock header, validatePackageFields appends
+// that repository name to erroneousRepositoryNames.
+func validatePackageFields(packageName string, packageFields Rpackage,
+	repositories []string, erroneousRepositoryNames *[]string) int {
 	var numberOfWarnings int
 	switch {
 	case packageFields.Package == "":
@@ -93,11 +105,12 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 		numberOfWarnings++
 	}
 	if packageFields.Repository == "" {
+		appendIfNotInSlice(packageFields.Repository, erroneousRepositoryNames)
 		switch {
 		case packageFields.Source == "Repository":
 			log.Warn("Package ", packageName, " doesn't have the Repository field set.")
 			numberOfWarnings++
-		case packageFields.Source == GitHub &&
+		case (packageFields.Source == GitHub || packageFields.Source == GitLab) &&
 			(packageFields.RemoteType == "" || packageFields.RemoteHost == "" ||
 				packageFields.RemoteRepo == "" || packageFields.RemoteUsername == "" ||
 				(packageFields.RemoteRef == "" && packageFields.RemoteSha == "")):
@@ -106,6 +119,7 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 			numberOfWarnings++
 		}
 	} else if !stringInSlice(packageFields.Repository, repositories) {
+		appendIfNotInSlice(packageFields.Repository, erroneousRepositoryNames)
 		log.Warn("Repository \"", packageFields.Repository, "\" has not been defined in lock"+
 			" file for package ", packageName, ".\n")
 		numberOfWarnings++
@@ -113,21 +127,21 @@ func validatePackageFields(packageName string, packageFields Rpackage, repositor
 	return numberOfWarnings
 }
 
-// Returns number of warnings during validation of renv.lock file
-func validateRenvLock(renvLock Renvlock) int {
+// validateRenvLock returns number of warnings during validation of renv.lock file.
+func validateRenvLock(renvLock Renvlock, erroneousRepositoryNames *[]string) int {
 	var repositories []string
 	var numberOfWarnings int
 	for _, v := range renvLock.R.Repositories {
 		repositories = append(repositories, v.Name)
 	}
 	for k, v := range renvLock.Packages {
-		newWarnings := validatePackageFields(k, v, repositories)
+		newWarnings := validatePackageFields(k, v, repositories, erroneousRepositoryNames)
 		numberOfWarnings += newWarnings
 	}
 	return numberOfWarnings
 }
 
-// Checks if any packages in renv.lock file should be updated.
+// updatePackagesRenvLock checks if any packages in renv.lock file should be updated.
 // A copy of renv.lock file is created - it contains updated versions
 // of selected packages as well as updated git HEAD SHAs.
 // This is checked by cloning the packages' git repositories.
@@ -173,11 +187,9 @@ func updatePackagesRenvLock(renvLock *Renvlock, outputFilename string, updatedPa
 			if v.RemoteSubdir != "" {
 				remoteSubdir = "/" + v.RemoteSubdir
 			}
-			description, err3 := os.ReadFile(
+			descriptionContents := parseDescriptionFile(
 				localOutputDirectory + "/git_updates/" + k + remoteSubdir + "/DESCRIPTION",
 			)
-			checkError(err3)
-			descriptionContents := parseDescription(string(description))
 			newPackageVersion := descriptionContents["Version"]
 			// Update renv structure with new package version and SHA.
 			if entry, ok := renvLock.Packages[k]; ok {

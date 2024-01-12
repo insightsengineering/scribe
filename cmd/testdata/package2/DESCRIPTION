@@ -1,0 +1,10 @@
+Package: package2
+Title: Package title
+Version: 0.9.1
+Date: 2023-12-20
+Description: Package description
+Depends:
+    R (>= 3.6)
+Imports:
+    package3 (>= 0.5.4)
+

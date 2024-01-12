@@ -54,7 +54,7 @@ var temporaryLibPath string
 var rLibsPaths string
 var rExecutable string
 
-// within below directory:
+// Within localOutputDirectory:
 // tar.gz packages are downloaded to package_archives subdirectory
 // GitHub repositories are cloned into github subdirectory
 // GitLab repositories are cloned into gitlab subdirectory
@@ -63,15 +63,13 @@ var localOutputDirectory string
 const tempCacheDirectory = "/tmp/scribe/cache"
 const defaultDownloadDirectory = "/tmp/scribe/downloaded_packages"
 
-var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
-
 func setLogLevel() {
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.ForceColors = true
 	log.SetFormatter(customFormatter)
-	log.SetReportCaller(true)
-	customFormatter.FullTimestamp = true
+	log.SetReportCaller(false)
+	customFormatter.FullTimestamp = false
 	fmt.Println("Loglevel =", logLevel)
 	switch logLevel {
 	case "trace":
@@ -122,15 +120,10 @@ for a collection of R packages that are defined in an
 		Run: func(cmd *cobra.Command, args []string) {
 			setLogLevel()
 
-			// TODO this function should be used during renv.lock generation
-			var allPackages []PackagesFile
-			getPackagesFileFromURL("https://cloud.r-project.org/src/contrib/PACKAGES", &allPackages)
-			writeJSON("packages.json", allPackages)
-
 			fmt.Println("cfgfile =", cfgFile)
 			fmt.Println("maskedEnvVars =", maskedEnvVars)
 			fmt.Println("renvLockFilename =", renvLockFilename)
-			fmt.Println("includeSuggests = ", includeSuggests)
+			fmt.Println("includeSuggests =", includeSuggests)
 			fmt.Println("checkPackage =", checkPackageExpression)
 			fmt.Println("updatePackages =", updatePackages)
 			fmt.Println("checkAllPackages =", checkAllPackages)
@@ -139,12 +132,12 @@ for a collection of R packages that are defined in an
 			fmt.Println("maxCheckRoutines =", maxCheckRoutines)
 			fmt.Println("numberOfWorkers =", numberOfWorkers)
 			fmt.Println("clearCache =", clearCache)
-			fmt.Println("failOnError = ", failOnError)
-			fmt.Println("buildOptions = ", buildOptions)
-			fmt.Println("installOptions = ", installOptions)
-			fmt.Println("checkOptions = ", checkOptions)
-			fmt.Println("rCmdCheckFailRegex = ", rCmdCheckFailRegex)
-			fmt.Println("rExecutablePath = ", rExecutablePath)
+			fmt.Println("failOnError =", failOnError)
+			fmt.Println("buildOptions =", buildOptions)
+			fmt.Println("installOptions =", installOptions)
+			fmt.Println("checkOptions =", checkOptions)
+			fmt.Println("rCmdCheckFailRegex =", rCmdCheckFailRegex)
+			fmt.Println("rExecutablePath =", rExecutablePath)
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -180,8 +173,9 @@ for a collection of R packages that are defined in an
 			var renvLock Renvlock
 			var renvLockOld Renvlock
 			var renvLockFilenameOld string
+			var erroneousRepositoryNames []string
 			getRenvLock(renvLockFilename, &renvLock)
-			validateRenvLock(renvLock)
+			validateRenvLock(renvLock, &erroneousRepositoryNames)
 			if updatePackages != "" {
 				renvLockFilenameOld = renvLockFilename
 				renvLockFilename += ".updated"
@@ -191,49 +185,48 @@ for a collection of R packages that are defined in an
 				getRenvLock(renvLockFilenameOld, &renvLockOld)
 			}
 
-			mkdirerr := os.MkdirAll(tempCacheDirectory, os.ModePerm)
-			if mkdirerr != nil {
-				log.Errorf("Cannot make dir %s %v", tempCacheDirectory, mkdirerr)
-			}
+			err := os.MkdirAll(tempCacheDirectory, os.ModePerm)
+			checkError(err)
 
 			// Perform package download, except when cache contains JSON with previous
 			// download results.
 			downloadInfoFile := filepath.Join(tempCacheDirectory, "downloadInfo.json")
 			var allDownloadInfo []DownloadInfo
-			if _, err := os.Stat(downloadInfoFile); err == nil {
+			if _, err = os.Stat(downloadInfoFile); err == nil {
 				// File with downloaded packages information is already present.
 				readJSON(downloadInfoFile, &allDownloadInfo)
 			} else {
-				log.Infof("%s doesn't exist.", downloadInfoFile)
+				log.Info(downloadInfoFile, " doesn't exist.")
 				downloadPackages(renvLock, &allDownloadInfo, downloadFile, cloneGitRepo)
 				writeJSON(downloadInfoFile, &allDownloadInfo)
 			}
 
 			// Perform package installation, except when cache contains JSON with previous
 			// installation results.
-			err2 := os.MkdirAll(buildLogPath, os.ModePerm)
-			checkError(err2)
-			installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfos.json")
+			err = os.MkdirAll(buildLogPath, os.ModePerm)
+			checkError(err)
+			installInfoFile := filepath.Join(tempCacheDirectory, "installResultInfo.json")
 			var allInstallInfo []InstallResultInfo
-			if _, err := os.Stat(installInfoFile); err == nil {
+			if _, err = os.Stat(installInfoFile); err == nil {
 				readJSON(installInfoFile, &allInstallInfo)
 			} else {
-				log.Infof("%s doesn't exist.", installInfoFile)
-				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, includeSuggests, buildOptions, installOptions)
+				log.Info(installInfoFile, " doesn't exist.")
+				installPackages(renvLock, &allDownloadInfo, &allInstallInfo, buildOptions,
+					installOptions, erroneousRepositoryNames)
 			}
 
 			// Perform R CMD check, except when cache contains JSON with previous check results.
 			checkInfoFile := filepath.Join(tempCacheDirectory, "checkInfo.json")
 			var allCheckInfo []PackageCheckInfo
-			if _, err := os.Stat(checkInfoFile); err == nil {
+			if _, err = os.Stat(checkInfoFile); err == nil {
 				readJSON(checkInfoFile, &allCheckInfo)
 			} else {
-				log.Infof("%s doesn't exist.", checkInfoFile)
+				log.Info(checkInfoFile, " doesn't exist.")
 				checkPackages(checkInfoFile, checkOptions)
-				// If no packages were checked (because of e.g. not matching the CLI parameter)
+				// If no packages were checked (e.g. because their names didn't match the CLI parameter)
 				// the file with check results will not be generated, so we're checking
 				// its existence once again.
-				if _, err := os.Stat(checkInfoFile); err == nil {
+				if _, err = os.Stat(checkInfoFile); err == nil {
 					readJSON(checkInfoFile, &allCheckInfo)
 				}
 			}
@@ -242,7 +235,7 @@ for a collection of R packages that are defined in an
 			var reportData ReportInfo
 			processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
 				renvLock, renvLockOld, renvLockFilenameOld)
-			err := os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
+			err = os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 			checkError(err)
 			err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
 			checkError(err)
@@ -337,7 +330,8 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".scribe")
 	}
-	viper.AutomaticEnv() // read in environment variables that match
+	// Read in environment variables that match.
+	viper.AutomaticEnv()
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
@@ -356,24 +350,10 @@ func Execute() {
 
 func initializeConfig() {
 	for _, v := range []string{
-		"logLevel",
-		"maskedEnvVars",
-		"renvLockFilename",
-		"checkPackage",
-		"updatePackages",
-		"checkAllPackages",
-		"reportDir",
-		"maxDownloadRoutines",
-		"maxCheckRoutines",
-		"numberOfWorkers",
-		"clearCache",
-		"includeSuggests",
-		"failOnError",
-		"buildOptions",
-		"installOptions",
-		"checkOptions",
-		"rCmdCheckFailRegex",
-		"rExecutablePath",
+		"logLevel", "maskedEnvVars", "renvLockFilename", "checkPackage", "updatePackages",
+		"checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines", "numberOfWorkers",
+		"clearCache", "includeSuggests", "failOnError", "buildOptions", "installOptions",
+		"checkOptions", "rCmdCheckFailRegex", "rExecutablePath",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been

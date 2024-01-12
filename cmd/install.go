@@ -17,12 +17,10 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
-
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
+	"strconv"
 	"time"
 )
 
@@ -31,14 +29,10 @@ const buildLogPath = "/tmp/scribe/build_logs"
 const gitConst = "git"
 const htmlExtension = ".html"
 
-type InstallInfo struct {
-	PackageName   string `json:"packageName"`
-	InputLocation string `json:"inputLocation"`
-	PackageType   string `json:"packageType"`
-}
-
 type InstallResultInfo struct {
-	InstallInfo
+	PackageName      string `json:"packageName"`
+	InputLocation    string `json:"inputLocation"`
+	PackageType      string `json:"packageType"`
 	PackageVersion   string `json:"packageVersion"`
 	Status           string `json:"status"`
 	LogFilePath      string `json:"logFilePath"`
@@ -57,8 +51,14 @@ type ExecRCmdInstallChanInfo struct {
 	Err    error
 }
 
+type DownloadedPackage struct {
+	PackageType       string
+	PackageVersion    string
+	PackageRepository string
+	Location          string
+}
+
 const InstallResultInfoStatusSucceeded = "SUCCEEDED"
-const InstallResultInfoStatusSkipped = "SKIPPED"
 const InstallResultInfoStatusFailed = "FAILED"
 const InstallResultInfoStatusBuildFailed = "BUILD_FAILED"
 
@@ -68,66 +68,7 @@ const buildStatusNotBuilt = "NOT_BUILT"
 
 const rLibsVarName = "R_LIBS="
 
-func mkLibPathDir(temporaryLibPath string) {
-	for _, libPath := range strings.Split(temporaryLibPath, ":") {
-		if _, err := os.Stat(libPath); os.IsNotExist(err) {
-			err := os.MkdirAll(libPath, os.ModePerm)
-			checkError(err)
-			log.Tracef("Created dir %s", libPath)
-		}
-	}
-}
-
-func getInstalledPackagesWithVersionWithBaseRPackages(libPaths []string) map[string]string {
-	installedPackages := getInstalledPackagesWithVersion(libPaths)
-	basePackages := []string{"stats", "graphics", "grDevices", "utils", "datasets", "methods", "base"}
-	for _, p := range basePackages {
-		installedPackages[p] = ""
-	}
-	return installedPackages
-}
-
-func getInstalledPackagesWithVersion(libPaths []string) map[string]string {
-	log.Debug("Getting installed packages")
-	res := make(map[string]string)
-	for _, libPathMultiple := range libPaths {
-		for _, libPath := range strings.Split(libPathMultiple, ":") {
-			log.Debugf("Searching for installed package under %s", libPath)
-			descFilePaths := make([]string, 0)
-
-			files, err := os.ReadDir(libPath)
-			if err != nil {
-				log.Errorf("libPath: %s Error: %v", libPath, err)
-			}
-			for _, f := range files {
-				log.Tracef("Checking dir %s", f)
-				if f.IsDir() {
-					descFilePath := filepath.Join(libPath, f.Name(), "DESCRIPTION")
-					log.Tracef("Checking file %s", descFilePath)
-					if _, errStat := os.Stat(descFilePath); errStat == nil {
-						descFilePaths = append(descFilePaths, descFilePath)
-					}
-				}
-			}
-
-			for _, descFilePath := range descFilePaths {
-				descItems := parseDescriptionFile(descFilePath)
-				packageName := descItems["Package"]
-				packageVersion := descItems["Version"]
-				if _, ok := res[packageName]; !ok {
-					res[packageName] = packageVersion
-				} else {
-					log.Warnf("Duplicate package %s with version %s under %s libPath",
-						packageName, packageVersion, libPath)
-				}
-			}
-		}
-	}
-	log.Debugf("There are %d installed packages", len(res))
-	return res
-}
-
-// Returns tar.gz file name where built package is saved.
+// getBuiltPackageFileName returns the tar.gz file name where the built package is saved.
 // Searches for tar.gz file in current working directory.
 // If not found, returns empty string.
 func getBuiltPackageFileName(packageName string) string {
@@ -150,51 +91,51 @@ func getBuiltPackageFileName(packageName string) string {
 	return ""
 }
 
+// logError logs errors during package build or installation.
+func logError(outputLocation string, packageName string, e error, path string) {
+	log.Error("Error details: outputLocation: ", outputLocation, " packageName: ", packageName,
+		"\nerr:", e, "\nfile:", path)
+}
+
+// buildPackage runs R CMD build on packages downloaded from git repositories.
 func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string,
 	outputLocation string, buildLogFilePath string, additionalOptions string) {
-	log.Infof("Package %s located in %s is a source package so it has to be built first.",
-		packageName, outputLocation)
+	log.Info("Package ", packageName, " located in ", outputLocation, " is a source package so it has to be built first.")
 	cmd := rExecutable + " CMD build " + additionalOptions + " " + outputLocation
-	log.Trace("execCommand:" + cmd)
+	log.Trace("Executing command: " + cmd)
 	buildLogFile, buildLogFileErr := os.OpenFile(buildLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if buildLogFileErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
-			buildLogFileErr, buildLogFilePath)
+		logError(outputLocation, packageName, buildLogFileErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, buildLogFileErr}
 		return
 	}
 	defer buildLogFile.Close()
-	// Add HTML tags to highlight logs
+	// Add HTML tags to highlight logs.
 	if _, createHTMLTagsErr := buildLogFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
-			createHTMLTagsErr, buildLogFilePath)
+		logError(outputLocation, packageName, createHTMLTagsErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, createHTMLTagsErr}
 		return
 	}
-	// Execute the command
+	// Execute the command.
 	output, err := execCommand(cmd, false,
-		[]string{
-			rLibsVarName + rLibsPaths,
-			"LANG=en_US.UTF-8",
-		}, buildLogFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, buildLogFile)
 	if err != nil {
-		log.Errorf("Error with build: %s . Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s",
-			cmd, outputLocation, packageName, err, output)
+		log.Error("Error running ", cmd, "\nDetails: outputLocation: ", outputLocation, " packageName: ",
+			packageName, "\nerr: ", err, "\noutput: ", output)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, err}
 		return
 	}
-	// Close HTML tags
+	// Close HTML tags.
 	if _, closeHTMLTagsErr := buildLogFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation, packageName,
-			closeHTMLTagsErr, buildLogFilePath)
+		logError(outputLocation, packageName, closeHTMLTagsErr, buildLogFilePath)
 		buildPackageChan <- BuildPackageChanInfo{buildStatusFailed, outputLocation, closeHTMLTagsErr}
 		return
 	}
-	log.Infof("Executed build step on package %s located in %s", packageName, outputLocation)
+	log.Trace("Executed build step on package ", packageName, " located in ", outputLocation)
 	builtPackageName := getBuiltPackageFileName(packageName)
 	if builtPackageName != "" {
 		// Build succeeded.
-		log.Infof("Built package is stored in %s", builtPackageName)
+		log.Info("Built package is stored in ", builtPackageName)
 		// Install tar.gz file instead of directory with git source code of the package.
 		buildPackageChan <- BuildPackageChanInfo{buildStatusSucceeded, builtPackageName, err}
 		return
@@ -202,32 +143,29 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	buildPackageChan <- BuildPackageChanInfo{buildStatusSucceeded, outputLocation, err}
 }
 
+// executeRCmdInstall runs the R CMD INSTALL in a goroutine and sends back the result to executeInstallation.
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
-		[]string{
-			rLibsVarName + rLibsPaths,
-			"LANG=en_US.UTF-8",
-		}, logFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
 }
 
-// Returns error and build status (succeeded, failed or package not built).
+// executeInstallation runs the R CMD build goroutine (for git packages), R CMD INSTALL goroutine
+// and returns the build status (succeeded, failed or package not built).
 func executeInstallation(outputLocation, packageName, logFilePath, buildLogFilePath, packageType string,
 	additionalBuildOptions string, additionalInstallOptions string) (string, error) {
-	log.Infof("Executing installation step on package %s located in %s", packageName, outputLocation)
+	log.Trace("Executing installation step on package ", packageName, " located in ", outputLocation)
 	logFile, logFileErr := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	buildStatus := buildStatusNotBuilt
 	var err error
 	if logFileErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, logFileErr, logFilePath)
+		logError(outputLocation, packageName, logFileErr, logFilePath)
 		return buildStatus, logFileErr
 	}
 	defer logFile.Close()
-	// Add HTML tags to highlight logs
+	// Add HTML tags to highlight logs.
 	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, createHTMLTagsErr, logFilePath)
+		logError(outputLocation, packageName, createHTMLTagsErr, logFilePath)
 		return buildStatus, createHTMLTagsErr
 	}
 
@@ -249,7 +187,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 				log.Info("Building package ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 				break build_package_loop
 			default:
-				if totalWaitTime%20 == 0 {
+				if totalWaitTime%30 == 0 && totalWaitTime > 0 {
 					log.Info("Building package ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 				}
 				time.Sleep(time.Duration(waitInterval) * time.Second)
@@ -262,7 +200,7 @@ func executeInstallation(outputLocation, packageName, logFilePath, buildLogFileP
 	}
 
 	cmd := rExecutable + " CMD INSTALL --no-lock -l " + temporaryLibPath + " " + additionalInstallOptions + " " + outputLocation
-	log.Trace("Executing command:" + cmd)
+	log.Trace("Executing command: " + cmd)
 	execRCmdInstallChan := make(chan ExecRCmdInstallChanInfo)
 	go executeRCmdInstall(execRCmdInstallChan, cmd, logFile)
 	var waitInterval = 1
@@ -278,7 +216,7 @@ r_cmd_install_loop:
 			log.Info("R CMD INSTALL ", packageName, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break r_cmd_install_loop
 		default:
-			if totalWaitTime%20 == 0 {
+			if totalWaitTime%30 == 0 && totalWaitTime > 0 {
 				log.Info("R CMD INSTALL ", packageName, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
@@ -286,233 +224,210 @@ r_cmd_install_loop:
 		}
 	}
 	if err != nil {
-		log.Error(cmd)
-		log.Errorf("Error running: %s. Details: outputLocation:%s packageName:%s\nerr:%v\noutput:%s", cmd, outputLocation, packageName, err, output)
+		log.Error("Error running: ", cmd, "\nDetails: outputLocation: ", outputLocation,
+			" packageName: ", packageName, "\nerr: ", err, "\noutput: ", output)
 	}
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("Error details: outputLocation:%s packageName:%s\nerr:%v\nfile:%s", outputLocation,
-			packageName, closeHTMLTagsErr, logFilePath)
+		logError(outputLocation, packageName, closeHTMLTagsErr, logFilePath)
 		return buildStatus, closeHTMLTagsErr
 	}
-	log.Infof("Executed installation step on package %s located in %s", packageName, outputLocation)
+	log.Trace("Executed installation step on package ", packageName, " located in ", outputLocation)
 	return buildStatus, err
 }
 
-func installSinglePackageWorker(installChan chan InstallInfo, installResultChan chan InstallResultInfo,
-	additionalBuildOptions string, additionalInstallOptions string) {
-	for installInfo := range installChan {
-		logFilePath := filepath.Join(packageLogPath, installInfo.PackageName+htmlExtension)
-		buildLogFilePath := filepath.Join(buildLogPath, installInfo.PackageName+htmlExtension)
-		buildStatus, err := executeInstallation(installInfo.InputLocation, installInfo.PackageName,
-			logFilePath, buildLogFilePath, installInfo.PackageType, additionalBuildOptions, additionalInstallOptions)
-		packageVersion := ""
-		var status string
-		switch {
-		case err == nil:
-			log.Tracef("No error after installation of %s", installInfo.PackageName)
-			descFilePath := filepath.Join(temporaryLibPath, installInfo.PackageName, "DESCRIPTION")
-			installedDesc := parseDescriptionFile(descFilePath)
-			packageVersion = installedDesc["Version"]
-			status = InstallResultInfoStatusSucceeded
-		case buildStatus == buildStatusFailed:
-			status = InstallResultInfoStatusBuildFailed
-		default:
-			status = InstallResultInfoStatusFailed
-		}
-		log.Tracef("Sending response from %s", installInfo.PackageName)
-		installResultChan <- InstallResultInfo{
-			InstallInfo:      installInfo,
-			Status:           status,
-			PackageVersion:   packageVersion,
-			LogFilePath:      logFilePath,
-			BuildStatus:      buildStatus,
-			BuildLogFilePath: buildLogFilePath,
-		}
-		log.Tracef("Installation of package %s is done", installInfo.PackageName)
+// installSinglePackage triggers installation of a single R package and sends back the result to installPackages.
+func installSinglePackage(installResultChan chan InstallResultInfo, packageName string, packageType string,
+	inputLocation string, additionalBuildOptions string, additionalInstallOptions string) {
+	logFilePath := filepath.Join(packageLogPath, packageName+htmlExtension)
+	buildLogFilePath := filepath.Join(buildLogPath, packageName+htmlExtension)
+	buildStatus, err := executeInstallation(inputLocation, packageName,
+		logFilePath, buildLogFilePath, packageType, additionalBuildOptions, additionalInstallOptions)
+	packageVersion := ""
+	var status string
+	switch {
+	case err == nil:
+		descFilePath := filepath.Join(temporaryLibPath, packageName, "DESCRIPTION")
+		installedDesc := parseDescriptionFile(descFilePath)
+		packageVersion = installedDesc["Version"]
+		status = InstallResultInfoStatusSucceeded
+	case buildStatus == buildStatusFailed:
+		status = InstallResultInfoStatusBuildFailed
+	default:
+		status = InstallResultInfoStatusFailed
+	}
+	installResultChan <- InstallResultInfo{
+		PackageName:      packageName,
+		InputLocation:    inputLocation,
+		PackageType:      packageType,
+		Status:           status,
+		PackageVersion:   packageVersion,
+		LogFilePath:      logFilePath,
+		BuildStatus:      buildStatus,
+		BuildLogFilePath: buildLogFilePath,
 	}
 }
 
-func getOrderedDependencies(
-	renvLock Renvlock,
-	packagesLocation map[string]struct{ PackageType, Location string },
-	installedDeps map[string]string,
-	includeSuggests bool,
-) ([]string, map[string][]string) {
-	deps := make(map[string][]string)
-	var depsOrdered []string
-
-	var reposURLs []string
-	for _, v := range renvLock.R.Repositories {
-		reposURLs = append(reposURLs, v.URL)
-	}
-
-	readFile := filepath.Join(tempCacheDirectory, "deps.json")
-	if _, err := os.Stat(readFile); err == nil {
-		log.Info("Reading file ", readFile)
-		jsonFile, errr := os.ReadFile(readFile)
-		checkError(errr)
-		errunmarshal := json.Unmarshal(jsonFile, &deps)
-		checkError(errunmarshal)
-	} else {
-		depsAll := getPackageDeps(
-			renvLock.Packages,
-			renvLock.Bioconductor.Version,
-			reposURLs,
-			packagesLocation,
-			includeSuggests,
-		)
-
-		for p, depAll := range depsAll {
-			if _, ok := packagesLocation[p]; ok {
-				dep := make([]string, 0)
-				for _, d := range depAll {
-					_, okInpackagesLocation := packagesLocation[d]
-					_, okInInstalledDeps := installedDeps[d]
-					if okInpackagesLocation || okInInstalledDeps {
-						dep = append(dep, d)
-					}
-				}
-				deps[p] = dep
+// getPackagesReadyToInstall iterates through all packages which should eventually be
+// installed, and marks package in readyPackages as ready to install, if all
+// package dependencies have been installed, the package is not currently being installed
+// and has not yet been installed.
+func getPackagesReadyToInstall(
+	dependencies map[string][]string,
+	installedPackages []string,
+	packagesBeingInstalled map[string]bool,
+	readyPackages map[string]bool,
+) {
+	for packageName, packageDeps := range dependencies {
+		pkgBeingInstalled, ok := packagesBeingInstalled[packageName]
+		if !ok {
+			pkgBeingInstalled = false
+		}
+		if pkgBeingInstalled {
+			// Package not ready for installation, if currently being installed.
+			readyPackages[packageName] = false
+			continue
+		}
+		pkgInstalled := stringInSlice(packageName, installedPackages)
+		if pkgInstalled {
+			// Package not ready for installation, if already installed.
+			readyPackages[packageName] = false
+			continue
+		}
+		dependenciesInstalled := true
+		for _, d := range packageDeps {
+			if !stringInSlice(d, installedPackages) {
+				// Package not ready for installation, if its dependency not installed.
+				dependenciesInstalled = false
+				break
 			}
 		}
-		writeJSON(readFile, deps)
-	}
-	defer os.Remove(readFile)
-
-	readFile = filepath.Join(tempCacheDirectory, "depsOrdered.json")
-	if _, err := os.Stat(readFile); err == nil {
-		log.Infof("Reading %s", readFile)
-		jsonFile, errr := os.ReadFile(readFile)
-		checkError(errr)
-		errUnmarshal := json.Unmarshal(jsonFile, &depsOrdered)
-		checkError(errUnmarshal)
-	} else {
-		log.Debugf("Running a topological sort on %d packages", len(deps))
-		depsOrdered = tsort(deps)
-		log.Debugf("Success running topological sort on %d packages. Ordering complete for %d packages", len(deps), len(depsOrdered))
-		writeJSON(readFile, depsOrdered)
-	}
-	defer os.Remove(readFile)
-
-	depsOrderedToInstall := make([]string, 0)
-	for _, packageName := range depsOrdered {
-		if _, ok := packagesLocation[packageName]; ok {
-			depsOrderedToInstall = append(depsOrderedToInstall, packageName)
+		if dependenciesInstalled && !pkgInstalled && !pkgBeingInstalled {
+			readyPackages[packageName] = true
 		}
 	}
-	// TODO: What does this mean?
-	log.Tracef("There are %d packages, but after cleaning it is %d", len(depsOrdered), len(depsOrderedToInstall))
-	return depsOrderedToInstall, deps
 }
 
-// nolint: gocyclo
+// mapTrueLength returns the number of elements in the map for which the value is true.
+func mapTrueLength(m map[string]bool) uint {
+	var trueLength uint
+	for _, v := range m {
+		if v {
+			trueLength++
+		}
+	}
+	return trueLength
+}
+
+// getPackageToInstall gets the first available package from the ready-to-install queue.
+func getPackageToInstall(
+	packagesBeingInstalled map[string]bool,
+	readyPackages map[string]bool,
+) string {
+	for k, v := range readyPackages {
+		if v {
+			packagesBeingInstalled[k] = true
+			readyPackages[k] = false
+			return k
+		}
+	}
+	return ""
+}
+
+// installPackages concurrently builds and installs packages specified in the renv.lock.
+// The installation is executed in order resulting from the way packages depend on each other.
 func installPackages(
 	renvLock Renvlock,
 	allDownloadInfo *[]DownloadInfo,
-	installResultInfos *[]InstallResultInfo,
-	includeSuggests bool,
+	allInstallInfo *[]InstallResultInfo,
 	additionalBuildOptions string,
 	additionalInstallOptions string,
+	erroneousRepositoryNames []string,
 ) {
-	mkLibPathDir(temporaryLibPath)
-	mkLibPathDir(packageLogPath)
+	err := os.MkdirAll(temporaryLibPath, os.ModePerm)
+	checkError(err)
+	err = os.MkdirAll(packageLogPath, os.ModePerm)
+	checkError(err)
 
-	installedDeps := getInstalledPackagesWithVersionWithBaseRPackages([]string{temporaryLibPath})
-	log.Tracef("There are %d installed packages under %s location", len(installedDeps), temporaryLibPath)
-	packagesLocation := make(map[string]struct{ PackageType, Location string })
+	downloadedPackages := make(map[string]DownloadedPackage)
 	for _, v := range *allDownloadInfo {
-		packagesLocation[v.PackageName] = struct{ PackageType, Location string }{v.DownloadedPackageType, v.OutputLocation}
-	}
-
-	depsOrderedToInstall, deps := getOrderedDependencies(renvLock, packagesLocation, installedDeps, includeSuggests)
-
-	installChan := make(chan InstallInfo)
-	defer close(installChan)
-	installResultChan := make(chan InstallResultInfo)
-	defer close(installResultChan)
-
-	for i := range depsOrderedToInstall {
-		log.Tracef("Starting installation worker #%d", i)
-		go installSinglePackageWorker(installChan, installResultChan, additionalBuildOptions, additionalInstallOptions)
-	}
-
-	installing := make(map[string]bool)
-	processed := make(map[string]bool)
-	for k := range installedDeps {
-		processed[k] = true
-	}
-
-	minI := 0
-	maxI := int(numberOfWorkers) // max number of parallel installing workers
-
-	// running packages which have no dependencies
-	counter := minI // number of currently installing packages in queue
-
-	for _, p := range depsOrderedToInstall {
-		log.Tracef("Checking %s", p)
-		ver, ok := installedDeps[p]
-		if !ok {
-			if isDependencyFulfilled(p, deps, installedDeps) {
-				counter++
-				log.Tracef("Triggering %s", p)
-				installing[p] = true
-				installChan <- InstallInfo{p, packagesLocation[p].Location, packagesLocation[p].PackageType}
-			}
-			if counter >= maxI {
-				// TODO: What does this mean?
-				log.Infof("All the rest packages have dependencies. Counter:%d", counter)
-				break
-			}
-		} else {
-			*installResultInfos = append(*installResultInfos, InstallResultInfo{
-				InstallInfo: InstallInfo{
-					PackageName:   p,
-					InputLocation: packagesLocation[p].Location,
-					PackageType:   packagesLocation[p].PackageType,
-				},
-				PackageVersion: ver,
-				LogFilePath:    "",
-				Status:         InstallResultInfoStatusSkipped,
-			})
+		downloadedPackages[v.PackageName] = DownloadedPackage{
+			v.DownloadedPackageType, v.PackageVersion, v.PackageRepository, v.OutputLocation,
 		}
 	}
 
-	if len(*installResultInfos) < len(depsOrderedToInstall) {
-		// TODO: What does this mean?
-		log.Tracef("Running on channels")
-	Loop:
-		for installResultInfo := range installResultChan {
-			*installResultInfos = append(*installResultInfos, installResultInfo)
-			delete(installing, installResultInfo.PackageName)
-			processed[installResultInfo.PackageName] = true
-			installedDeps[installResultInfo.PackageName] = ""
-			for i := minI; i <= maxI && i < len(depsOrderedToInstall); i++ {
-				nextPackage := depsOrderedToInstall[i]
-				if !processed[nextPackage] {
-					if !installing[nextPackage] {
-						if isDependencyFulfilled(nextPackage, deps, installedDeps) {
-							installChan <- InstallInfo{nextPackage, packagesLocation[nextPackage].Location,
-								packagesLocation[nextPackage].PackageType}
-							installing[nextPackage] = true
-						}
-					}
+	dependencies := getPackageDeps(renvLock.Packages, renvLock.R.Repositories,
+		downloadedPackages, erroneousRepositoryNames)
+
+	var installedPackages []string
+	readyPackages := make(map[string]bool)
+	packagesBeingInstalled := make(map[string]bool)
+	installationResultChan := make(chan InstallResultInfo)
+
+	// Compute the initial list of ready packages (those having no dependencies at all).
+	getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
+
+	packagesInstalledSuccessfully := 0
+	packagesInstalledUnsuccessfully := 0
+
+package_installation_loop:
+	for {
+		select {
+		// One of the package installation goroutines finished.
+		case msg := <-installationResultChan:
+			receivedPackageName := msg.PackageName
+			receivedStatus := msg.Status
+			log.Info("Installation of ", receivedPackageName, " completed, status = ", receivedStatus, ".")
+			*allInstallInfo = append(*allInstallInfo, msg)
+
+			if receivedStatus == InstallResultInfoStatusSucceeded {
+				packagesInstalledSuccessfully++
+			} else {
+				packagesInstalledUnsuccessfully++
+			}
+
+			// Mark the package as installed, and not one being installed.
+			installedPackages = append(installedPackages, receivedPackageName)
+			packagesBeingInstalled[receivedPackageName] = false
+
+			// Recalculate the list of packages ready to be installed.
+			getPackagesReadyToInstall(dependencies, installedPackages, packagesBeingInstalled, readyPackages)
+
+			log.Info(
+				mapTrueLength(readyPackages), " packages ready. ",
+				mapTrueLength(packagesBeingInstalled), " packages being installed. ",
+				strconv.Itoa(int(100*float64(len(installedPackages))/float64(len(downloadedPackages)))),
+				"% of packages processed (", packagesInstalledSuccessfully,
+				" succeeded, ", packagesInstalledUnsuccessfully, " failed).",
+			)
+		// Try to run a new package installation.
+		default:
+			if mapTrueLength(readyPackages)+mapTrueLength(packagesBeingInstalled) == 0 {
+				// No ready packages and no ongoing installations - all packages installed.
+				break package_installation_loop
+			}
+			if mapTrueLength(packagesBeingInstalled) < numberOfWorkers {
+				// The number of ongoing package installations less that maximum desired
+				// number of installation processes.
+				packageName := getPackageToInstall(packagesBeingInstalled, readyPackages)
+				if packageName != "" {
+					// Run a new package installation.
+					log.Info("Installing ", packageName, "...")
+					go installSinglePackage(installationResultChan, packageName,
+						downloadedPackages[packageName].PackageType,
+						downloadedPackages[packageName].Location,
+						additionalBuildOptions, additionalInstallOptions)
 				} else {
-					if i == minI {
-						minI++ // increment if package with index minI has been installed
-						maxI++
-					}
+					// No package ready to install.
+					time.Sleep(500 * time.Millisecond)
 				}
+			} else {
+				// Maximum number of concurrent installations reached.
+				time.Sleep(500 * time.Millisecond)
 			}
-			if minI >= len(depsOrderedToInstall) {
-				break Loop
-			}
-			// TODO: What does this mean?
-			log.Tracef("End %s\n minI: %d\n maxI:%d\n installing: %v\n processed:%v", installResultInfo.PackageName, minI, maxI, installing, processed)
 		}
 	}
 
-	installResultInfosFilePath := filepath.Join(tempCacheDirectory, "installResultInfos.json")
-	log.Tracef("Writing installation status file into %s", installResultInfosFilePath)
-	writeJSON(installResultInfosFilePath, *installResultInfos)
-	log.Infof("Installation for %d is done", len(*installResultInfos))
+	installResultFilePath := filepath.Join(tempCacheDirectory, "installResultInfo.json")
+	writeJSON(installResultFilePath, *allInstallInfo)
+	log.Info("Installation of ", len(*allInstallInfo), " packages completed.")
 }

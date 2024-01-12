@@ -42,7 +42,9 @@ func Test_getRenvLock(t *testing.T) {
 
 func Test_validateRenvLock(t *testing.T) {
 	var renvLock Renvlock
+	var erroneousRepositoryNames []string
 	getRenvLock("testdata/renv.lock.empty.json", &renvLock)
-	numberOfWarnings := validateRenvLock(renvLock)
+	numberOfWarnings := validateRenvLock(renvLock, &erroneousRepositoryNames)
 	assert.Equal(t, numberOfWarnings, 4)
+	assert.Equal(t, len(erroneousRepositoryNames), 2)
 }

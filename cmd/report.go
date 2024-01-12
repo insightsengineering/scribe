@@ -52,7 +52,7 @@ type RenvInfo struct {
 const HTMLStatusOK = "<span class=\"badge bg-success\">OK</span>"
 const HTMLLinkEnd = "</a>"
 
-// Copies all files from sourceDirectory to destinationDirectory (not recursively).
+// copyFiles copies all files from sourceDirectory to destinationDirectory (not recursively).
 // Adds filePrefix prefix to each copied file name.
 func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory string) {
 	files, err := os.ReadDir(sourceDirectory)
@@ -61,7 +61,7 @@ func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory s
 		if !file.IsDir() {
 			oldFileName := sourceDirectory + "/" + filepath.Base(file.Name())
 			newFileName := destinationDirectory + "/" + filePrefix + filepath.Base(file.Name())
-			log.Debugf("Copying %s to %s.", oldFileName, newFileName)
+			log.Trace("Copying ", oldFileName, " to ", newFileName)
 			data, err := os.ReadFile(oldFileName)
 			checkError(err)
 			err = os.WriteFile(newFileName, data, 0644) //#nosec
@@ -70,8 +70,8 @@ func copyFiles(sourceDirectory string, filePrefix string, destinationDirectory s
 	}
 }
 
-// For each item from download info JSON, generate HTML code for badge in the report corresponding to the package.
-// Returns map from package name to HTML code.
+// processDownloadInfo, for each item from download info JSON, generates HTML code for badge
+// in the report corresponding to the package. Returns map from package name to HTML code.
 func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	downloadStatuses := make(map[string]string)
 	for _, p := range allDownloadInfo {
@@ -99,8 +99,9 @@ func processDownloadInfo(allDownloadInfo []DownloadInfo) map[string]string {
 	return downloadStatuses
 }
 
-// For each item from installation info JSON, generate HTML code for badge in the report corresponding
-// to the installation status of the package. Returns map from package name to HTML code.
+// processInstallInfo, for each item from installation info JSON, generates HTML code for badge
+// in the report corresponding to the installation status of the package. Returns map
+// from package name to HTML code.
 func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	installStatuses := make(map[string]string)
 	for _, p := range allInstallInfo {
@@ -109,8 +110,6 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 		switch p.Status {
 		case InstallResultInfoStatusSucceeded:
 			installStatusText = filePath + HTMLStatusOK + HTMLLinkEnd
-		case InstallResultInfoStatusSkipped:
-			installStatusText = filePath + "<span class=\"badge bg-info text-dark\">skipped</span></a>"
 		case InstallResultInfoStatusFailed:
 			installStatusText = filePath + "<span class=\"badge bg-danger\">failed</span></a>"
 		case InstallResultInfoStatusBuildFailed:
@@ -122,8 +121,9 @@ func processInstallInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	return installStatuses
 }
 
-// For each item from installation info JSON, generate HTML code for badge in the report corresponding
-// to the build status of the package. Returns map from package name to HTML code.
+// processBuildInfo, for each item from installation info JSON, generates HTML code for badge
+// in the report corresponding to the build status of the package. Returns map from package
+// name to HTML code.
 func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	buildStatuses := make(map[string]string)
 	for _, p := range allInstallInfo {
@@ -140,9 +140,9 @@ func processBuildInfo(allInstallInfo []InstallResultInfo) map[string]string {
 	return buildStatuses
 }
 
-// For each item from R CMD check info JSON, generate HTML code for badge in the report corresponding to the package.
-// Returns map from package name to HTML code for both check statuses and check times,
-// as well as total check time.
+// processCheckInfo, for each item from R CMD check info JSON, generates HTML code for badge
+// in the report corresponding to the package. Returns map from package name to HTML code
+// for both check statuses and check times, as well as total check time.
 func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[string]string, string) {
 	checkStatuses := make(map[string]string)
 	checkTimes := make(map[string]string)
@@ -170,7 +170,7 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 	return checkStatuses, checkTimes, strconv.Itoa(totalCheckTime)
 }
 
-// Returns processed download, installation and check information in a structure that
+// processReportData returns processed download, installation and check information in a structure that
 // can be consumed by Go templating engine.
 func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
 	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo,

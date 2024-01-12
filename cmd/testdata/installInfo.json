@@ -9,15 +9,6 @@
     "buildLogFilePath": "/tmp/scribe/build_logs/Matrix.html"
   },
   {
-    "packageName": "package1",
-    "inputLocation": "",
-    "packageVersion": "",
-    "status": "SKIPPED",
-    "logFilePath": "/tmp/scribe/installed_logs/package1.html",
-    "buildStatus": "FAILED",
-    "buildLogFilePath": "/tmp/scribe/build_logs/package1.html"
-  },
-  {
     "packageName": "package2",
     "inputLocation": "",
     "packageVersion": "",

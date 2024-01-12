@@ -45,8 +45,8 @@ type PackageCheckInfo struct {
 	ShouldFail          bool // Whether a NOTE or WARNING occurred that would cause the check to fail.
 }
 
-// Check if checkItemType is more severe than currently most severe (mostSevereCheckItem).
-// If yes, return new one, otherwise return previously most severe.
+// getNewMaximumSeverity checks if checkItemType is more severe than currently most severe (mostSevereCheckItem).
+// If yes, returns new one, otherwise returns previously most severe.
 func getNewMaximumSeverity(checkItemType string, mostSevereCheckItem string) string {
 	newMostSevereCheckItem := mostSevereCheckItem
 	switch {
@@ -83,7 +83,7 @@ func checkIfShouldFail(checkItemType string, checkItem string, shouldFail *bool,
 	}
 }
 
-// Parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
+// parseCheckOutput parses output of R CMD check and extracts separate NOTEs, WARNINGs, and ERRORs.
 // Returns most severe of statuses found (OK, NOTE, WARNING, ERROR).
 func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckInfo, packageName string) (string, bool) {
 	scanner := bufio.NewScanner(strings.NewReader(stringToParse))
@@ -161,7 +161,7 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 	return mostSevereCheckItem, shouldFail
 }
 
-// Go routine receiving data from go routines performing R CMD checks on the packages.
+// checkResultsReceiver receives data from go routines performing R CMD checks on the packages.
 func checkResultsReceiver(messages chan PackageCheckInfo,
 	checkWaiter chan struct{}, totalPackages int, outputFile string) {
 	var allPackagesCheckInfo []PackageCheckInfo
@@ -186,50 +186,45 @@ results_receiver_loop:
 				break results_receiver_loop
 			}
 		default:
-			// TODO should there be any timeout in case checking some package doesn't complete?
 			time.Sleep(time.Second)
 		}
 	}
 }
 
-func runCmdCheck(cmdCheckChan chan string, packageFile string, packageName string, logFilePath string,
+// runCmdCheck executes R CMD check for a given package in a goroutine.
+func runCmdCheck(cmdCheckChan chan string, packageFile string, logFilePath string,
 	additionalOptions string) {
-	log.Info("Checking package ", packageFile)
-	log.Debug("Package ", packageName, " will save check logs/outputs to ", logFilePath, ".")
+	log.Trace("Check logs/outputs will be saved to ", logFilePath, ".")
 	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	checkError(err)
 	defer logFile.Close()
 	// Add HTML tags to highlight logs
 	if _, createHTMLTagsErr := logFile.Write([]byte("<pre><code>\n")); createHTMLTagsErr != nil {
-		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
-			createHTMLTagsErr, logFilePath)
+		log.Error("Error saving log to ", logFilePath, ": ", createHTMLTagsErr)
 		cmdCheckChan <- ""
 		return
 	}
 	cmd := rExecutable + " CMD check " + additionalOptions + " " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
-		[]string{
-			rLibsVarName + rLibsPaths,
-			"LANG=en_US.UTF-8",
-		}, logFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
 	checkError(err)
 	// Close HTML tags
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
-		log.Errorf("packageName:%s\nerr:%v\nfile:%s", packageName,
-			closeHTMLTagsErr, logFilePath)
+		log.Error("Error saving log to ", logFilePath, ": ", closeHTMLTagsErr)
 		cmdCheckChan <- ""
 		return
 	}
 	cmdCheckChan <- output
 }
 
+// checkSinglePackage runs the goroutine with R CMD check for a single package, and waits for its completion.
 func checkSinglePackage(messages chan PackageCheckInfo, guard chan struct{},
 	packageFile string, additionalOptions string) {
 	cmdCheckChan := make(chan string)
 	packageName := strings.Split(packageFile, "_")[0]
 	logFilePath := checkLogPath + "/" + packageName + htmlExtension
-	go runCmdCheck(cmdCheckChan, packageFile, packageName, logFilePath, additionalOptions)
+	go runCmdCheck(cmdCheckChan, packageFile, logFilePath, additionalOptions)
 	var singlePackageCheckInfo []ItemCheckInfo
 	var waitInterval = 1
 	var totalWaitTime = 0
@@ -245,7 +240,7 @@ check_single_package_loop:
 			log.Info("R CMD check ", packageFile, " completed after ", getTimeMinutesAndSeconds(totalWaitTime))
 			break check_single_package_loop
 		default:
-			if totalWaitTime%20 == 0 {
+			if totalWaitTime%30 == 0 && totalWaitTime > 0 {
 				log.Info("R CMD check ", packageFile, "... [", getTimeMinutesAndSeconds(totalWaitTime), " elapsed]")
 			}
 			time.Sleep(time.Duration(waitInterval) * time.Second)
@@ -254,7 +249,7 @@ check_single_package_loop:
 	}
 }
 
-// Returns list of package names coming from tarballs with built packages.
+// getCheckedPackages returns list of package names coming from tarballs with built packages.
 // The packages are filtered based on the wildcard expression from command line.
 // R CMD check should be performed on the returned list of packages.
 func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPackagesDirectory string) []string {
@@ -288,13 +283,10 @@ func getCheckedPackages(checkExpression string, checkAllPackages bool, builtPack
 			match, err := regexp.MatchString(checkRegexp, fileName)
 			checkError(err)
 			if match {
-				log.Debug(fileName + " matches regexp " + checkRegexp)
-				checkPackageFiles = append(
-					checkPackageFiles,
-					fileName,
-				)
+				log.Trace(fileName + " matches regexp " + checkRegexp)
+				checkPackageFiles = append(checkPackageFiles, fileName)
 			} else {
-				log.Debug(fileName + " doesn't match regexp " + checkRegexp)
+				log.Trace(fileName + " doesn't match regexp " + checkRegexp)
 			}
 		}
 	}
@@ -306,7 +298,7 @@ func checkPackages(outputFile string, additionalOptions string) {
 	err := os.MkdirAll(checkLogPath, os.ModePerm)
 	checkError(err)
 	// Built packages are stored in current directory.
-	// The assumption in the whole check component is that tar.gz packages that should be checked
+	// Check component assumes that tar.gz packages which should be checked
 	// have been previously built and saved to current working directory.
 	checkPackagesFiles := getCheckedPackages(checkPackageExpression, checkAllPackages, ".")
 	// Channel to wait until all checks have completed.

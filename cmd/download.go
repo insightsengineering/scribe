@@ -55,6 +55,8 @@ const archivesSubdirectory = "/package_archives/"
 const srcContrib = "/src/contrib/"
 const biocPackagesPrefix = "/package_files/BIOC_PACKAGES_"
 
+var bioconductorCategories = [4]string{"bioc", "data/experiment", "data/annotation", "workflows"}
+
 type DownloadInfo struct {
 	// if statusCode > 0 it is identical to HTTP status code from download, or 200 in case of successful
 	// git repository clone
@@ -84,7 +86,10 @@ type DownloadInfo struct {
 	PackageVersion        string `json:"packageVersion"`
 	// Contains git SHA of cloned package, or exceptionally git tag or branch, if SHA was not provided in renv.lock.
 	GitPackageShaOrRef string `json:"gitPackageShaOrRef"`
-	// Name of R package repository (e.g. CRAN, RSPM), or GitHub/GitLab.
+	// Name of R package repository ("Repository" renv.lock field, e.g. CRAN, RSPM) in case package
+	// source ("Source" renv.lock field) is "Repository".
+	// Otherwise, "GitHub" or "GitLab" depending on "Source" renv.lock field.
+	// Empty in case of errors.
 	PackageRepository string `json:"packageRepository"`
 }
 
@@ -122,9 +127,9 @@ func getRepositoryURL(v Rpackage, repositories []Rrepository) string {
 	return repoURL
 }
 
-// Returns HTTP status code for downloaded file and number of bytes in downloaded content.
+// downloadFile saves the file at url to outputFile and returns the HTTP status code
+// for downloaded file and number of bytes in downloaded content.
 func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
-	// Get the data
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
@@ -133,11 +138,9 @@ func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 	if err == nil {
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
-			// Create the file
 			out, err := os.Create(outputFile)
 			checkError(err)
 			defer out.Close()
-			// Write the body to file
 			_, err = io.Copy(out, resp.Body)
 			checkError(err)
 		}
@@ -147,12 +150,12 @@ func downloadFile(url string, outputFile string) (int, int64) { // #nosec G402
 	return -4, 0
 }
 
-// Clones git repository and returns string with error value (empty if cloning was
+// cloneGitRepo clones git repository and returns string with error value (empty if cloning was
 // successful), approximate number of downloaded bytes, and cloned version of the package (tag, branch or commit SHA).
 // If commitSha or branchOrTagName is specified, the respective commit, branch or tag are checked out.
-// If environmentCredentialsType is "gitlab", this function expects username and token to be set in
-// GITLAB_USER and GITLAB_TOKEN environment variables.
-// If environmentCredentialsType is "github", this function expects token to be set in
+// If environmentCredentialsType is "gitlab", this function expects the token to be set in
+// GITLAB_TOKEN environment variables.
+// If environmentCredentialsType is "github", this function expects the token to be set in
 // GITHUB_TOKEN environment variable.
 // This implementation assumes that RemoteSha renv.lock field contains commit SHA,
 // and that RemoteRef renv.lock field contains branch name or tag name.
@@ -209,11 +212,11 @@ func cloneGitRepo(gitDirectory string, repoURL string, environmentCredentialsTyp
 			var refName string
 			var checkoutRefName string
 			if match {
-				log.Debug(branchOrTagName + " matches tag name regexp.")
+				log.Trace(branchOrTagName + " matches tag name regexp.")
 				checkoutRefName = fmt.Sprintf("refs/tags/%s", branchOrTagName)
 				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
 			} else {
-				log.Debug(branchOrTagName, " doesn't match tag name regexp.")
+				log.Trace(branchOrTagName, " doesn't match tag name regexp.")
 				checkoutRefName = fmt.Sprintf("refs/heads/%s", branchOrTagName)
 				refName = fmt.Sprintf("%s:%s", checkoutRefName, checkoutRefName)
 			}
@@ -391,8 +394,8 @@ func getBioconductorPackageDetails(packageName string, packageVersion string, re
 	return "notfound_bioc", "", "", "", 0
 }
 
-// Returns:
-// * information how the package should be accessed:
+// getPackageDetails returns the following information:
+// * how the package should be accessed:
 //
 //   - "download" means the package should be downloaded as a tar.gz file from CRAN, Bioconductor or some other repo
 //
@@ -450,14 +453,14 @@ func getPackageDetails(packageName string, packageVersion string, repoURL string
 		return action, packageType, packageURL, "", outputLocation, "", savedBandwidth
 
 	case packageSource == GitHub:
-		// TODO this has to be modified if we plan to support other GitHub instances than https://github.com
+		// For now we only support GitHub instance at https://github.com.
 		gitDirectory := localOutputDirectory + "/github" +
 			strings.TrimPrefix(repoURL, "https://github.com")
 		log.Debug("Cloning ", repoURL, " to ", gitDirectory)
 		return github, "", repoURL, "", gitDirectory, "", 0
 
 	case packageSource == GitLab:
-		// repoURL == https://example.com/remote-user/some/remote/repo/path
+		// Expected repoURL format: https://example.com/remote-user/some/remote/repo/path
 		remoteHost := strings.Join(strings.Split(repoURL, "/")[:3], "/")
 		remoteUser := strings.Split(repoURL, "/")[3]
 		remoteRepo := strings.Join(strings.Split(repoURL, "/")[4:], "/")
@@ -486,9 +489,8 @@ func getPackageOutputLocation(outputLocation, packageSubdir string) string {
 	return outputLocation
 }
 
-// Function executed in parallel goroutines.
-// First, it determines in what way to retrieve the package.
-// Then, it performs appropriate action based on what's been determined.
+// downloadSinglePackage executes in parallel goroutines and determines in what way
+// to retrieve the package, and then retrieves the package accordingly.
 func downloadSinglePackage(packageName string, packageVersion string,
 	repoURL string, gitCommitSha string, gitBranch string,
 	packageSource string, packageRepository string, packageSubdir string,
@@ -562,7 +564,7 @@ func downloadSinglePackage(packageName string, packageVersion string,
 	<-guard
 }
 
-// Read PACKAGES file and save:
+// parsePackagesFile reads PACKAGES file and saves:
 // * map from package names to their versions as stored in the PACKAGES file.
 // * map from package names to their MD5 checksums as stored in the PACKAGES file.
 func parsePackagesFile(filePath string, packageInfo map[string]*PackageInfo) {
@@ -620,7 +622,7 @@ func getBiocUrls(biocVersion string, biocUrls map[string]string) {
 	}
 }
 
-// Retrieve lists of package versions from predefined BioConductor categories.
+// getBioConductorPackages retrieves lists of package versions from predefined BioConductor categories.
 func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[string]*PackageInfo,
 	biocUrls map[string]string, downloadFileFunction func(string, string) (int, int64)) {
 	log.Info("Retrieving PACKAGES from BioConductor version ", biocVersion, ".")
@@ -641,8 +643,7 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 	}
 }
 
-// Iterate through files in directoryName and save the checksums of .tar.gz files found there.
-// TODO parallelize this if required - takes around 3 seconds for 820 MB of data
+// computeChecksums iterates through files in directoryName and save the checksums of .tar.gz files found there.
 func computeChecksums(directoryPath string, localArchiveChecksums map[string]*CacheInfo) {
 	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(info.Name(), tarGzExtension) {
@@ -659,7 +660,7 @@ func computeChecksums(directoryPath string, localArchiveChecksums map[string]*Ca
 	checkError(err)
 }
 
-// Receive messages from goroutines responsible for package downloads.
+// downloadResultReceiver receives messages from goroutines responsible for package downloads.
 func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int,
 	failedDownloads *int, totalPackages int, totalDownloadedBytes *int64,
 	totalSavedBandwidth *int64, downloadWaiter chan struct{},
@@ -668,8 +669,12 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	*failedDownloads = 0
 	*totalSavedBandwidth = 0
 	idleSeconds := 0
-	// Such big idle timeout is (unfortunately) required for some big packages like rmint.sdtm.
+
+	// Maximum number of seconds to wait between receiving download statuses.
+	// If we got the last message about download completion more than maxIdleSeconds ago,
+	// we ignore the rest of packages.
 	const maxIdleSeconds = 200
+
 	for {
 		select {
 		case msg := <-messages:
@@ -707,8 +712,6 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 			time.Sleep(time.Second)
 			idleSeconds++
 		}
-		// Last maxIdleWaits attempts at receiving status from package downloaders didn't yield any
-		// messages. Or all packages have been downloaded. Hence, we finish waiting for any other statuses.
 		if idleSeconds >= maxIdleSeconds {
 			break
 		}
@@ -717,7 +720,7 @@ func downloadResultReceiver(messages chan DownloadInfo, successfulDownloads *int
 	downloadWaiter <- struct{}{}
 }
 
-// Download packages from renv.lock file, saves download result structs to allDownloadInfo.
+// downloadPackages downloads packages from renv.lock file and saves download result structs to allDownloadInfo.
 func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	downloadFileFunction func(string, string) (int, int64),
 	gitCloneFunction func(string, string, string, string, string) (string, int64, string)) {
@@ -775,11 +778,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	startTime := time.Now()
 	computeChecksums(localOutputDirectory+"/package_archives", localArchiveChecksums)
 	elapsedTime := time.Since(startTime)
-	log.Info("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()),
+	log.Debug("Calculating local cache checksums took ", fmt.Sprintf("%.2f", elapsedTime.Seconds()),
 		" seconds.")
-	for k, v := range localArchiveChecksums {
-		log.Debug(k, " = ", v)
-	}
 
 	messages := make(chan DownloadInfo)
 
@@ -806,7 +806,7 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 		if v.Package != "" && v.Version != "" {
 			repoURL = getRepositoryURL(v, renvLock.R.Repositories)
 			guard <- struct{}{}
-			log.Debug("Downloading package ", v.Package)
+			log.Trace("Downloading package ", v.Package)
 			go downloadSinglePackage(v.Package, v.Version, repoURL, v.RemoteSha, v.RemoteRef,
 				v.Source, v.Repository, v.RemoteSubdir, currentCranPackageInfo, biocPackageInfo, biocUrls,
 				localArchiveChecksums, downloadFileFunction, gitCloneFunction, messages, guard)
@@ -834,12 +834,8 @@ func downloadPackages(renvLock Renvlock, allDownloadInfo *[]DownloadInfo,
 	log.Info("Saved ", totalSavedBandwidth, " bytes of bandwidth and ",
 		fmt.Sprintf("%.2f", downloadTimeSaved), " seconds of download time due to caching.")
 	log.Info("Average throughput = ", averageThroughputMbps, " Mbps.")
-	log.Info(
-		"Download succeeded for ", successfulDownloads, " packages out of ",
-		numberOfDownloads, " requested packages.",
-	)
-	log.Info(
-		"Download failed for ", failedDownloads, " packages out of ",
-		numberOfDownloads, " requested packages.",
-	)
+	log.Info("Download succeeded for ", successfulDownloads, " packages out of ",
+		numberOfDownloads, " requested packages.")
+	log.Info("Download failed for ", failedDownloads, " packages out of ",
+		numberOfDownloads, " requested packages.")
 }
