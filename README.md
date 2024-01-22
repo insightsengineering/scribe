@@ -130,9 +130,11 @@ Additionally, on Windows it might be required to tell `scribe` where the R execu
 
 `scribe` uses cache stored in `/tmp/scribe` for various purposes.
 
-The results of download, installation, build and check stages are stored in `/tmp/scribe/cache`. When `scribe` detects presence of files with such results, it skips respective stages.
+The results of download, installation, build and check stages are stored in `/tmp/scribe/cache`.
+When `scribe` detects presence of files with such results, it skips respective stages.
 
-In order to run the download, installation, build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually. Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
+In order to run the download, installation, build and check from scratch, the `/tmp/scribe/cache` directory should be removed manually.
+Removing whole `/tmp/scribe` directory is also possible - in that case, the packages will have to be downloaded again because cached `tar.gz` packages and `git` repositories are stored in this directory.
 
 The cache can also be cleared with `--clearCache` flag.
 
@@ -142,7 +144,8 @@ This project is built with the [Go programming language](https://go.dev/).
 
 ### Development Environment
 
-It is recommended to use Go 1.21+ for developing this project. This project uses a pre-commit configuration and it is recommended to [install and use pre-commit](https://pre-commit.com/#install) when you are developing this project.
+It is recommended to use Go 1.21+ for developing this project.
+This project uses a pre-commit configuration and it is recommended to [install and use pre-commit](https://pre-commit.com/#install) when you are developing this project.
 
 ### Common Commands
 
