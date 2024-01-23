@@ -109,7 +109,7 @@ var rootCmd *cobra.Command
 
 func newRootCommand() {
 	rootCmd = &cobra.Command{
-		Use: "scribe",
+		Use:   "scribe",
 		Short: "System Compatibility Report for Install & Build Evaluation",
 		Long: `scribe (acronym for System Compatibility Report for Install & Build Evaluation)
 is a project that creates complete build, check and install reports
@@ -307,7 +307,7 @@ for a collection of R packages that are defined in an
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
 
 	cfg := envy.CobraConfig{
-		Prefix: "SCRIBE",
+		Prefix:     "SCRIBE",
 		Persistent: true,
 	}
 	envy.ParseCobra(rootCmd, cfg)

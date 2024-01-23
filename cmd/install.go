@@ -118,7 +118,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 	}
 	// Execute the command.
 	output, err := execCommand(cmd, false,
-		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, buildLogFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, buildLogFile, false)
 	if err != nil {
 		log.Error("Error running ", cmd, "\nDetails: outputLocation: ", outputLocation, " packageName: ",
 			packageName, "\nerr: ", err, "\noutput: ", output)
@@ -146,7 +146,7 @@ func buildPackage(buildPackageChan chan BuildPackageChanInfo, packageName string
 // executeRCmdInstall runs the R CMD INSTALL in a goroutine and sends back the result to executeInstallation.
 func executeRCmdInstall(execRCmdInstallChan chan ExecRCmdInstallChanInfo, cmd string, logFile *os.File) {
 	output, err := execCommand(cmd, false,
-		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile, false)
 	execRCmdInstallChan <- ExecRCmdInstallChanInfo{output, err}
 }
 

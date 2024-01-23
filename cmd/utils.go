@@ -101,7 +101,7 @@ func getTimeMinutesAndSeconds(seconds int) string {
 
 // Execute a system command
 // nolint: gocyclo
-func execCommand(command string, returnOutput bool, envs []string, file *os.File) (string, error) {
+func execCommand(command string, returnOutput bool, envs []string, file *os.File, escapeHTMLTags bool) (string, error) {
 	lastQuote := rune(0)
 	f := func(c rune) bool {
 		switch {
@@ -144,6 +144,11 @@ func execCommand(command string, returnOutput bool, envs []string, file *os.File
 	checkError(errCombinedOutput)
 
 	outStr := string(out)
+
+	if escapeHTMLTags {
+		strings.ReplaceAll(outStr, "<", "&lt;")
+		strings.ReplaceAll(outStr, ">", "&gt;")
+	}
 
 	_, errWriteString := file.WriteString(outStr)
 	checkError(errWriteString)

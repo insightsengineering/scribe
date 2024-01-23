@@ -43,7 +43,7 @@ func Test_getTimeMinutesAndSeconds(t *testing.T) {
 
 func Test_execCommand(t *testing.T) {
 	t.Skip("skipping integration test")
-	res, err := execCommand("R CMD", false, nil, nil)
+	res, err := execCommand("R CMD", false, nil, nil, false)
 	assert.NotEmpty(t, res)
 	assert.Nil(t, err)
 }
@@ -59,7 +59,7 @@ func Test_execCommandWithEnvs(t *testing.T) {
 	assert.Nil(t, err)
 	defer logFile.Close()
 
-	res, err := execCommand(`R -s --vanilla -e ".libPaths()"`, false, []string{"R_LIBS=/usr/lib/R/library"}, logFile)
+	res, err := execCommand(`R -s --vanilla -e ".libPaths()"`, false, []string{"R_LIBS=/usr/lib/R/library"}, logFile, false)
 	assert.NotEmpty(t, res)
 	assert.Nil(t, err)
 

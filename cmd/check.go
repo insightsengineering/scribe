@@ -207,7 +207,7 @@ func runCmdCheck(cmdCheckChan chan string, packageFile string, logFilePath strin
 	cmd := rExecutable + " CMD check " + additionalOptions + " " + packageFile
 	log.Debug("Executing command: ", cmd)
 	output, err := execCommand(cmd, false,
-		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile)
+		[]string{rLibsVarName + rLibsPaths, "LANG=en_US.UTF-8"}, logFile, true)
 	checkError(err)
 	// Close HTML tags
 	if _, closeHTMLTagsErr := logFile.Write([]byte("\n</code></pre>\n")); closeHTMLTagsErr != nil {
