@@ -146,8 +146,8 @@ func execCommand(command string, returnOutput bool, envs []string, file *os.File
 	outStr := string(out)
 
 	if escapeHTMLTags {
-		strings.ReplaceAll(outStr, "<", "&lt;")
-		strings.ReplaceAll(outStr, ">", "&gt;")
+		outStr = strings.ReplaceAll(outStr, "<", "&lt;")
+		outStr = strings.ReplaceAll(outStr, ">", "&gt;")
 	}
 
 	_, errWriteString := file.WriteString(outStr)
