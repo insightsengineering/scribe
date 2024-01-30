@@ -333,6 +333,16 @@ func getPackageToInstall(
 	return ""
 }
 
+func getPackagesNotInstalled(dependencies map[string][]string, installedPackages []string,) {
+	for packageName, packageDeps := range dependencies {
+		for _, d := range packageDeps {
+			if !stringInSlice(d, installedPackages) {
+				log.Warn("Package ", packageName, " could not be installed because its dependency ", d, " could not be installed.")
+			}
+		}
+	}
+}
+
 // installPackages concurrently builds and installs packages specified in the renv.lock.
 // The installation is executed in order resulting from the way packages depend on each other.
 func installPackages(
@@ -403,6 +413,7 @@ package_installation_loop:
 		default:
 			if mapTrueLength(readyPackages)+mapTrueLength(packagesBeingInstalled) == 0 {
 				// No ready packages and no ongoing installations - all packages installed.
+				getPackagesNotInstalled(dependencies, installedPackages)
 				break package_installation_loop
 			}
 			if mapTrueLength(packagesBeingInstalled) < numberOfWorkers {
