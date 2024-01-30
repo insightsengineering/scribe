@@ -333,13 +333,21 @@ func getPackageToInstall(
 	return ""
 }
 
-func getPackagesNotInstalled(dependencies map[string][]string, installedPackages []string,) {
+// getPackagesNotInstalled iterates through the map of all packages and their dependencies to check
+// if all of them have been installed. If not, this means that there is a set of packages for which
+// the dependency resolution wasn't successful and has to be investigated, e.g. a dependency cycle.
+func getPackagesNotInstalled(dependencies map[string][]string, installedPackages []string) {
+	packagesNotInstalled := false
 	for packageName, packageDeps := range dependencies {
 		for _, d := range packageDeps {
 			if !stringInSlice(d, installedPackages) {
 				log.Warn("Package ", packageName, " could not be installed because its dependency ", d, " could not be installed.")
+				packagesNotInstalled = true
 			}
 		}
+	}
+	if packagesNotInstalled {
+		log.Fatal("Dependency resolution failed for the above set of packages.")
 	}
 }
 
