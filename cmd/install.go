@@ -333,6 +333,24 @@ func getPackageToInstall(
 	return ""
 }
 
+// getPackagesNotInstalled iterates through the map of all packages and their dependencies to check
+// if installation of them all was at least attempted. If not, this means that there is a set of packages for which
+// the dependency resolution wasn't successful and has to be investigated, e.g. a dependency cycle.
+func getPackagesNotInstalled(dependencies map[string][]string, installedPackages []string) {
+	packagesNotInstalled := false
+	for packageName, packageDeps := range dependencies {
+		for _, d := range packageDeps {
+			if !stringInSlice(d, installedPackages) {
+				log.Warn("Package ", packageName, " could not be installed because its dependency ", d, " could not be installed.")
+				packagesNotInstalled = true
+			}
+		}
+	}
+	if packagesNotInstalled {
+		log.Fatal("Dependency resolution failed for the above set of packages.")
+	}
+}
+
 // installPackages concurrently builds and installs packages specified in the renv.lock.
 // The installation is executed in order resulting from the way packages depend on each other.
 func installPackages(
@@ -402,7 +420,9 @@ package_installation_loop:
 		// Try to run a new package installation.
 		default:
 			if mapTrueLength(readyPackages)+mapTrueLength(packagesBeingInstalled) == 0 {
-				// No ready packages and no ongoing installations - all packages installed.
+				// No ready packages and no ongoing installations - all packages (hopefully) installed or failed to install.
+				// Check whether indeed installation of all downloaded packages was at least attempted.
+				getPackagesNotInstalled(dependencies, installedPackages)
 				break package_installation_loop
 			}
 			if mapTrueLength(packagesBeingInstalled) < numberOfWorkers {
