@@ -420,7 +420,8 @@ package_installation_loop:
 		// Try to run a new package installation.
 		default:
 			if mapTrueLength(readyPackages)+mapTrueLength(packagesBeingInstalled) == 0 {
-				// No ready packages and no ongoing installations - all packages installed.
+				// No ready packages and no ongoing installations - all packages (hopefully) installed.
+				// Check whether indeed all packages installed.
 				getPackagesNotInstalled(dependencies, installedPackages)
 				break package_installation_loop
 			}
