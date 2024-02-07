@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.49181166" branch-rate="0" version="" timestamp="1707298316904" lines-covered="961" lines-valid="1954" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="0.49181166" branch-rate="0" version="" timestamp="1707319972215" lines-covered="961" lines-valid="1954" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>/home/runner/work/scribe/scribe</source>
   </sources>
@@ -3819,13 +3819,13 @@
                 <line number="49" hits="1"></line>
                 <line number="50" hits="1"></line>
                 <line number="51" hits="1"></line>
-                <line number="52" hits="122"></line>
-                <line number="53" hits="122"></line>
+                <line number="52" hits="121"></line>
+                <line number="53" hits="121"></line>
                 <line number="54" hits="2"></line>
                 <line number="55" hits="2"></line>
                 <line number="56" hits="2"></line>
-                <line number="57" hits="120"></line>
-                <line number="58" hits="120"></line>
+                <line number="57" hits="119"></line>
+                <line number="58" hits="119"></line>
                 <line number="60" hits="1"></line>
               </lines>
             </method>
@@ -3863,13 +3863,13 @@
             <line number="49" hits="1"></line>
             <line number="50" hits="1"></line>
             <line number="51" hits="1"></line>
-            <line number="52" hits="122"></line>
-            <line number="53" hits="122"></line>
+            <line number="52" hits="121"></line>
+            <line number="53" hits="121"></line>
             <line number="54" hits="2"></line>
             <line number="55" hits="2"></line>
             <line number="56" hits="2"></line>
-            <line number="57" hits="120"></line>
-            <line number="58" hits="120"></line>
+            <line number="57" hits="119"></line>
+            <line number="58" hits="119"></line>
             <line number="60" hits="1"></line>
             <line number="63" hits="0"></line>
             <line number="64" hits="0"></line>
