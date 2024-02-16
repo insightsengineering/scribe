@@ -31,10 +31,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout Repo 🛎
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Go 🐹
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
@@ -45,7 +45,7 @@ jobs:
 
       - name: Check whether JUnit XML report exists 🚦
         id: check-junit-xml
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v3
         with:
           files: junit-report.xml
 
@@ -59,7 +59,7 @@ jobs:
 
       - name: Check whether coverage reports exists 💭
         id: check-coverage-reports
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v3
         with:
           files: >-
             coverage.xml,
@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload report 🔼
         if: steps.check-coverage-reports.outputs.files_exists == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: |
@@ -96,10 +96,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo 🛎
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Go 🐹
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           cache: true

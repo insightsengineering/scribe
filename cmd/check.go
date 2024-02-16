@@ -22,6 +22,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	sigar "github.com/cloudfoundry/gosigar"
 )
 
 var checkLogPath = "/tmp/scribe/check_logs"
@@ -249,6 +251,39 @@ check_single_package_loop:
 	}
 }
 
+func systemDebugRoutine(systemDebugWaiter chan struct{}) {
+system_debug_loop:
+	for {
+		select {
+		case _ = <-systemDebugWaiter:
+			log.Info("Exiting")
+			break system_debug_loop
+		default:
+			log.Info("System debug info:")
+			pids := sigar.ProcList{}
+			pids.Get()
+			for _, pid := range pids.List {
+				state := sigar.ProcState{}
+				mem := sigar.ProcMem{}
+				args := sigar.ProcArgs{}
+				if err := state.Get(pid); err != nil {
+					continue
+				}
+				if err := mem.Get(pid); err != nil {
+					continue
+				}
+				if err := args.Get(pid); err != nil {
+					continue
+				}
+				if state.Name == "R" {
+					log.Trace(args.List, " memory = ", mem.Resident/1024, " MB")
+				}
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}
+}
+
 // getCheckedPackages returns list of package names coming from tarballs with built packages.
 // The packages are filtered based on the wildcard expression from command line.
 // R CMD check should be performed on the returned list of packages.
@@ -303,9 +338,13 @@ func checkPackages(outputFile string, additionalOptions string) {
 	checkPackagesFiles := getCheckedPackages(checkPackageExpression, checkAllPackages, ".")
 	// Channel to wait until all checks have completed.
 	checkWaiter := make(chan struct{})
+
 	messages := make(chan PackageCheckInfo)
 	// Guard channel ensures that only a fixed number of concurrent goroutines are running.
 	guard := make(chan struct{}, maxCheckRoutines)
+
+	systemDebugWaiter := make(chan struct{})
+	go systemDebugRoutine(systemDebugWaiter)
 
 	log.Info("Number of packages to check: ", len(checkPackagesFiles))
 	if len(checkPackagesFiles) > 0 {
@@ -316,5 +355,6 @@ func checkPackages(outputFile string, additionalOptions string) {
 		}
 		<-checkWaiter
 	}
+	systemDebugWaiter <- struct{}{}
 	log.Info("Finished checking all packages.")
 }

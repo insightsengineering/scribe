@@ -69,7 +69,7 @@ func getDepsFromPackagesFiles(
 	rRepositories []Rrepository,
 	downloadedPackages map[string]DownloadedPackage,
 	packageDependencies map[string][]string,
-	downloadFileFunction func(string, map[string]string) (int, int64, string),
+	downloadFileFunction func(string, map[string]string) (int64, string, error),
 	erroneousRepositoryNames []string,
 ) {
 	for _, repository := range rRepositories {
@@ -106,9 +106,10 @@ func getDepsFromPackagesFiles(
 	// Iterate through packages which have the repository name set to one which is not defined
 	// in the renv.lock header. For these packages we'll use PACKAGES file from CRAN to determine
 	// their dependencies.
-	_, _, cranPackagesContent := downloadFileFunction(
+	_, cranPackagesContent, err := downloadFileFunction(
 		"https://cloud.r-project.org/src/contrib/PACKAGES", make(map[string]string),
 	)
+	checkError(err)
 	cranPackagesFile := locksmith.ProcessPackagesFile(cranPackagesContent)
 	log.Info("Dependencies for packages with Repository renv.lock field equal to any of ",
 		erroneousRepositoryNames, " will be determined based on PACKAGES file from CRAN.")
