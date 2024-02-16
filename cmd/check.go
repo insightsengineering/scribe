@@ -264,10 +264,13 @@ func systemDebugRoutine(systemDebugWaiter chan struct{}) {
 	var maximumMemoryActualUsed uint64
 	var minimumMemoryFree uint64
 	var minimumMemoryActualFree uint64
+	var currentMemoryOfR uint64
+	var currentMinimumMemoryOfR uint64
+	var currentMaximumMemoryOfR uint64
 	reportEverySamples = 100
 	minimumMemoryFree = math.MaxUint64
 	minimumMemoryActualFree = math.MaxUint64
-	var currentMemoryOfR uint64
+	currentMinimumMemoryOfR = math.MaxUint64
 system_debug_loop:
 	for {
 		select {
@@ -277,6 +280,8 @@ system_debug_loop:
 		default:
 			pids := sigar.ProcList{}
 			pids.Get()
+			var sumOfMemoryOfR uint64
+			sumOfMemoryOfR = 0
 			for _, pid := range pids.List {
 				state := sigar.ProcState{}
 				mem := sigar.ProcMem{}
@@ -291,9 +296,15 @@ system_debug_loop:
 					continue
 				}
 				if state.Name == "R" {
-					log.Trace(args.List, " memory = ", mem.Resident/(1024*1024), " MiB")
 					currentMemoryOfR += mem.Resident/(1024*1024)
+					sumOfMemoryOfR += mem.Resident/(1024*1024)
 				}
+			}
+			if sumOfMemoryOfR > currentMaximumMemoryOfR {
+				currentMaximumMemoryOfR = sumOfMemoryOfR
+			}
+			if sumOfMemoryOfR < currentMinimumMemoryOfR {
+				currentMinimumMemoryOfR = sumOfMemoryOfR
 			}
 			mem := sigar.Mem{}
 			mem.Get()
@@ -318,13 +329,17 @@ system_debug_loop:
 				log.Trace("Maximum memory actual used = ", maximumMemoryActualUsed, " MiB")
 				log.Trace("Minimum memory free = ", minimumMemoryFree, " MiB")
 				log.Trace("Minimum memory actual free = ", minimumMemoryActualFree, " MiB")
+				log.Trace("Maximum memory of R processes = ", currentMaximumMemoryOfR, " MiB")
 				log.Trace("Average memory of R processes = ", averageMemoryOfR, " MiB")
+				log.Trace("Minimum memory of R processes = ", currentMinimumMemoryOfR, " MiB")
 				samplesSinceLastReport = 0
 				currentMemoryOfR = 0
 				maximumMemoryUsed = 0
 				maximumMemoryActualUsed = 0
+				currentMaximumMemoryOfR = 0
 				minimumMemoryFree = math.MaxUint64
 				minimumMemoryActualFree = math.MaxUint64
+				currentMinimumMemoryOfR = math.MaxUint64
 			}
 			time.Sleep(time.Duration(samplingIntervalSeconds) * time.Second)
 		}
