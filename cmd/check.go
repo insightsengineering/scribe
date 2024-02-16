@@ -22,6 +22,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"math"
 
 	sigar "github.com/cloudfoundry/gosigar"
 )
@@ -251,15 +252,29 @@ check_single_package_loop:
 	}
 }
 
+func getMiB(numberOfBytes uint64) uint64 {
+	return numberOfBytes / (1024 * 1024)
+}
+
 func systemDebugRoutine(systemDebugWaiter chan struct{}) {
+	samplingIntervalSeconds := 0.1
+	var samplesSinceLastReport uint64
+	var reportEverySamples uint64
+	var maximumMemoryUsed uint64
+	var maximumMemoryActualUsed uint64
+	var minimumMemoryFree uint64
+	var minimumMemoryActualFree uint64
+	reportEverySamples = 100
+	minimumMemoryFree = math.MaxUint64
+	minimumMemoryActualFree = math.MaxUint64
+	var currentMemoryOfR uint64
 system_debug_loop:
 	for {
 		select {
 		case _ = <-systemDebugWaiter:
-			log.Info("Exiting")
+			log.Info("Exiting system debug routine...")
 			break system_debug_loop
 		default:
-			log.Info("System debug info:")
 			pids := sigar.ProcList{}
 			pids.Get()
 			for _, pid := range pids.List {
@@ -276,10 +291,42 @@ system_debug_loop:
 					continue
 				}
 				if state.Name == "R" {
-					log.Trace(args.List, " memory = ", mem.Resident/1024, " MB")
+					log.Trace(args.List, " memory = ", mem.Resident/(1024*1024), " MiB")
+					currentMemoryOfR += mem.Resident/(1024*1024)
 				}
 			}
-			time.Sleep(5 * time.Second)
+			mem := sigar.Mem{}
+			mem.Get()
+			if getMiB(mem.Used) > maximumMemoryUsed {
+				maximumMemoryUsed = getMiB(mem.Used)
+			}
+			if getMiB(mem.ActualUsed) > maximumMemoryActualUsed {
+				maximumMemoryActualUsed = getMiB(mem.ActualUsed)
+			}
+			if getMiB(mem.Free) < minimumMemoryFree {
+				minimumMemoryFree = getMiB(mem.Free)
+			}
+			if getMiB(mem.ActualFree) < minimumMemoryActualFree {
+				minimumMemoryActualFree = getMiB(mem.ActualFree)
+			}
+			samplesSinceLastReport += 1
+			if samplesSinceLastReport == reportEverySamples {
+				averageMemoryOfR := currentMemoryOfR / reportEverySamples
+				log.Trace("System report from the last ", samplingIntervalSeconds * float64(reportEverySamples), " seconds:")
+				log.Trace("Total system memory = ", getMiB(mem.Total), " MiB")
+				log.Trace("Maximum memory used = ", maximumMemoryUsed, " MiB")
+				log.Trace("Maximum memory actual used = ", maximumMemoryActualUsed, " MiB")
+				log.Trace("Minimum memory free = ", minimumMemoryFree, " MiB")
+				log.Trace("Minimum memory actual free = ", minimumMemoryActualFree, " MiB")
+				log.Trace("Average memory of R processes = ", averageMemoryOfR, " MiB")
+				samplesSinceLastReport = 0
+				currentMemoryOfR = 0
+				maximumMemoryUsed = 0
+				maximumMemoryActualUsed = 0
+				minimumMemoryFree = math.MaxUint64
+				minimumMemoryActualFree = math.MaxUint64
+			}
+			time.Sleep(time.Duration(samplingIntervalSeconds) * time.Second)
 		}
 	}
 }
