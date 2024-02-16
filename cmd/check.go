@@ -257,7 +257,6 @@ func getMiB(numberOfBytes uint64) uint64 {
 }
 
 func systemDebugRoutine(systemDebugWaiter chan struct{}) {
-	samplingIntervalSeconds := 0.1
 	var samplesSinceLastReport uint64
 	var reportEverySamples uint64
 	var maximumMemoryUsed uint64
@@ -323,7 +322,7 @@ system_debug_loop:
 			samplesSinceLastReport += 1
 			if samplesSinceLastReport == reportEverySamples {
 				averageMemoryOfR := currentMemoryOfR / reportEverySamples
-				log.Trace("System report from the last ", samplingIntervalSeconds * float64(reportEverySamples), " seconds:")
+				log.Trace("System report from the last 10 seconds:")
 				log.Trace("Total system memory = ", getMiB(mem.Total), " MiB")
 				log.Trace("Maximum memory used = ", maximumMemoryUsed, " MiB")
 				log.Trace("Maximum memory actual used = ", maximumMemoryActualUsed, " MiB")
@@ -341,7 +340,7 @@ system_debug_loop:
 				minimumMemoryActualFree = math.MaxUint64
 				currentMinimumMemoryOfR = math.MaxUint64
 			}
-			time.Sleep(time.Duration(samplingIntervalSeconds) * time.Second)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
