@@ -278,6 +278,7 @@ system_debug_loop:
 			log.Info("Exiting system debug routine...")
 			break system_debug_loop
 		default:
+			samplesSinceLastReport += 1
 			pids := sigar.ProcList{}
 			pids.Get()
 			var sumOfMemoryOfR uint64
@@ -298,7 +299,13 @@ system_debug_loop:
 				if state.Name == "R" {
 					currentMemoryOfR += mem.Resident/(1024*1024)
 					sumOfMemoryOfR += mem.Resident/(1024*1024)
-					log.Trace("Detected R process: ", args.List)
+					if samplesSinceLastReport == reportEverySamples && len(args.List) > 0 {
+						log.Trace("R process = ", args.List)
+					}
+				} else {
+					if samplesSinceLastReport == reportEverySamples && len(args.List) > 0 {
+						log.Trace("non-R process = ", args.List)
+					}
 				}
 			}
 			if sumOfMemoryOfR > currentMaximumMemoryOfR {
@@ -321,10 +328,16 @@ system_debug_loop:
 			if getMiB(mem.ActualFree) < minimumMemoryActualFree {
 				minimumMemoryActualFree = getMiB(mem.ActualFree)
 			}
-			samplesSinceLastReport += 1
 			if samplesSinceLastReport == reportEverySamples {
-				averageMemoryOfR := currentMemoryOfR / reportEverySamples
 				log.Trace("System report from the last 20 seconds:")
+				concreteSigar := sigar.ConcreteSigar{}
+				avg, err := concreteSigar.GetLoadAverage()
+				checkError(err)
+				log.Tracef("Load average: %.2f %.2f %.2f", avg.One, avg.Five, avg.Fifteen)
+				numGoroutines := runtime.NumGoroutine()
+				log.Trace("Number of goroutines = ", numGoroutines)
+				time.Sleep(100 * time.Millisecond)
+				averageMemoryOfR := currentMemoryOfR / reportEverySamples
 				log.Trace("Maximum memory of R processes = ", currentMaximumMemoryOfR, " MiB")
 				log.Trace("Average memory of R processes = ", averageMemoryOfR, " MiB")
 				log.Trace("Minimum memory of R processes = ", currentMinimumMemoryOfR, " MiB")
@@ -343,13 +356,6 @@ system_debug_loop:
 				minimumMemoryActualFree = math.MaxUint64
 				currentMinimumMemoryOfR = math.MaxUint64
 			}
-			concreteSigar := sigar.ConcreteSigar{}
-			avg, err := concreteSigar.GetLoadAverage()
-			checkError(err)
-			log.Tracef("Load average: %.2f %.2f %.2f", avg.One, avg.Five, avg.Fifteen)
-			numGoroutines := runtime.NumGoroutine()
-			log.Trace("Number of goroutines = ", numGoroutines)
-			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
