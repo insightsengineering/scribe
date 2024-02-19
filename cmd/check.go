@@ -259,7 +259,7 @@ func getMiB(numberOfBytes uint64) uint64 {
 
 func systemDebugRoutine(systemDebugWaiter chan struct{}) {
 	var timeElapsedMs uint64
-	const samplingIntervalMs = 100
+	const samplingIntervalMs = 500
 	metricsFile, err := os.OpenFile("metrics.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	checkError(err)
 	defer metricsFile.Close()
@@ -318,7 +318,6 @@ system_debug_loop:
 			avg, err := concreteSigar.GetLoadAverage()
 			checkError(err)
 			numGoroutines := runtime.NumGoroutine()
-			log.Trace("Number of goroutines = ", numGoroutines)
 			_, err = metricsFile.WriteString(fmt.Sprintf(
 				"%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f\n",
 				timeElapsedMs, rProcessesMemory, chromiumProcessesMemory, scribeMemory, othersMemoryUsage,
