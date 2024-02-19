@@ -336,7 +336,6 @@ system_debug_loop:
 				log.Tracef("Load average: %.2f %.2f %.2f", avg.One, avg.Five, avg.Fifteen)
 				numGoroutines := runtime.NumGoroutine()
 				log.Trace("Number of goroutines = ", numGoroutines)
-				time.Sleep(100 * time.Millisecond)
 				averageMemoryOfR := currentMemoryOfR / reportEverySamples
 				log.Trace("Maximum memory of R processes = ", currentMaximumMemoryOfR, " MiB")
 				log.Trace("Average memory of R processes = ", averageMemoryOfR, " MiB")
@@ -356,6 +355,7 @@ system_debug_loop:
 				minimumMemoryActualFree = math.MaxUint64
 				currentMinimumMemoryOfR = math.MaxUint64
 			}
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
