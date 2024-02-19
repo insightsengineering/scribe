@@ -157,7 +157,6 @@ func execCommand(command string, returnOutput bool, envs []string, file *os.File
 }
 
 func parseDescriptionFile(descriptionFilePath string) map[string]string {
-	log.Trace("Parsing ", descriptionFilePath)
 	jsonFile, err := os.ReadFile(descriptionFilePath)
 	checkError(err)
 	cleaned := locksmith.CleanDescriptionOrPackagesEntry(string(jsonFile), true)

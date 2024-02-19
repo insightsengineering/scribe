@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 	"math"
+	"runtime"
 
 	sigar "github.com/cloudfoundry/gosigar"
 )
@@ -266,7 +267,7 @@ func systemDebugRoutine(systemDebugWaiter chan struct{}) {
 	var currentMemoryOfR uint64
 	var currentMinimumMemoryOfR uint64
 	var currentMaximumMemoryOfR uint64
-	reportEverySamples = 100
+	reportEverySamples = 200
 	minimumMemoryFree = math.MaxUint64
 	minimumMemoryActualFree = math.MaxUint64
 	currentMinimumMemoryOfR = math.MaxUint64
@@ -297,6 +298,7 @@ system_debug_loop:
 				if state.Name == "R" {
 					currentMemoryOfR += mem.Resident/(1024*1024)
 					sumOfMemoryOfR += mem.Resident/(1024*1024)
+					log.Trace("Detected R process: ", args.List)
 				}
 			}
 			if sumOfMemoryOfR > currentMaximumMemoryOfR {
@@ -322,15 +324,16 @@ system_debug_loop:
 			samplesSinceLastReport += 1
 			if samplesSinceLastReport == reportEverySamples {
 				averageMemoryOfR := currentMemoryOfR / reportEverySamples
-				log.Trace("System report from the last 10 seconds:")
-				log.Trace("Total system memory = ", getMiB(mem.Total), " MiB")
-				log.Trace("Maximum memory used = ", maximumMemoryUsed, " MiB")
-				log.Trace("Maximum memory actual used = ", maximumMemoryActualUsed, " MiB")
-				log.Trace("Minimum memory free = ", minimumMemoryFree, " MiB")
-				log.Trace("Minimum memory actual free = ", minimumMemoryActualFree, " MiB")
+				log.Trace("System report from the last 20 seconds:")
 				log.Trace("Maximum memory of R processes = ", currentMaximumMemoryOfR, " MiB")
 				log.Trace("Average memory of R processes = ", averageMemoryOfR, " MiB")
 				log.Trace("Minimum memory of R processes = ", currentMinimumMemoryOfR, " MiB")
+				// This is probably not really useful.
+				// log.Trace("Total system memory = ", getMiB(mem.Total), " MiB")
+				// log.Trace("Maximum memory used = ", maximumMemoryUsed, " MiB")
+				log.Trace("Maximum system memory actual used = ", maximumMemoryActualUsed, " MiB")
+				// log.Trace("Minimum memory free = ", minimumMemoryFree, " MiB")
+				log.Trace("Minimum system memory actual free = ", minimumMemoryActualFree, " MiB")
 				samplesSinceLastReport = 0
 				currentMemoryOfR = 0
 				maximumMemoryUsed = 0
@@ -340,6 +343,12 @@ system_debug_loop:
 				minimumMemoryActualFree = math.MaxUint64
 				currentMinimumMemoryOfR = math.MaxUint64
 			}
+			concreteSigar := sigar.ConcreteSigar{}
+			avg, err := concreteSigar.GetLoadAverage()
+			checkError(err)
+			log.Tracef("Load average: %.2f %.2f %.2f", avg.One, avg.Five, avg.Fifteen)
+			numGoroutines := runtime.NumGoroutine()
+			log.Trace("Number of goroutines = ", numGoroutines)
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
