@@ -22,8 +22,8 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"math"
 	"runtime"
+	"fmt"
 
 	sigar "github.com/cloudfoundry/gosigar"
 )
@@ -258,19 +258,12 @@ func getMiB(numberOfBytes uint64) uint64 {
 }
 
 func systemDebugRoutine(systemDebugWaiter chan struct{}) {
-	var samplesSinceLastReport uint64
-	var reportEverySamples uint64
-	var maximumMemoryUsed uint64
-	var maximumMemoryActualUsed uint64
-	var minimumMemoryFree uint64
-	var minimumMemoryActualFree uint64
-	var currentMemoryOfR uint64
-	var currentMinimumMemoryOfR uint64
-	var currentMaximumMemoryOfR uint64
-	reportEverySamples = 200
-	minimumMemoryFree = math.MaxUint64
-	minimumMemoryActualFree = math.MaxUint64
-	currentMinimumMemoryOfR = math.MaxUint64
+	var timeElapsedMs uint64
+	const samplingIntervalMs = 100
+	metricsFile, err := os.OpenFile("metrics.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	checkError(err)
+	defer metricsFile.Close()
+	_, err = metricsFile.WriteString("timeElapsedMs,rProcessesMemory,chromiumMemory,scribeMemory,othersMemory,actualUsedSystemMemory,actualFreeSystemMemory,numGoroutines,load1,load5,load15\n")
 system_debug_loop:
 	for {
 		select {
@@ -278,11 +271,12 @@ system_debug_loop:
 			log.Info("Exiting system debug routine...")
 			break system_debug_loop
 		default:
-			samplesSinceLastReport += 1
 			pids := sigar.ProcList{}
 			pids.Get()
-			var sumOfMemoryOfR uint64
-			sumOfMemoryOfR = 0
+			var rProcessesMemory uint64
+			var chromiumProcessesMemory uint64
+			var scribeMemory uint64
+			var othersMemoryUsage uint64
 			for _, pid := range pids.List {
 				state := sigar.ProcState{}
 				mem := sigar.ProcMem{}
@@ -296,66 +290,43 @@ system_debug_loop:
 				if err := args.Get(pid); err != nil {
 					continue
 				}
-				if state.Name == "R" {
-					currentMemoryOfR += mem.Resident/(1024*1024)
-					sumOfMemoryOfR += mem.Resident/(1024*1024)
-					if samplesSinceLastReport == reportEverySamples && len(args.List) > 0 {
-						log.Trace("R process = ", args.List)
-					}
-				} else {
-					if samplesSinceLastReport == reportEverySamples && len(args.List) > 0 {
-						log.Trace("non-R process = ", args.List)
+				othersMemory := true
+				for _, processArgument := range args.List {
+					if strings.Contains(processArgument, "/usr/lib/R/") {
+						rProcessesMemory += mem.Resident/(1024*1024)
+						othersMemory = false
+						break
+					} else if strings.Contains(processArgument, "/usr/lib/chromium/") {
+						chromiumProcessesMemory += mem.Resident/(1024*1024)
+						othersMemory = false
+						break
+					} else if strings.Contains(processArgument, "./scribe") {
+						scribeMemory += mem.Resident/(1024*1024)
+						othersMemory = false
+						break
 					}
 				}
-			}
-			if sumOfMemoryOfR > currentMaximumMemoryOfR {
-				currentMaximumMemoryOfR = sumOfMemoryOfR
-			}
-			if sumOfMemoryOfR < currentMinimumMemoryOfR {
-				currentMinimumMemoryOfR = sumOfMemoryOfR
+				if othersMemory {
+					othersMemoryUsage += mem.Resident/(1024*1024)
+				}
 			}
 			mem := sigar.Mem{}
 			mem.Get()
-			if getMiB(mem.Used) > maximumMemoryUsed {
-				maximumMemoryUsed = getMiB(mem.Used)
-			}
-			if getMiB(mem.ActualUsed) > maximumMemoryActualUsed {
-				maximumMemoryActualUsed = getMiB(mem.ActualUsed)
-			}
-			if getMiB(mem.Free) < minimumMemoryFree {
-				minimumMemoryFree = getMiB(mem.Free)
-			}
-			if getMiB(mem.ActualFree) < minimumMemoryActualFree {
-				minimumMemoryActualFree = getMiB(mem.ActualFree)
-			}
-			if samplesSinceLastReport == reportEverySamples {
-				log.Trace("System report from the last 20 seconds:")
-				concreteSigar := sigar.ConcreteSigar{}
-				avg, err := concreteSigar.GetLoadAverage()
-				checkError(err)
-				log.Tracef("Load average: %.2f %.2f %.2f", avg.One, avg.Five, avg.Fifteen)
-				numGoroutines := runtime.NumGoroutine()
-				log.Trace("Number of goroutines = ", numGoroutines)
-				averageMemoryOfR := currentMemoryOfR / reportEverySamples
-				log.Trace("Maximum memory of R processes = ", currentMaximumMemoryOfR, " MiB")
-				log.Trace("Average memory of R processes = ", averageMemoryOfR, " MiB")
-				log.Trace("Minimum memory of R processes = ", currentMinimumMemoryOfR, " MiB")
-				// This is probably not really useful.
-				// log.Trace("Total system memory = ", getMiB(mem.Total), " MiB")
-				// log.Trace("Maximum memory used = ", maximumMemoryUsed, " MiB")
-				log.Trace("Maximum system memory actual used = ", maximumMemoryActualUsed, " MiB")
-				// log.Trace("Minimum memory free = ", minimumMemoryFree, " MiB")
-				log.Trace("Minimum system memory actual free = ", minimumMemoryActualFree, " MiB")
-				samplesSinceLastReport = 0
-				currentMemoryOfR = 0
-				maximumMemoryUsed = 0
-				maximumMemoryActualUsed = 0
-				currentMaximumMemoryOfR = 0
-				minimumMemoryFree = math.MaxUint64
-				minimumMemoryActualFree = math.MaxUint64
-				currentMinimumMemoryOfR = math.MaxUint64
-			}
-			time.Sleep(100 * time.Millisecond)
+			actualUsedSystemMemory := getMiB(mem.ActualUsed)
+			actualFreeSystemMemory := getMiB(mem.ActualFree)
+			concreteSigar := sigar.ConcreteSigar{}
+			avg, err := concreteSigar.GetLoadAverage()
+			checkError(err)
+			numGoroutines := runtime.NumGoroutine()
+			log.Trace("Number of goroutines = ", numGoroutines)
+			_, err = metricsFile.WriteString(fmt.Sprintf(
+				"%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f\n",
+				timeElapsedMs, rProcessesMemory, chromiumProcessesMemory, scribeMemory, othersMemoryUsage,
+				actualUsedSystemMemory, actualFreeSystemMemory, numGoroutines, avg.One, avg.Five, avg.Fifteen,
+			))
+			checkError(err)
+			timeElapsedMs += samplingIntervalMs
+			time.Sleep(samplingIntervalMs * time.Millisecond)
 		}
 	}
 }
