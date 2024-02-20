@@ -20,7 +20,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	// "time"
 	"strconv"
 
 	"github.com/jamiealquiza/envy"
@@ -28,7 +27,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.szostok.io/version/extension"
-	// sigar "github.com/cloudfoundry/gosigar"
 )
 
 var cfgFile string
