@@ -308,8 +308,8 @@ func checkPackages(outputFile string, additionalOptions string) {
 	// Guard channel ensures that only a fixed number of concurrent goroutines are running.
 	guard := make(chan struct{}, maxCheckRoutines)
 
-	systemDebugWaiter := make(chan struct{})
-	go systemDebugRoutine(systemDebugWaiter)
+	systemMetricsWaiter := make(chan struct{})
+	go systemMetricsRoutine(systemMetricsWaiter)
 
 	log.Info("Number of packages to check: ", len(checkPackagesFiles))
 	if len(checkPackagesFiles) > 0 {
@@ -320,6 +320,8 @@ func checkPackages(outputFile string, additionalOptions string) {
 		}
 		<-checkWaiter
 	}
-	systemDebugWaiter <- struct{}{}
+	systemMetricsWaiter <- struct{}{}
+	// Wait until the metrics routine finishes saving the output files.
+	<-systemMetricsWaiter
 	log.Info("Finished checking all packages.")
 }

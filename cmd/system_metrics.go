@@ -44,22 +44,22 @@ type SystemMetrics struct {
 	Load15                  float64 `csv:"load_15" json:"load_15"`
 }
 
-func systemDebugRoutine(systemDebugWaiter chan struct{}) {
+func systemMetricsRoutine(systemMetricsWaiter chan struct{}) {
 	var timeElapsedMs uint64
 	const samplingIntervalMs = 500
 	var systemMetrics []SystemMetrics
-system_debug_loop:
+system_metrics_loop:
 	for {
 		select {
-		case _ = <-systemDebugWaiter:
+		case _ = <-systemMetricsWaiter:
 			log.Info("Saving system metrics...")
 			csvMetricsFile, err := os.OpenFile(systemMetricsCSVFileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 			checkError(err)
 			defer csvMetricsFile.Close()
 			gocsv.MarshalFile(systemMetrics, csvMetricsFile)
 			writeJSON(systemMetricsJSONFileName, systemMetrics)
-			log.Info("Exiting system debug routine...")
-			break system_debug_loop
+			log.Info("Exiting system metrics routine...")
+			break system_metrics_loop
 		default:
 			pids := sigar.ProcList{}
 			pids.Get()
@@ -87,26 +87,27 @@ system_debug_loop:
 				}
 				othersMemory := true
 			loop:
+				// Try to identify type of process based on strings in process argument list.
 				for _, processArgument := range args.List {
 					switch {
 					case strings.Contains(processArgument, "/usr/lib/R/"):
-						rProcessesMemory += (mem.Resident - mem.Share) / (1024 * 1024)
+						rProcessesMemory += getMiB(mem.Resident - mem.Share)
 						othersMemory = false
 						break loop
 					case strings.Contains(processArgument, "/usr/lib/chromium/"):
-						chromiumProcessesMemory += (mem.Resident - mem.Share) / (1024 * 1024)
+						chromiumProcessesMemory += getMiB(mem.Resident - mem.Share)
 						othersMemory = false
 						break loop
 					case strings.Contains(processArgument, "./scribe"):
-						scribeMemory += (mem.Resident - mem.Share) / (1024 * 1024)
+						scribeMemory += getMiB(mem.Resident - mem.Share)
 						othersMemory = false
 						break loop
 					}
 				}
 				if othersMemory {
-					othersMemoryUsage += (mem.Resident - mem.Share) / (1024 * 1024)
+					othersMemoryUsage += getMiB(mem.Resident - mem.Share)
 				}
-				totalMemoryUsage += (mem.Resident - mem.Share) / (1024 * 1024)
+				totalMemoryUsage += getMiB(mem.Resident - mem.Share)
 			}
 			mem := sigar.Mem{}
 			mem.Get()
@@ -126,4 +127,6 @@ system_debug_loop:
 			time.Sleep(samplingIntervalMs * time.Millisecond)
 		}
 	}
+	// Signal to checkPackages() that metrics have been saved.
+	systemMetricsWaiter <- struct{}{}
 }
