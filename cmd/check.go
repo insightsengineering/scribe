@@ -263,7 +263,16 @@ func systemDebugRoutine(systemDebugWaiter chan struct{}) {
 	metricsFile, err := os.OpenFile("metrics.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	checkError(err)
 	defer metricsFile.Close()
-	_, err = metricsFile.WriteString("timeElapsedMs,rProcessesMemory,chromiumMemory,scribeMemory,othersMemory,actualUsedSystemMemory,actualFreeSystemMemory,numGoroutines,load1,load5,load15\n")
+	_, err = metricsFile.WriteString(
+		"timeElapsedSeconds,rProcessesMemory,chromiumMemory,scribeMemory," +
+		"othersMemory,actualUsedSystemMemory,actualFreeSystemMemory," +
+		"numberOfGoroutines,load1,load5,load15,rCPUPercent,chromiumCPUPercent," +
+		"scribeCPUPercent,othersCPUPercent\n",
+	)
+	var rPreviousProcTimeTotal uint64
+	var chromiumPreviousProcTimeTotal uint64
+	var scribePreviousProcTimeTotal uint64
+	var othersPreviousProcTimeTotal uint64
 system_debug_loop:
 	for {
 		select {
@@ -277,10 +286,20 @@ system_debug_loop:
 			var chromiumProcessesMemory uint64
 			var scribeMemory uint64
 			var othersMemoryUsage uint64
+			var totalMemoryUsage uint64
+			var rCurrentProcPercent float64
+			var rCurrentProcTimeTotal uint64
+			var chromiumCurrentProcPercent float64
+			var chromiumCurrentProcTimeTotal uint64
+			var scribeCurrentProcPercent float64
+			var scribeCurrentProcTimeTotal uint64
+			var othersCurrentProcPercent float64
+			var othersCurrentProcTimeTotal uint64
 			for _, pid := range pids.List {
 				state := sigar.ProcState{}
 				mem := sigar.ProcMem{}
 				args := sigar.ProcArgs{}
+				procTime := sigar.ProcTime{}
 				if err := state.Get(pid); err != nil {
 					continue
 				}
@@ -290,25 +309,57 @@ system_debug_loop:
 				if err := args.Get(pid); err != nil {
 					continue
 				}
+				if err := procTime.Get(pid); err != nil {
+					continue
+				}
 				othersMemory := true
 				for _, processArgument := range args.List {
 					if strings.Contains(processArgument, "/usr/lib/R/") {
-						rProcessesMemory += mem.Resident/(1024*1024)
+						rProcessesMemory += (mem.Resident-mem.Share)/(1024*1024)
+						rCurrentProcTimeTotal += procTime.Total
 						othersMemory = false
 						break
 					} else if strings.Contains(processArgument, "/usr/lib/chromium/") {
-						chromiumProcessesMemory += mem.Resident/(1024*1024)
+						chromiumProcessesMemory += (mem.Resident-mem.Share)/(1024*1024)
+						chromiumCurrentProcTimeTotal += procTime.Total
 						othersMemory = false
 						break
 					} else if strings.Contains(processArgument, "./scribe") {
-						scribeMemory += mem.Resident/(1024*1024)
+						scribeMemory += (mem.Resident-mem.Share)/(1024*1024)
 						othersMemory = false
+						scribeCurrentProcTimeTotal += procTime.Total
 						break
 					}
 				}
 				if othersMemory {
-					othersMemoryUsage += mem.Resident/(1024*1024)
+					othersMemoryUsage += (mem.Resident-mem.Share)/(1024*1024)
+					othersCurrentProcTimeTotal += procTime.Total
 				}
+				totalMemoryUsage += (mem.Resident-mem.Share)/(1024*1024)
+			}
+			if rPreviousProcTimeTotal != 0 {
+				rCurrentProcPercent = float64(rCurrentProcTimeTotal - rPreviousProcTimeTotal) / float64(samplingIntervalMs)
+				rPreviousProcTimeTotal = rCurrentProcTimeTotal
+			} else {
+				rPreviousProcTimeTotal = rCurrentProcTimeTotal
+			}
+			if chromiumPreviousProcTimeTotal != 0 {
+				chromiumCurrentProcPercent = float64(chromiumCurrentProcTimeTotal - chromiumPreviousProcTimeTotal) / float64(samplingIntervalMs)
+				chromiumPreviousProcTimeTotal = chromiumCurrentProcTimeTotal
+			} else {
+				chromiumPreviousProcTimeTotal = chromiumCurrentProcTimeTotal
+			}
+			if scribePreviousProcTimeTotal != 0 {
+				scribeCurrentProcPercent = float64(scribeCurrentProcTimeTotal - scribePreviousProcTimeTotal) / float64(samplingIntervalMs)
+				scribePreviousProcTimeTotal = scribeCurrentProcTimeTotal
+			} else {
+				scribePreviousProcTimeTotal = scribeCurrentProcTimeTotal
+			}
+			if othersPreviousProcTimeTotal != 0 {
+				othersCurrentProcPercent = float64(othersCurrentProcTimeTotal - othersPreviousProcTimeTotal) / float64(samplingIntervalMs)
+				othersPreviousProcTimeTotal = othersCurrentProcTimeTotal
+			} else {
+				othersPreviousProcTimeTotal = othersCurrentProcTimeTotal
 			}
 			mem := sigar.Mem{}
 			mem.Get()
@@ -317,11 +368,13 @@ system_debug_loop:
 			concreteSigar := sigar.ConcreteSigar{}
 			avg, err := concreteSigar.GetLoadAverage()
 			checkError(err)
-			numGoroutines := runtime.NumGoroutine()
+			numberOfGoroutines := runtime.NumGoroutine()
 			_, err = metricsFile.WriteString(fmt.Sprintf(
-				"%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f\n",
-				timeElapsedMs, rProcessesMemory, chromiumProcessesMemory, scribeMemory, othersMemoryUsage,
-				actualUsedSystemMemory, actualFreeSystemMemory, numGoroutines, avg.One, avg.Five, avg.Fifteen,
+				"%.1f,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+				float64(timeElapsedMs)/1000, rProcessesMemory, chromiumProcessesMemory, scribeMemory,
+				othersMemoryUsage, totalMemoryUsage, actualUsedSystemMemory, actualFreeSystemMemory,
+				numberOfGoroutines, avg.One, avg.Five, avg.Fifteen, rCurrentProcPercent,
+				chromiumCurrentProcPercent, scribeCurrentProcPercent, othersCurrentProcPercent,
 			))
 			checkError(err)
 			timeElapsedMs += samplingIntervalMs

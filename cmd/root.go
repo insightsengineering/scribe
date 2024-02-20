@@ -159,36 +159,6 @@ for a collection of R packages that are defined in an
 				clearCachedData()
 			}
 
-			// log.Trace("System debug info:")
-			// pids := sigar.ProcList{}
-			// pids.Get()
-			// for _, pid := range pids.List {
-			// 	state := sigar.ProcState{}
-			// 	mem := sigar.ProcMem{}
-			// 	args := sigar.ProcArgs{}
-			// 	if err := state.Get(pid); err != nil {
-			// 		continue
-			// 	}
-			// 	if err := mem.Get(pid); err != nil {
-			// 		continue
-			// 	}
-			// 	if err := args.Get(pid); err != nil {
-			// 		continue
-			// 	}
-			// 	if state.Name == "R" {
-			// 		log.Trace(args.List, " memory = ", mem.Resident/(1024*1024), " MiB")
-			// 	}
-			// }
-			// mem := sigar.Mem{}
-			// mem.Get()
-			// log.Trace(
-			// 	"Memory: total = ", getMiB(mem.Total), ", used = ", getMiB(mem.Used),
-			// 	", free = ", getMiB(mem.Free), ", actualUsed = ", getMiB(mem.ActualUsed),
-			// 	", actualFree = ", getMiB(mem.ActualFree),
-			// )
-			// samplingIntervalSeconds := 0.1
-			// time.Sleep(time.Duration(samplingIntervalSeconds) * time.Second)
-
 			if runtime.GOOS == windows {
 				temporaryLibPath = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
 				rLibsPaths = os.Getenv("TMP") + `\tmp\scribe\installed_packages`
