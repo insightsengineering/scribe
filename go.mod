@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/cloudfoundry/gosigar v1.3.47
 	github.com/go-git/go-git/v5 v5.11.0
+	github.com/gocarina/gocsv v0.0.0-20231116093920-b87c2d0e983a
 	github.com/insightsengineering/locksmith v0.1.7
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/sirupsen/logrus v1.9.3

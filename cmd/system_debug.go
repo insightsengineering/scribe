@@ -16,35 +16,48 @@ limitations under the License.
 package cmd
 
 import (
-	"runtime"
-	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
 	sigar "github.com/cloudfoundry/gosigar"
+	"github.com/gocarina/gocsv"
 )
 
 func getMiB(numberOfBytes uint64) uint64 {
 	return numberOfBytes / (1024 * 1024)
 }
 
+type SystemMetrics struct {
+	ElapsedTimeSeconds      float64 `csv:"elapsed_time_seconds" json:"elapsed_time_seconds"`
+	RProcessesMemory        uint64  `csv:"r_processes_memory" json:"r_processes_memory"`
+	ChromiumProcessesMemory uint64  `csv:"chromium_processes_memory" json:"chromium_processes_memory"`
+	ScribeMemory            uint64  `csv:"scribe_memory" json:"scribe_memory"`
+	OthersMemory            uint64  `csv:"others_memory" json:"others_memory"`
+	TotalMemoryUsed         uint64  `csv:"total_memory_used" json:"total_memory_used"`
+	SystemMemoryUsed        uint64  `csv:"system_memory_used" json:"system_memory_used"`
+	SystemMemoryFree        uint64  `csv:"system_memory_free" json:"system_memory_free"`
+	NumberOfGoroutines      int     `csv:"number_of_goroutines" json:"number_of_goroutines"`
+	Load1                   float64 `csv:"load_1" json:"load_1"`
+	Load5                   float64 `csv:"load_5" json:"load_5"`
+	Load15                  float64 `csv:"load_15" json:"load_15"`
+}
+
 func systemDebugRoutine(systemDebugWaiter chan struct{}) {
 	var timeElapsedMs uint64
 	const samplingIntervalMs = 500
-	metricsFile, err := os.OpenFile("metrics.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	checkError(err)
-	defer metricsFile.Close()
-	_, err = metricsFile.WriteString(
-		"timeElapsedSeconds,rProcessesMemory,chromiumMemory,scribeMemory," +
-		"othersMemory,actualUsedSystemMemory,actualFreeSystemMemory," +
-		"numberOfGoroutines,load1,load5,load15,rCPUPercent,chromiumCPUPercent," +
-		"scribeCPUPercent,othersCPUPercent\n",
-	)
+	var systemMetrics []SystemMetrics
 system_debug_loop:
 	for {
 		select {
 		case _ = <-systemDebugWaiter:
+			log.Info("Saving system metrics...")
+			csvMetricsFile, err := os.OpenFile(systemMetricsCSVFileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+			checkError(err)
+			defer csvMetricsFile.Close()
+			gocsv.MarshalFile(systemMetrics, csvMetricsFile)
+			writeJSON(systemMetricsJSONFileName, systemMetrics)
 			log.Info("Exiting system debug routine...")
 			break system_debug_loop
 		default:
@@ -73,25 +86,27 @@ system_debug_loop:
 					continue
 				}
 				othersMemory := true
+			loop:
 				for _, processArgument := range args.List {
-					if strings.Contains(processArgument, "/usr/lib/R/") {
-						rProcessesMemory += (mem.Resident-mem.Share)/(1024*1024)
+					switch {
+					case strings.Contains(processArgument, "/usr/lib/R/"):
+						rProcessesMemory += (mem.Resident - mem.Share) / (1024 * 1024)
 						othersMemory = false
-						break
-					} else if strings.Contains(processArgument, "/usr/lib/chromium/") {
-						chromiumProcessesMemory += (mem.Resident-mem.Share)/(1024*1024)
+						break loop
+					case strings.Contains(processArgument, "/usr/lib/chromium/"):
+						chromiumProcessesMemory += (mem.Resident - mem.Share) / (1024 * 1024)
 						othersMemory = false
-						break
-					} else if strings.Contains(processArgument, "./scribe") {
-						scribeMemory += (mem.Resident-mem.Share)/(1024*1024)
+						break loop
+					case strings.Contains(processArgument, "./scribe"):
+						scribeMemory += (mem.Resident - mem.Share) / (1024 * 1024)
 						othersMemory = false
-						break
+						break loop
 					}
 				}
 				if othersMemory {
-					othersMemoryUsage += (mem.Resident-mem.Share)/(1024*1024)
+					othersMemoryUsage += (mem.Resident - mem.Share) / (1024 * 1024)
 				}
-				totalMemoryUsage += (mem.Resident-mem.Share)/(1024*1024)
+				totalMemoryUsage += (mem.Resident - mem.Share) / (1024 * 1024)
 			}
 			mem := sigar.Mem{}
 			mem.Get()
@@ -101,12 +116,11 @@ system_debug_loop:
 			avg, err := concreteSigar.GetLoadAverage()
 			checkError(err)
 			numberOfGoroutines := runtime.NumGoroutine()
-			_, err = metricsFile.WriteString(fmt.Sprintf(
-				"%.1f,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f\n",
-				float64(timeElapsedMs)/1000, rProcessesMemory, chromiumProcessesMemory, scribeMemory,
+			systemMetrics = append(systemMetrics, SystemMetrics{
+				float64(timeElapsedMs) / 1000, rProcessesMemory, chromiumProcessesMemory, scribeMemory,
 				othersMemoryUsage, totalMemoryUsage, actualUsedSystemMemory, actualFreeSystemMemory,
 				numberOfGoroutines, avg.One, avg.Five, avg.Fifteen,
-			))
+			})
 			checkError(err)
 			timeElapsedMs += samplingIntervalMs
 			time.Sleep(samplingIntervalMs * time.Millisecond)
