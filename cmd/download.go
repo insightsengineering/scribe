@@ -645,7 +645,7 @@ func getBioConductorPackages(biocVersion string, biocPackageInfo map[string]map[
 
 // computeChecksums iterates through files in directoryName and save the checksums of .tar.gz files found there.
 func computeChecksums(directoryPath string, localArchiveChecksums map[string]*CacheInfo) {
-	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(directoryPath, func(_ string, info os.FileInfo, _ error) error {
 		if strings.HasSuffix(info.Name(), tarGzExtension) {
 			filePath := directoryPath + "/" + info.Name()
 			byteValue, err := os.ReadFile(filePath)
