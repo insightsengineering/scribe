@@ -109,6 +109,7 @@ func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageChe
 
 var rootCmd *cobra.Command
 
+//nolint:revive
 func newRootCommand() {
 	rootCmd = &cobra.Command{
 		Use:   "scribe",

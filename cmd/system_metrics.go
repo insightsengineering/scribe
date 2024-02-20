@@ -1,3 +1,5 @@
+//go:build !darwin
+
 /*
 Copyright 2023 F. Hoffmann-La Roche AG
 
@@ -13,6 +15,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
+// Functionality dependent on gosigar fails to build on macOS.
+
 package cmd
 
 import (
@@ -51,18 +56,20 @@ func systemMetricsRoutine(systemMetricsWaiter chan struct{}) {
 system_metrics_loop:
 	for {
 		select {
-		case _ = <-systemMetricsWaiter:
+		case <-systemMetricsWaiter:
 			log.Info("Saving system metrics...")
 			csvMetricsFile, err := os.OpenFile(systemMetricsCSVFileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 			checkError(err)
 			defer csvMetricsFile.Close()
-			gocsv.MarshalFile(systemMetrics, csvMetricsFile)
+			err = gocsv.MarshalFile(systemMetrics, csvMetricsFile)
+			checkError(err)
 			writeJSON(systemMetricsJSONFileName, systemMetrics)
 			log.Info("Exiting system metrics routine...")
 			break system_metrics_loop
 		default:
 			pids := sigar.ProcList{}
-			pids.Get()
+			err := pids.Get()
+			checkError(err)
 			var rProcessesMemory uint64
 			var chromiumProcessesMemory uint64
 			var scribeMemory uint64
@@ -72,17 +79,13 @@ system_metrics_loop:
 				state := sigar.ProcState{}
 				mem := sigar.ProcMem{}
 				args := sigar.ProcArgs{}
-				procTime := sigar.ProcTime{}
-				if err := state.Get(pid); err != nil {
+				if err = state.Get(pid); err != nil {
 					continue
 				}
-				if err := mem.Get(pid); err != nil {
+				if err = mem.Get(pid); err != nil {
 					continue
 				}
-				if err := args.Get(pid); err != nil {
-					continue
-				}
-				if err := procTime.Get(pid); err != nil {
+				if err = args.Get(pid); err != nil {
 					continue
 				}
 				othersMemory := true
@@ -110,7 +113,8 @@ system_metrics_loop:
 				totalMemoryUsage += getMiB(mem.Resident - mem.Share)
 			}
 			mem := sigar.Mem{}
-			mem.Get()
+			err = mem.Get()
+			checkError(err)
 			actualUsedSystemMemory := getMiB(mem.ActualUsed)
 			actualFreeSystemMemory := getMiB(mem.ActualFree)
 			concreteSigar := sigar.ConcreteSigar{}
