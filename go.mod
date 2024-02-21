@@ -1,8 +1,6 @@
 module github.com/insightsengineering/scribe
 
-go 1.21.0
-
-toolchain go1.22.0
+go 1.22.0
 
 require (
 	github.com/cloudfoundry/gosigar v1.3.48
