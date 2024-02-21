@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func mockedDownloadTextFile(url string, _ map[string]string) (int, int64, string) {
+func mockedDownloadTextFile(url string, _ map[string]string) (int64, string, error) {
 	switch {
 	case url == "https://repository1.example.com/src/contrib/PACKAGES":
-		return 200, 0, `Package: package1
+		return 0, `Package: package1
 Version: 1.0.0
 Imports: package2, package3 (>= 1.0.2)
 Suggests: package5
@@ -33,22 +33,22 @@ Package: package2
 Version: 1.0.0
 Imports: package3
 Depends: package4
-`
+`, nil
 	case url == "https://repository2.example.com/src/contrib/PACKAGES":
-		return 200, 0, `Package: package3
+		return 0, `Package: package3
 Version: 1.0.0
 Depends: package4
 
 Package: package4
 Version: 2.0.0
-`
+`, nil
 	case url == "https://cloud.r-project.org/src/contrib/PACKAGES":
-		return 200, 0, `Package: package5
+		return 0, `Package: package5
 Version: 1.2.3
 Imports: package1
-`
+`, nil
 	}
-	return 200, 0, ""
+	return 0, "", nil
 }
 
 func Test_getDepsFromPackagesFiles(t *testing.T) {

@@ -12,13 +12,9 @@ builds:
       - linux
       - windows
       - darwin
-      - solaris
-      - freebsd
     goarch:
       - amd64
-      - arm
       - arm64
-      - ppc64
     ldflags:
       - -s -w
       - -X go.szostok.io/version.version={{.Version}}

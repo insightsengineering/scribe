@@ -144,7 +144,7 @@ This project is built with the [Go programming language](https://go.dev/).
 
 ### Development Environment
 
-It is recommended to use Go 1.21+ for developing this project.
+It is recommended to use Go 1.22+ for developing this project.
 This project uses a pre-commit configuration and it is recommended to [install and use pre-commit](https://pre-commit.com/#install) when you are developing this project.
 
 ### Common Commands

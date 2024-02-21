@@ -48,6 +48,8 @@ var checkOptions string
 var installOptions string
 var rCmdCheckFailRegex string
 var rExecutablePath string
+var systemMetricsCSVFileName string
+var systemMetricsJSONFileName string
 
 var log = logrus.New()
 
@@ -107,6 +109,7 @@ func getExitStatus(allInstallInfo []InstallResultInfo, allCheckInfo []PackageChe
 
 var rootCmd *cobra.Command
 
+//nolint:revive
 func newRootCommand() {
 	rootCmd = &cobra.Command{
 		Use:   "scribe",
@@ -132,6 +135,8 @@ for a collection of R packages that are defined in an
 			fmt.Println(`checkOptions = "` + checkOptions + `"`)
 			fmt.Println(`rCmdCheckFailRegex = "` + rCmdCheckFailRegex + `"`)
 			fmt.Println(`rExecutablePath = "` + rExecutablePath + `"`)
+			fmt.Println(`systemMetricsCSVFileName = "` + systemMetricsCSVFileName + `"`)
+			fmt.Println(`systemMetricsJSONFileName = "` + systemMetricsJSONFileName + "`")
 			fmt.Println(`includeSuggests = ` + strconv.FormatBool(includeSuggests))
 			fmt.Println(`checkAllPackages = ` + strconv.FormatBool(checkAllPackages))
 			fmt.Println(`clearCache = ` + strconv.FormatBool(clearCache))
@@ -302,6 +307,10 @@ for a collection of R packages that are defined in an
 			"(only when failOnError is true).")
 	rootCmd.PersistentFlags().StringVar(&rExecutablePath, "rExecutablePath", "R",
 		"Path to the R executable.")
+	rootCmd.PersistentFlags().StringVar(&systemMetricsCSVFileName, "systemMetricsCSVFileName", "metrics.csv",
+		"The name of output CSV file with R CMD check system metrics.")
+	rootCmd.PersistentFlags().StringVar(&systemMetricsJSONFileName, "systemMetricsJSONFileName", "metrics.json",
+		"The name of output JSON file with R CMD check system metrics.")
 
 	// Add version command.
 	rootCmd.AddCommand(extension.NewVersionCobraCmd())
@@ -354,7 +363,8 @@ func initializeConfig() {
 		"logLevel", "maskedEnvVars", "renvLockFilename", "checkPackage", "updatePackages",
 		"checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines", "numberOfWorkers",
 		"clearCache", "includeSuggests", "failOnError", "buildOptions", "installOptions",
-		"checkOptions", "rCmdCheckFailRegex", "rExecutablePath",
+		"checkOptions", "rCmdCheckFailRegex", "rExecutablePath", "systemMetricsCSVFileName",
+		"systemMetricsJSONFileName",
 	} {
 		// If the flag has not been set in newRootCommand() and it has been set in initConfig().
 		// In other words: if it's not been provided in command line, but has been
