@@ -34,7 +34,6 @@ var logLevel string
 var maskedEnvVars string
 var renvLockFilename string
 var checkPackageExpression string
-var updatePackages string
 var checkAllPackages bool
 var maxDownloadRoutines int
 var maxCheckRoutines int
@@ -128,7 +127,6 @@ for a collection of R packages that are defined in an
 			fmt.Println(`maskedEnvVars = "` + maskedEnvVars + `"`)
 			fmt.Println(`renvLockFilename = "` + renvLockFilename + `"`)
 			fmt.Println(`checkPackage = "` + checkPackageExpression + `"`)
-			fmt.Println(`updatePackages = "` + updatePackages + `"`)
 			fmt.Println(`reportDir = "` + outputReportDirectory + `"`)
 			fmt.Println(`buildOptions = "` + buildOptions + `"`)
 			fmt.Println(`installOptions = "` + installOptions + `"`)
@@ -177,19 +175,9 @@ for a collection of R packages that are defined in an
 			var systemInfo SystemInfo
 			getOsInformation(&systemInfo, maskedEnvVars)
 			var renvLock Renvlock
-			var renvLockOld Renvlock
-			var renvLockFilenameOld string
 			var erroneousRepositoryNames []string
 			getRenvLock(renvLockFilename, &renvLock)
 			validateRenvLock(renvLock, &erroneousRepositoryNames)
-			if updatePackages != "" {
-				renvLockFilenameOld = renvLockFilename
-				renvLockFilename += ".updated"
-				updatePackagesRenvLock(&renvLock, renvLockFilename, updatePackages)
-				// updatePackagesRenvLock modified the original structure in place.
-				// Therefore, we make a copy to show both renv.lock contents in the report.
-				getRenvLock(renvLockFilenameOld, &renvLockOld)
-			}
 
 			err := os.MkdirAll(tempCacheDirectory, os.ModePerm)
 			checkError(err)
@@ -239,8 +227,7 @@ for a collection of R packages that are defined in an
 
 			// Generate report.
 			var reportData ReportInfo
-			processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData,
-				renvLock, renvLockOld, renvLockFilenameOld)
+			processReportData(allDownloadInfo, allInstallInfo, allCheckInfo, &systemInfo, &reportData, renvLock)
 			err = os.RemoveAll(filepath.Join(outputReportDirectory, "logs"))
 			checkError(err)
 			err = os.MkdirAll(filepath.Join(outputReportDirectory, "logs"), os.ModePerm)
@@ -273,10 +260,6 @@ for a collection of R packages that are defined in an
 			"The expression follows the pattern: \"expression1,expression2,...\" where \"expressionN\" can be: "+
 			"literal package name and/or * symbol(s) meaning any set of characters. Example: "+
 			`'package*,*abc,a*b,someOtherPackage'`)
-	rootCmd.PersistentFlags().StringVar(&updatePackages, "updatePackages", "",
-		"Expression with wildcards indicating which packages should be updated to the newest version. "+
-			"The expression follows the same pattern as checkPackage flag. "+
-			"This is currently only supported for packages downloaded from git repositories.")
 	rootCmd.PersistentFlags().BoolVar(&checkAllPackages, "checkAllPackages", false,
 		"Use this flag to check all installed packages.")
 	rootCmd.PersistentFlags().StringVar(&outputReportDirectory, "reportDir", "outputReport",
@@ -360,7 +343,7 @@ func Execute() {
 
 func initializeConfig() {
 	for _, v := range []string{
-		"logLevel", "maskedEnvVars", "renvLockFilename", "checkPackage", "updatePackages",
+		"logLevel", "maskedEnvVars", "renvLockFilename", "checkPackage",
 		"checkAllPackages", "reportDir", "maxDownloadRoutines", "maxCheckRoutines", "numberOfWorkers",
 		"clearCache", "includeSuggests", "failOnError", "buildOptions", "installOptions",
 		"checkOptions", "rCmdCheckFailRegex", "rExecutablePath", "systemMetricsCSVFileName",

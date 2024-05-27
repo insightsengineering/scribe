@@ -35,9 +35,9 @@ Example usage with multiple flags:
 * ```bash
   scribe --config custom-config-file.yml --logLevel debug --maskedEnvVars 'password|key|regexForAnEnvVarThatShouldNotBeDisplayed' --renvLockFilename output-renv.lock --reportDir output-report-directory
   ```
-* Specifying for which packages `R CMD check` should be run, and which packages stored in `git` repositories should be updated with the newest version.
+* Specifying for which packages `R CMD check` should be run.
     ```bash
-    scribe --checkPackage 'package*,*abc,a*b,someOtherPackage' --updatePackages 'gitPackage1,git*Package,*packageFromGit*'
+    scribe --checkPackage 'package*,*abc,a*b,someOtherPackage'
     ```
 * Changing the default number of concurrent goroutines for downloading packages, running `R CMD check`, and running package building and installation.
     ```bash
@@ -66,7 +66,6 @@ Example contents of configuration file:
 logLevel: debug
 maskedEnvVars: secret-variable-name|another_variable_name
 checkPackage: teal*,tern
-updatePackages: teal*,tern
 renvLockFilename: custom-renv.lock
 outputReport: output-report-directory
 maxDownloadRoutines: 40
@@ -81,7 +80,7 @@ checkOptions: --ignore-vignettes
 
 `scribe` reads environment variables with `SCRIBE_` prefix and tries to match them with CLI flags.
 For example, setting the following variables will override the respective values from configuration file:
-`SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_UPDATEPACKAGES`, `SCRIBE_OUTPUTREPORT` etc.
+`SCRIBE_LOGLEVEL`, `SCRIBE_CHECKPACKAGE`, `SCRIBE_RENVLOCKFILENAME`, `SCRIBE_OUTPUTREPORT` etc.
 
 The order of precedence is:
 
