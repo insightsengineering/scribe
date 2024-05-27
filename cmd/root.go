@@ -175,8 +175,6 @@ for a collection of R packages that are defined in an
 			var systemInfo SystemInfo
 			getOsInformation(&systemInfo, maskedEnvVars)
 			var renvLock Renvlock
-			var renvLockOld Renvlock
-			var renvLockFilenameOld string
 			var erroneousRepositoryNames []string
 			getRenvLock(renvLockFilename, &renvLock)
 			validateRenvLock(renvLock, &erroneousRepositoryNames)

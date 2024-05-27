@@ -18,8 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"os"
-	"regexp"
-	"strings"
 )
 
 type Renvlock struct {
