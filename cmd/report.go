@@ -40,7 +40,6 @@ type ReportInfo struct {
 	PackagesInformation []PackagesData `json:"packagesInformation"`
 	SystemInformation   *SystemInfo    `json:"systemInformation"`
 	RenvInformation     RenvInfo       `json:"renvInformation"`
-	RenvInformationOld  RenvInfo       `json:"renvInformationOld"`
 	TotalCheckTime      string         `json:"totalCheckTime"`
 }
 
@@ -174,7 +173,7 @@ func processCheckInfo(allCheckInfo []PackageCheckInfo) (map[string]string, map[s
 // can be consumed by Go templating engine.
 func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallResultInfo,
 	allCheckInfo []PackageCheckInfo, systemInfo *SystemInfo, reportOutput *ReportInfo,
-	renvLock Renvlock, renvLockOld Renvlock, renvLockFilenameOld string) {
+	renvLock Renvlock) {
 
 	downloadStatuses := processDownloadInfo(allDownloadInfo)
 	installStatuses := processInstallInfo(allInstallInfo)
@@ -198,15 +197,6 @@ func processReportData(allDownloadInfo []DownloadInfo, allInstallInfo []InstallR
 	indentedValue, err := json.MarshalIndent(renvLock, "", "  ")
 	checkError(err)
 	reportOutput.RenvInformation.RenvContents = string(indentedValue)
-
-	if renvLockFilenameOld != "" {
-		// A copy of original renv.lock has been created since renvLock structure
-		// has been updated with new version of packages.
-		reportOutput.RenvInformationOld.RenvFilename = renvLockFilenameOld
-		indentedValueOld, err := json.MarshalIndent(renvLockOld, "", "  ")
-		checkError(err)
-		reportOutput.RenvInformationOld.RenvContents = string(indentedValueOld)
-	}
 }
 
 func writeReport(reportData ReportInfo, outputFile string) {

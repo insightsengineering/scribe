@@ -62,30 +62,20 @@ const HTMLReportTemplate = `<!doctype html>
         $(document).ready($(function () {
             $('#systemInfo').hide();
             $('#renvInfo').hide();
-            $('#renvInfoOld').hide();
             $('#statusPage').show();
             $('#navbarSystemInformation').click(function () {
                 $('#systemInfo').show();
                 $('#renvInfo').hide();
-                $('#renvInfoOld').hide();
                 $('#statusPage').hide();
             });
             $('#navbarReport').click(function () {
                 $('#systemInfo').hide();
                 $('#renvInfo').hide();
-                $('#renvInfoOld').hide();
                 $('#statusPage').show();
             });
             $('#navbarRenvInformation').click(function () {
                 $('#systemInfo').hide();
                 $('#renvInfo').show();
-                $('#renvInfoOld').hide();
-                $('#statusPage').hide();
-            });
-            $('#navbarRenvInformationOld').click(function () {
-                $('#systemInfo').hide();
-                $('#renvInfo').hide();
-                $('#renvInfoOld').show();
                 $('#statusPage').hide();
             });
         }));
@@ -102,10 +92,7 @@ const HTMLReportTemplate = `<!doctype html>
                         <a class="nav-link" href="#" id="navbarSystemInformation">System Information</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="navbarRenvInformation">renv.lock (updated)</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" id="navbarRenvInformationOld">renv.lock (original)</a>
+                        <a class="nav-link" href="#" id="navbarRenvInformation">renv.lock</a>
                     </li>
                 </ul>
             </div>
@@ -176,30 +163,6 @@ const HTMLReportTemplate = `<!doctype html>
                 <div class="col">
                     <pre><code>
 {{.RenvInformation.RenvContents | safe}}
-                    </code></pre>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="renvInfoOld" class="mt-3">
-        <div class="container">
-            <div class="row">
-                <div class="col">
-                <p class="fw-bold">renv.lock Filename</p>
-                </div>
-                <div class="col">
-                    <code>
-                    {{.RenvInformationOld.RenvFilename}}
-                    </code>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <p class="fw-bold">renv.lock Contents</p>
-                </div>
-                <div class="col">
-                    <pre><code>
-{{.RenvInformationOld.RenvContents | safe}}
                     </code></pre>
                 </div>
             </div>
