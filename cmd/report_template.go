@@ -133,6 +133,7 @@ const HTMLReportTemplate = `<!doctype html>
                     <tr>
                         <th>Name</th>
                         <th>Version</th>
+                        <th>Source</th>
                         <th>Download</th>
                         <th>Build</th>
                         <th>Install</th>
