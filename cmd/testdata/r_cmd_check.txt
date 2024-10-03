@@ -56,6 +56,17 @@ Some error 6
  ERROR
 Running the tests in ‘tests/testthat.R’ failed.
 * checking PDF version of manual ... OK
+* checking tests ...
+  Running ‘spelling.R’
+  Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ... OK
+  Running ‘testthat.R’
+ OK
+* checking tests ...
+  Running ‘spelling.R’
+  Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ... OK
+  Running ‘testthat.R’
+ ERROR
+Running the tests in ‘tests/testthat.R’ failed.
 * checking PDF version of
 manual
 ... OK

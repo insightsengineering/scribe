@@ -67,6 +67,9 @@ func Test_parseCheckOutput(t *testing.T) {
 	assert.Equal(t, allCheckInfo[7].CheckItemType, "ERROR")
 	assert.Equal(t, allCheckInfo[7].CheckItemContent,
 		"* checking tests ...   Running ‘testthat.R’  ERROR Running the tests in ‘tests/testthat.R’ failed. ")
+	assert.Equal(t, allCheckInfo[8].CheckItemType, "ERROR")
+	assert.Equal(t, allCheckInfo[8].CheckItemContent,
+		"* checking tests ...   Running ‘spelling.R’   Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ... OK   Running ‘testthat.R’  ERROR Running the tests in ‘tests/testthat.R’ failed. ")
 }
 
 func Test_getCheckedPackages(t *testing.T) {
