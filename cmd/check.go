@@ -144,7 +144,15 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 				case strings.HasSuffix(trimmedNewLine, "ERROR"):
 					checkItemType = errConst
 					continuationOnNextLine = false
-				case strings.HasSuffix(trimmedNewLine, "OK"):
+				case strings.HasSuffix(trimmedNewLine, "OK") && !strings.HasPrefix(trimmedNewLine, "Comparing"):
+					// The 'Comparing' prefix may occur in situation like the one shown below.
+					// In that case, we ignore the 'OK' at this line, and expect to see another check status
+					// in one of subsequent lines.
+					// * checking tests ...
+					//  Running ‘spelling.R’
+					//  Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ... OK
+					//  Running ‘testthat.R’
+					//  ERROR
 					checkItemType = ""
 					continuationOnNextLine = false
 				}

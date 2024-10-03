@@ -103,7 +103,7 @@ func Test_mapTrueLength(t *testing.T) {
 	m["test3"] = true
 	m["test4"] = false
 	m["test5"] = true
-	assert.Equal(t, mapTrueLength(m), uint(3))
+	assert.Equal(t, mapTrueLength(m), 3)
 }
 
 func Test_getPackageToInstall(t *testing.T) {

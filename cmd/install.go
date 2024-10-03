@@ -308,8 +308,8 @@ func getPackagesReadyToInstall(
 }
 
 // mapTrueLength returns the number of elements in the map for which the value is true.
-func mapTrueLength(m map[string]bool) uint {
-	var trueLength uint
+func mapTrueLength(m map[string]bool) int {
+	var trueLength int
 	for _, v := range m {
 		if v {
 			trueLength++
