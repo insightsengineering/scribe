@@ -148,11 +148,11 @@ func parseCheckOutput(stringToParse string, singlePackageCheckInfo *[]ItemCheckI
 					// The 'Comparing' prefix may occur in situation like the one shown below.
 					// In that case, we ignore the 'OK' at this line, and expect to see another check status
 					// in one of subsequent lines.
-					//* checking tests ...
-					// Running ‘spelling.R’
-					// Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ... OK
-					// Running ‘testthat.R’
-					// ERROR
+					// * checking tests ...
+					//  Running ‘spelling.R’
+					//  Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ... OK
+					//  Running ‘testthat.R’
+					//  ERROR
 					checkItemType = ""
 					continuationOnNextLine = false
 				}

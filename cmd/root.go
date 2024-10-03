@@ -38,7 +38,7 @@ var checkAllPackages bool
 var maxDownloadRoutines int
 var maxCheckRoutines int
 var outputReportDirectory string
-var numberOfWorkers uint
+var numberOfWorkers int
 var clearCache bool
 var includeSuggests bool
 var failOnError bool
@@ -141,7 +141,7 @@ for a collection of R packages that are defined in an
 			fmt.Println(`failOnError = ` + strconv.FormatBool(failOnError))
 			fmt.Println(`maxDownloadRoutines = ` + strconv.Itoa(maxDownloadRoutines))
 			fmt.Println(`maxCheckRoutines = ` + strconv.Itoa(maxCheckRoutines))
-			fmt.Println(`numberOfWorkers = ` + strconv.Itoa(int(numberOfWorkers)))
+			fmt.Println(`numberOfWorkers = ` + strconv.Itoa(numberOfWorkers))
 
 			if maxDownloadRoutines < 1 {
 				log.Warn("Maximum number of download routines set to less than 1. Setting the number to default value of 40.")
@@ -151,7 +151,7 @@ for a collection of R packages that are defined in an
 				log.Warn("Maximum number of R CMD check routines set to less than 1. Setting the number to default value of 5.")
 				maxCheckRoutines = 5
 			}
-			if int(numberOfWorkers) < 1 {
+			if numberOfWorkers < 1 {
 				log.Warn("Number of simultaneous installation processes should be greater than 0. Setting the default number of workers to 20.")
 				numberOfWorkers = 20
 			}
@@ -268,7 +268,7 @@ for a collection of R packages that are defined in an
 		"Maximum number of concurrently running download goroutines.")
 	rootCmd.PersistentFlags().IntVar(&maxCheckRoutines, "maxCheckRoutines", 5,
 		"Maximum number of concurrently running R CMD check goroutines.")
-	rootCmd.PersistentFlags().UintVar(&numberOfWorkers, "numberOfWorkers", 20,
+	rootCmd.PersistentFlags().IntVar(&numberOfWorkers, "numberOfWorkers", 20,
 		"Number of simultaneous installation processes.")
 	rootCmd.PersistentFlags().BoolVar(&clearCache, "clearCache", false,
 		"Use this flag if you want to clear scribe internal cache directory structure. This will cause "+
