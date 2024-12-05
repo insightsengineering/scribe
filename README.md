@@ -22,6 +22,12 @@ The statuses in the report shown above, when clicked, show the logs from the exe
 
 Simply download the project for your distribution from the [releases](https://github.com/insightsengineering/scribe/releases) page. `scribe` is distributed as a single binary file and does not require any additional system requirements other than `R`, with which it integrates and interfaces externally.
 
+Or, if you have a Go environment, you can simply install the latest version of `scribe` by running:
+
+```sh
+go install github.com/insightsengineering/scribe@latest
+```
+
 ## Usage
 
 `scribe` is a command line utility, so after installing the binary in your `PATH`, simply run the following command to view its capabilities:
