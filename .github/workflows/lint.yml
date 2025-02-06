@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 0
 
       - name: Lint Code Base 🕵🏻‍♀️
-        uses: super-linter/super-linter/slim@v6
+        uses: super-linter/super-linter/slim@v7
         env:
           LINTER_RULES_PATH: /
           VALIDATE_ALL_CODEBASE: false
@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - 1.23.2
+          - 1.23.6
     steps:
       - name: Checkout Repo 🛎
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Lint Go Code 🕵🏻‍♂️
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
           version: latest
           only-new-issues: false
