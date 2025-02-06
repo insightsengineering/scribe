@@ -80,6 +80,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/insightsengineering/locksmith v0.1.9 h1:MbE9TNI8jkIakCVwtAeSQU+ckl/J45WpKmjm6v0Mo+I=
 github.com/insightsengineering/locksmith v0.1.9/go.mod h1:IfNEvBc/MkRXfiINN42WV8es7z8XZwd19YNPXCXYszc=
+github.com/insightsengineering/locksmith v0.1.10 h1:TBBwdnlnHp41oeocEPZVqehopAJzzRvdDh80st8vHx8=
+github.com/insightsengineering/locksmith v0.1.10/go.mod h1:h/0/Rqh6lBZ4HIbJrO+fndGYaJvjO304WD0Is8qVb94=
 github.com/jamiealquiza/envy v1.1.0 h1:Nwh4wqTZ28gDA8zB+wFkhnUpz3CEcO12zotjeqqRoKE=
 github.com/jamiealquiza/envy v1.1.0/go.mod h1:MP36BriGCLwEHhi1OU8E9569JNZrjWfCvzG7RsPnHus=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=

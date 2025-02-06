@@ -40,6 +40,10 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
+      - name: Check if R installed
+        run: |
+          which R
+
       - name: Run Tests 🧨
         run: make test
 
