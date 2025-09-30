@@ -1,4 +1,5 @@
 # Customization options: https://goreleaser.com/customization/
+version: 2
 project_name: scribe
 before:
   hooks:
