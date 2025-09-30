@@ -60,7 +60,7 @@ format: ## Format source code
 
 lint: devdeps spell ## Lint source code
 	@printf "Executing target: [$@] 🎯\n"
-	@golangci-lint run --fast -c .golangci.yml
+	@golangci-lint run -c .golangci.yml
 
 test: clean tidy devdeps spell ## Run unit tests and generate reports
 	@printf "Executing target: [$@] 🎯\n"
