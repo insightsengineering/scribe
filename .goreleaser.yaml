@@ -24,18 +24,14 @@ checksum:
   algorithm: sha512
 changelog:
   sort: asc
-dockers:
-  - goos: linux
-    goarch: amd64
-    image_templates:
-    - "ghcr.io/insightsengineering/{{ .ProjectName }}:{{ .Version }}"
-    - "ghcr.io/insightsengineering/{{ .ProjectName }}:latest"
-    skip_push: false
-    build_flag_templates:
-    - "--pull"
-    - "--label=org.opencontainers.image.created={{ .Date }}"
-    - "--label=org.opencontainers.image.title={{ .ProjectName }}"
-    - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-    - "--label=org.opencontainers.image.version={{ .Version }}"
-    - "--build-arg=PROJECT_NAME={{ .ProjectName }}"
-    - "--platform=linux/amd64"
+dockers_v2:
+  - images:
+      - "ghcr.io/insightsengineering/{{ .ProjectName }}"
+    tags:
+      - "latest"
+      - "{{ .Version }}"
+    labels:
+      "org.opencontainers.image.created": "{{ .Date }}"
+      "org.opencontainers.image.title": "{{ .ProjectName }}"
+      "org.opencontainers.image.revision": "{{ .FullCommit }}"
+      "org.opencontainers.image.version": "{{ .Version }}"
