@@ -27,7 +27,8 @@ devdeps: ## Install development dependencies
 	@printf "Executing target: [$@] 🎯\n"
 	@which -a golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH) v2.4.0
 	@which -a typex > /dev/null || go install github.com/dtgorski/typex@latest
-	@which -a goreleaser > /dev/null || go install github.com/goreleaser/goreleaser/v2@latest
+	@# Goreleaser v2.12 requires Go 1.25, so pin to v2.11.2 for now
+	@which -a goreleaser > /dev/null || go install github.com/goreleaser/goreleaser/v2@v2.11.2
 	@which -a gocover-cobertura > /dev/null || go install github.com/boumenot/gocover-cobertura@latest
 	@which -a misspell > /dev/null || go install github.com/client9/misspell/cmd/misspell@latest
 	@which -a gotestdox > /dev/null || go install github.com/bitfield/gotestdox/cmd/gotestdox@latest
