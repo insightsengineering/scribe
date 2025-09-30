@@ -1,4 +1,5 @@
 # Customization options: https://goreleaser.com/customization/
+version: 2
 project_name: scribe
 before:
   hooks:
@@ -24,6 +25,7 @@ checksum:
   algorithm: sha512
 changelog:
   sort: asc
+
 dockers:
   - goos: linux
     goarch: amd64
@@ -39,3 +41,16 @@ dockers:
     - "--label=org.opencontainers.image.version={{ .Version }}"
     - "--build-arg=PROJECT_NAME={{ .ProjectName }}"
     - "--platform=linux/amd64"
+
+# Update to this config in the future.
+# dockers_v2:
+#   - images:
+#       - "ghcr.io/insightsengineering/{{ .ProjectName }}"
+#     tags:
+#       - "latest"
+#       - "{{ .Version }}"
+#     labels:
+#       "org.opencontainers.image.created": "{{ .Date }}"
+#       "org.opencontainers.image.title": "{{ .ProjectName }}"
+#       "org.opencontainers.image.revision": "{{ .FullCommit }}"
+#       "org.opencontainers.image.version": "{{ .Version }}"
