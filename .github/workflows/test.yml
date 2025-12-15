@@ -30,8 +30,20 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Checkout Repo 🛎
-        uses: actions/checkout@v5
+      - name: Checkout repo (PR) 🛎
+        uses: actions/checkout@v4.1.1
+        if: github.event_name == 'pull_request'
+        with:
+          path: ${{ github.event.repository.name }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+
+      - name: Checkout repo 🛎
+        uses: actions/checkout@v4.1.1
+        if: github.event_name != 'pull_request'
+        with:
+          ref: ${{ steps.branch-name.outputs.current_branch }}
+          path: ${{ github.event.repository.name }}
 
       - name: Setup Go 🐹
         uses: actions/setup-go@v6
