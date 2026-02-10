@@ -4,7 +4,7 @@ go 1.24.7
 
 require (
 	github.com/cloudfoundry/gosigar v1.3.101
-	github.com/go-git/go-git/v5 v5.16.2
+	github.com/go-git/go-git/v5 v5.16.5
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/insightsengineering/locksmith v0.1.12
 	github.com/jamiealquiza/envy v1.1.0
