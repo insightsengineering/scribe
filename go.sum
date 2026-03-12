@@ -102,6 +102,8 @@ github.com/insightsengineering/locksmith v0.1.12 h1:bcwPNKsv/KXNqO4KjZqYCSY8B8K4
 github.com/insightsengineering/locksmith v0.1.12/go.mod h1:xH6xYAMR1wE6NPoVouoKk6aFETU6OqnTNHupVJ0jm7Q=
 github.com/insightsengineering/locksmith v0.1.13 h1:tk9qciom2TwDLE4ZwAg8R/eIUKk3fImO00iYqTcGZqQ=
 github.com/insightsengineering/locksmith v0.1.13/go.mod h1:Zvw90og33knaV5MmLS52z5nbFLXnMRDY0Qs9gl8GvL4=
+github.com/insightsengineering/locksmith v0.1.14 h1:OAriWCbePiHQZa5LAU5EbfWaDHqc3hmZWfqVpNGI1fE=
+github.com/insightsengineering/locksmith v0.1.14/go.mod h1:zF93OHD+US67KcNuXLKhffDHMEtQ/Go30WyhUv30Z1Q=
 github.com/jamiealquiza/envy v1.1.0 h1:Nwh4wqTZ28gDA8zB+wFkhnUpz3CEcO12zotjeqqRoKE=
 github.com/jamiealquiza/envy v1.1.0/go.mod h1:MP36BriGCLwEHhi1OU8E9569JNZrjWfCvzG7RsPnHus=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=

@@ -6,7 +6,7 @@ require (
 	github.com/cloudfoundry/gosigar v1.3.116
 	github.com/go-git/go-git/v5 v5.17.0
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
-	github.com/insightsengineering/locksmith v0.1.13
+	github.com/insightsengineering/locksmith v0.1.14
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
