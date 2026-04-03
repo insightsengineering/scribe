@@ -24,12 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo 🛎
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
 
       - name: Lint Code Base 🕵🏻‍♀️
-        uses: super-linter/super-linter/slim@v8
+        uses: super-linter/super-linter/slim@d24d9629088c26de5cc684fbe17d1843469c37e0 # v8
         env:
           LINTER_RULES_PATH: /
           VALIDATE_ALL_CODEBASE: false
@@ -50,17 +50,17 @@ jobs:
           - 1.26.1
     steps:
       - name: Checkout Repo 🛎
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup Go 🐹
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: go.sum
 
       - name: Lint Go Code 🕵🏻‍♂️
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # v8
         with:
           version: latest
           only-new-issues: false
